@@ -1,0 +1,83 @@
+/* Estilos exclusivos de Reportes. La paleta se aplicará en el siguiente bloque. */
+.reportes-page {
+  background-color: #f3f4f6;
+}
+
+.reportes-page .reportes-layout {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.reportes-page .reportes-sidebar {
+  --bs-offcanvas-width: min(18rem, 85vw);
+  background-color: #212529 !important;
+}
+
+.reportes-page .reportes-marca {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  background-color: #495057;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.reportes-page .reportes-sidebar .nav-link {
+  padding: 0.875rem 1rem;
+  color: #dee2e6;
+}
+
+.reportes-page .reportes-sidebar .nav-link:hover,
+.reportes-page .reportes-sidebar .nav-link:focus-visible {
+  background-color: #343a40;
+  color: #ffffff;
+}
+
+.reportes-page .reportes-sidebar .nav-link.active {
+  background-color: #495057;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.reportes-page .reportes-perfil {
+  background-color: #343a40;
+}
+
+.reportes-page .reportes-area {
+  min-width: 0;
+}
+
+.reportes-page .reportes-barra {
+  background-color: #ffffff;
+}
+
+.reportes-page .reportes-salto {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1100;
+  padding: 0.75rem 1rem;
+  background-color: #ffffff;
+  color: #212529;
+}
+
+/* Bootstrap usa lg (992px) para pasar del menú desplegable a la barra lateral. */
+@media (min-width: 992px) {
+  .reportes-page .reportes-sidebar {
+    position: sticky;
+    top: 0;
+    width: 15rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    flex: 0 0 15rem;
+  }
+
+  .reportes-page .reportes-sidebar .offcanvas-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
