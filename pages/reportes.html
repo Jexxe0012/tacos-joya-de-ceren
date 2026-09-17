@@ -23,7 +23,7 @@
   <div class="reportes-layout d-lg-flex">
     <!-- En escritorio queda visible; en celular se abre con el botón Menú. -->
     <aside
-      class="reportes-sidebar offcanvas-lg offcanvas-start text-bg-dark d-lg-flex flex-lg-column"
+      class="reportes-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column"
       tabindex="-1"
       id="menu-lateral"
       aria-labelledby="titulo-menu"
@@ -33,7 +33,7 @@
           <span class="reportes-marca rounded-3" aria-hidden="true">TJ</span>
           <div>
             <h2 class="h6 mb-1" id="titulo-menu">Tacos Joya</h2>
-            <p class="small mb-0 text-white-50">de Cerén</p>
+            <p class="small mb-0 reportes-texto-lateral">de Cerén</p>
           </div>
         </div>
         <button
@@ -74,7 +74,7 @@
         <!-- La sesión y el nombre del usuario se integrarán en otro bloque. -->
         <div class="reportes-perfil rounded-3 p-3 mt-auto">
           <p class="small fw-semibold mb-1">Vista del dueño</p>
-          <p class="small text-white-50 mb-0">Administración</p>
+          <p class="small reportes-texto-lateral mb-0">Administración</p>
         </div>
       </div>
     </aside>
@@ -82,7 +82,7 @@
     <div class="reportes-area flex-grow-1">
       <header class="reportes-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom">
         <button
-          class="btn btn-outline-secondary d-lg-none"
+          class="btn reportes-menu-toggle d-lg-none"
           type="button"
           data-bs-toggle="offcanvas"
           data-bs-target="#menu-lateral"
@@ -96,7 +96,7 @@
             <li class="breadcrumb-item active" aria-current="page">Operación</li>
           </ol>
         </nav>
-        <span class="badge rounded-pill text-bg-light border ms-auto">Dueño</span>
+        <span class="badge rounded-pill reportes-rol border ms-auto">Dueño</span>
       </header>
 
       <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1">

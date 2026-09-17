@@ -1,6 +1,29 @@
-/* Estilos exclusivos de Reportes. La paleta se aplicará en el siguiente bloque. */
+/* Paleta Raíces y familia, limitada a esta página para no afectar otros módulos. */
 .reportes-page {
-  background-color: #f3f4f6;
+  --reportes-crema: #fff3dd;
+  --reportes-azul: #101b46;
+  --reportes-rojo: #b62424;
+  --reportes-maiz: #f2b632;
+  --reportes-verde: #426b3a;
+
+  /* Tonos derivados para superficies, bordes y textos secundarios. */
+  --reportes-fondo: #f8f3e9;
+  --reportes-superficie: #fffdfa;
+  --reportes-azul-suave: #233058;
+  --reportes-borde: #e5e0d5;
+  --reportes-texto-secundario: #656879;
+  --reportes-texto-lateral: #d5d9e5;
+  --reportes-verde-suave: #e9f0e3;
+  --reportes-verde-borde: #c8d7c0;
+
+  /* Las utilidades de Bootstrap heredan estos colores dentro de Reportes. */
+  --bs-body-color: var(--reportes-azul);
+  --bs-body-color-rgb: 16, 27, 70;
+  --bs-secondary-color: var(--reportes-texto-secundario);
+  --bs-border-color: var(--reportes-borde);
+
+  background-color: var(--reportes-fondo);
+  color: var(--reportes-azul);
 }
 
 .reportes-page .reportes-layout {
@@ -10,7 +33,11 @@
 
 .reportes-page .reportes-sidebar {
   --bs-offcanvas-width: min(18rem, 85vw);
-  background-color: #212529 !important;
+  --bs-offcanvas-color: var(--reportes-crema);
+  --bs-offcanvas-bg: var(--reportes-azul);
+  color: var(--reportes-crema);
+  /* Bootstrap vuelve transparente el offcanvas en escritorio: mantenemos el azul. */
+  background-color: var(--reportes-azul) !important;
 }
 
 .reportes-page .reportes-marca {
@@ -19,30 +46,37 @@
   width: 2.5rem;
   height: 2.5rem;
   flex-shrink: 0;
-  background-color: #495057;
+  background-color: var(--reportes-rojo);
+  color: var(--reportes-crema);
   font-size: 0.875rem;
   font-weight: 700;
 }
 
 .reportes-page .reportes-sidebar .nav-link {
   padding: 0.875rem 1rem;
-  color: #dee2e6;
+  border-left: 3px solid transparent;
+  color: var(--reportes-crema);
 }
 
 .reportes-page .reportes-sidebar .nav-link:hover,
 .reportes-page .reportes-sidebar .nav-link:focus-visible {
-  background-color: #343a40;
-  color: #ffffff;
+  background-color: var(--reportes-azul-suave);
+  color: var(--reportes-crema);
 }
 
 .reportes-page .reportes-sidebar .nav-link.active {
-  background-color: #495057;
-  color: #ffffff;
+  background-color: var(--reportes-azul-suave);
+  border-left-color: var(--reportes-maiz);
+  color: var(--reportes-maiz);
   font-weight: 600;
 }
 
 .reportes-page .reportes-perfil {
-  background-color: #343a40;
+  background-color: var(--reportes-azul-suave);
+}
+
+.reportes-page .reportes-texto-lateral {
+  color: var(--reportes-texto-lateral);
 }
 
 .reportes-page .reportes-area {
@@ -50,7 +84,45 @@
 }
 
 .reportes-page .reportes-barra {
-  background-color: #ffffff;
+  background-color: var(--reportes-superficie);
+}
+
+.reportes-page .breadcrumb {
+  --bs-breadcrumb-divider-color: var(--reportes-texto-secundario);
+  --bs-breadcrumb-item-active-color: var(--reportes-texto-secundario);
+}
+
+.reportes-page .reportes-rol {
+  --bs-border-color: var(--reportes-verde-borde);
+  padding: 0.5rem 0.875rem;
+  background-color: var(--reportes-verde-suave);
+  color: var(--reportes-verde);
+  font-weight: 600;
+}
+
+/* Variables de Bootstrap para conservar los estados del botón del menú móvil. */
+.reportes-page .reportes-menu-toggle {
+  --bs-btn-color: var(--reportes-azul);
+  --bs-btn-bg: var(--reportes-superficie);
+  --bs-btn-border-color: var(--reportes-azul);
+  --bs-btn-hover-color: var(--reportes-crema);
+  --bs-btn-hover-bg: var(--reportes-azul);
+  --bs-btn-hover-border-color: var(--reportes-azul);
+  --bs-btn-active-color: var(--reportes-crema);
+  --bs-btn-active-bg: var(--reportes-azul);
+  --bs-btn-active-border-color: var(--reportes-azul);
+  --bs-btn-focus-shadow-rgb: 16, 27, 70;
+}
+
+.reportes-page a:focus-visible,
+.reportes-page button:focus-visible {
+  outline: 3px solid var(--reportes-azul);
+  outline-offset: 3px;
+}
+
+.reportes-page .reportes-sidebar a:focus-visible,
+.reportes-page .reportes-sidebar button:focus-visible {
+  outline-color: var(--reportes-maiz);
 }
 
 .reportes-page .reportes-salto {
@@ -59,8 +131,8 @@
   left: 0.75rem;
   z-index: 1100;
   padding: 0.75rem 1rem;
-  background-color: #ffffff;
-  color: #212529;
+  background-color: var(--reportes-superficie);
+  color: var(--reportes-azul);
 }
 
 /* Bootstrap usa lg (992px) para pasar del menú desplegable a la barra lateral. */
