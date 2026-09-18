@@ -64,7 +64,86 @@ body {
     flex-direction: column;
   }
   .login-left {
-    min-height: auto;
+
     padding: 2rem;
   }
+}
+
+/* ============================================
+   LOGIN — Panel izquierdo (marca)
+   ============================================ */
+
+/* Convertimos el panel en columna flex para
+   apilar logo, título, subtítulo y features
+   con un espaciado uniforme (gap). */
+.login-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: center;   /* centra verticalmente el bloque de contenido */
+}
+
+/* Logo TJ: cuadrado rojo con la sigla blanca
+   centrada. width y height iguales = cuadrado.
+   display:flex para centrar el texto adentro. */
+.login-logo {
+  width: 3.5rem;
+  height: 3.5rem;
+  background: var(--color-rojo);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;   /* esquinas suavemente redondeadas */
+  letter-spacing: 0.05em;  /* separa un poquito la T de la J */
+}
+
+/* Título principal: grande, peso fuerte.
+   margin:0 para que no herede el margin default
+   de <h1> (que le mete espacio arriba/abajo). */
+.login-left h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Subtítulo: más chico, con opacidad para
+   dar jerarquía visual respecto al título. */
+.login-subtitle {
+  font-size: 1rem;
+  opacity: 0.85;
+  margin: 0;
+  max-width: 28rem;   /* limita el ancho para que no se estire feo en pantalla grande */
+}
+
+/* Lista de features: quitamos el puntito
+   default y el padding izquierdo que <ul>
+   trae de fábrica. */
+.login-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Cada <li> tiene un "check" custom antes
+   del texto, usando el pseudo-elemento ::before.
+   content: "✓" es el símbolo que insertamos. */
+.login-features li {
+  position: relative;
+  padding-left: 1.5rem;   /* deja espacio para el check */
+  font-size: 0.95rem;
+}
+
+.login-features li::before {
+  content: "✓";
+  color: var(--color-maiz);   /* amarillo maíz de la paleta */
+  font-weight: 700;
+  position: absolute;         /* se ubica respecto al <li> (position: relative) */
+  left: 0;                    /* pegado al borde izquierdo, dentro del padding */
 }
