@@ -142,5 +142,37 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
   }
 
   // Si llegamos acá, formato válido. La verificación contra DB viene en 5d-2.
-  console.log('Validación OK:', { correo, pass, rolElegido });
+  // Buscar el usuario en la DB por correo.
+  // .find() devuelve el primer elemento que cumple, o undefined.
+  const usuarios = DB.getAll('usuarios');
+  const usuario = usuarios.find(u => u.correo.toLowerCase() === correo);
+
+  if (!usuario) {
+    errorBox.textContent = 'No existe una cuenta con ese correo.';
+    return;
+  }
+  if (usuario.pass !== pass) {
+    errorBox.textContent = 'Contraseña incorrecta.';
+    return;
+  }
+  if (usuario.rol !== rolElegido) {
+    errorBox.textContent = 'El rol seleccionado no coincide con tu cuenta.';
+    return;
+  }
+
+  // Todo OK: guardamos la sesión activa (sin contraseña).
+  localStorage.setItem('sesion', JSON.stringify({
+    id: usuario.id,
+    correo: usuario.correo,
+    nombre: usuario.nombre,
+    rol: usuario.rol,
+    loginAt: Date.now()
+  }));
+
+  // Redirigir según rol.
+  if (usuario.rol === 'admin') {
+    window.location.href = 'dashboard.html';
+  } else {
+    window.location.href = 'turnos.html';
+  }
 });
