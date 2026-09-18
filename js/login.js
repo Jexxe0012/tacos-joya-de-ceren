@@ -84,3 +84,63 @@ document.querySelectorAll('input[name="reg-role"]').forEach(radio => {
     }
   });
 });
+
+/* ============================================
+   Handler del login: validar y mostrar errores
+   ============================================ */
+
+/**
+ * Regex para validar formato de correo electrónico.
+ * Acepta cualquier cosa sin espacios/@ + "@" + algo + "." + algo.
+ * No es "perfecto" pero es el estándar que usa HTML5.
+ */
+const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Al hacer submit en el formulario de login:
+ * 1. Prevenir el submit HTML default (que recargaría la página).
+ * 2. Leer los tres campos: correo, contraseña, rol elegido.
+ * 3. Validar formato de cada uno; si falla, mostrar error y detener.
+ * 4. Si todo pasa, por ahora solo log en consola.
+ *    (El paso 5d-2 va a agregar la búsqueda en DB y la redirección.)
+ */
+document.getElementById('login-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  // Leer valores. .trim() quita espacios al inicio/final.
+  // .toLowerCase() normaliza el correo (Ana@X == ana@x).
+  const correo = document.getElementById('email').value.trim().toLowerCase();
+  const pass = document.getElementById('password').value;
+
+  // El radio marcado (si hay). ?. evita error si ninguno está marcado.
+  const rolElegido = document.querySelector('input[name="role"]:checked')?.value;
+
+  // Zona donde mostraremos errores. Limpiamos residuo de intentos anteriores.
+  const errorBox = document.getElementById('login-error');
+  errorBox.textContent = '';
+
+  // Guard clauses: validamos y salimos apenas una falla.
+  if (!correo) {
+    errorBox.textContent = 'Ingresa tu correo electrónico.';
+    return;
+  }
+  if (!REGEX_EMAIL.test(correo)) {
+    errorBox.textContent = 'El correo no tiene un formato válido.';
+    return;
+  }
+  if (!pass) {
+    errorBox.textContent = 'Ingresa tu contraseña.';
+    return;
+  }
+  if (pass.length < 6) {
+    errorBox.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+    return;
+  }
+  if (!rolElegido) {
+    errorBox.textContent = 'Selecciona tu perfil (Admin o Empleado).';
+    return;
+  }
+
+  // Si llegamos acá, formato válido. La verificación contra DB viene en 5d-2.
+  console.log('Validación OK:', { correo, pass, rolElegido });
+});
