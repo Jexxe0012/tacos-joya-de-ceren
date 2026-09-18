@@ -230,19 +230,8 @@ body {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-azul);
-  margin-bottom: 0.5rem;
-  padding: 0;
-}
-
-/* Contenedor que pone las dos tarjetas de rol
-   lado a lado con Flexbox. */
-.role-picker {
-  display: flex;
-  flex-direction: column;
-}
-
-.role-picker legend {
   margin-bottom: 0.6rem;
+  padding: 0;
 }
 
 /* Wrapper que agrupa las dos <label> de rol
@@ -254,8 +243,13 @@ body {
 
 /* Cada tarjeta de rol: la <label> que envuelve
    el radio + los spans. La convertimos en
-   tarjeta clickeable. */
-.role-card {
+   tarjeta clickeable.
+   Usamos .login-card .role-card (dos clases) para
+   ganarle en especificidad a .login-card label
+   (clase + etiqueta); si no, ese bloque le impone
+   display:block y sus márgenes. */
+.login-card .role-card {
+  position: relative;   /* ancla el radio oculto (position: absolute) dentro de la tarjeta */
   flex: 1;
   border: 1.5px solid #E0DDD3;
   border-radius: 0.5rem;
@@ -264,8 +258,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  transition: border-color 0.15s ease, background 0.15s ease;
-  /* Sobreescribe el estilo default de label del bloque anterior */
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
   margin: 0;
 }
 
@@ -298,6 +291,15 @@ body {
 .role-card:has(input:checked) {
   border-color: var(--color-maiz);
   background: rgba(242, 182, 50, 0.1);
+}
+
+/* Foco con teclado: como el radio es invisible,
+   mostramos el foco en la tarjeta completa con el
+   mismo halo que los inputs. :focus-visible solo
+   aplica al navegar con teclado, no al hacer clic. */
+.role-card:has(input:focus-visible) {
+  border-color: var(--color-maiz);
+  box-shadow: 0 0 0 3px rgba(242, 182, 50, 0.35);
 }
 
 /* Botón principal "Ingresar al sistema":

@@ -41,17 +41,19 @@
           <fieldset class="role-picker">
             <legend>Selecciona tu perfil</legend>
 
-            <label class="role-card">
-              <input type="radio" name="role" value="admin" required>
-              <span class="role-title">Dueño / Admin</span>
-              <span class="role-desc">Acceso completo</span>
-            </label>
+            <div class="role-cards-wrapper">
+              <label class="role-card">
+                <input type="radio" name="role" value="admin" required>
+                <span class="role-title">Dueño / Admin</span>
+                <span class="role-desc">Acceso completo</span>
+              </label>
 
-            <label class="role-card">
-              <input type="radio" name="role" value="empleado">
-              <span class="role-title">Empleado</span>
-              <span class="role-desc">Operación</span>
-            </label>
+              <label class="role-card">
+                <input type="radio" name="role" value="empleado">
+                <span class="role-title">Empleado</span>
+                <span class="role-desc">Operación</span>
+              </label>
+            </div>
           </fieldset>
 
           <button type="submit">Ingresar al sistema</button>
