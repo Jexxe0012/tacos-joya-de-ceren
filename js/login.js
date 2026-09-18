@@ -95,6 +95,7 @@ document.querySelectorAll('input[name="reg-role"]').forEach(radio => {
  * No es "perfecto" pero es el estándar que usa HTML5.
  */
 const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ADMIN_KEY = 'TJC-ADMIN-2025';
 
 /**
  * Al hacer submit en el formulario de login:
@@ -171,6 +172,105 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
 
   // Redirigir según rol.
   if (usuario.rol === 'admin') {
+    window.location.href = 'dashboard.html';
+  } else {
+    window.location.href = 'turnos.html';
+  }
+});
+
+/* ============================================
+   Handler del registro
+   ============================================ */
+
+/**
+ * Al hacer submit en el formulario de registro:
+ * 1. Prevenir el submit HTML default.
+ * 2. Leer todos los campos.
+ * 3. Validar formato, coincidencia de contraseñas, correo único.
+ * 4. Si el rol es admin, validar la clave de administrador.
+ * 5. Si todo OK: crear el usuario en DB, guardar sesión (auto-login),
+ *    y redirigir según su rol.
+ */
+document.getElementById('register-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  // Leer valores
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const correo = document.getElementById('reg-email').value.trim().toLowerCase();
+  const pass = document.getElementById('reg-password').value;
+  const pass2 = document.getElementById('reg-password2').value;
+  const rolElegido = document.querySelector('input[name="reg-role"]:checked')?.value;
+  const claveAdmin = document.getElementById('reg-admin-key').value.trim();
+
+  const errorBox = document.getElementById('register-error');
+  errorBox.textContent = '';
+
+  // Validaciones de formato
+  if (!nombre) {
+    errorBox.textContent = 'Ingresa tu nombre completo.';
+    return;
+  }
+  if (nombre.length < 2) {
+    errorBox.textContent = 'El nombre debe tener al menos 2 caracteres.';
+    return;
+  }
+  if (!correo) {
+    errorBox.textContent = 'Ingresa tu correo electrónico.';
+    return;
+  }
+  if (!REGEX_EMAIL.test(correo)) {
+    errorBox.textContent = 'El correo no tiene un formato válido.';
+    return;
+  }
+  if (!pass) {
+    errorBox.textContent = 'Ingresa una contraseña.';
+    return;
+  }
+  if (pass.length < 6) {
+    errorBox.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+    return;
+  }
+  if (pass !== pass2) {
+    errorBox.textContent = 'Las contraseñas no coinciden.';
+    return;
+  }
+  if (!rolElegido) {
+    errorBox.textContent = 'Selecciona un perfil (Admin o Empleado).';
+    return;
+  }
+
+  // Verificar que el correo no exista ya
+  const existente = DB.getAll('usuarios').find(u => u.correo.toLowerCase() === correo);
+  if (existente) {
+    errorBox.textContent = 'Ya existe una cuenta con ese correo.';
+    return;
+  }
+
+  // Si eligió admin, verificar la clave
+  if (rolElegido === 'admin' && claveAdmin !== ADMIN_KEY) {
+    errorBox.textContent = 'La clave de administrador es incorrecta.';
+    return;
+  }
+
+  // Todo OK: crear el usuario
+  const nuevoUsuario = DB.create('usuarios', {
+    nombre: nombre,
+    correo: correo,
+    pass: pass,
+    rol: rolElegido
+  });
+
+  // Auto-login: guardar sesión (sin contraseña)
+  localStorage.setItem('sesion', JSON.stringify({
+    id: nuevoUsuario.id,
+    correo: nuevoUsuario.correo,
+    nombre: nuevoUsuario.nombre,
+    rol: nuevoUsuario.rol,
+    loginAt: Date.now()
+  }));
+
+  // Redirigir según rol
+  if (nuevoUsuario.rol === 'admin') {
     window.location.href = 'dashboard.html';
   } else {
     window.location.href = 'turnos.html';
