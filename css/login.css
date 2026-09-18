@@ -1,0 +1,70 @@
+/* ============================================
+   LOGIN — Layout split-screen
+   Depende de las variables de :root definidas en main.css
+   ============================================ */
+
+/* Reset mínimo: quita el margen que el navegador
+   pone por default en <body> y hace que padding
+   y border cuenten dentro del ancho del elemento
+   (box-sizing), no fuera. Sin esto, 100vw + padding
+   causa scroll horizontal. */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* El contenedor padre: ocupa toda la altura de la
+   pantalla (100vh = 100% viewport height) y activa
+   Flexbox para que sus dos hijos <section> se pongan
+   lado a lado. */
+.login-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Los dos paneles se reparten el espacio 50/50.
+   flex: 1 es atajo de flex-grow:1 flex-shrink:1 flex-basis:0.
+   Traducido: "creceme, achicame si hace falta, y arrancá
+   desde 0 para que el reparto sea equitativo". */
+.login-left,
+.login-right {
+  flex: 1;
+  padding: 3rem;
+}
+
+/* Panel izquierdo: fondo azul, texto claro.
+   Las variables vienen de main.css (:root). */
+.login-left {
+  background: var(--color-azul);
+  color: var(--color-crema);
+}
+
+/* Panel derecho: fondo crema, centra la tarjeta
+   del formulario vertical y horizontalmente.
+   Flexbox anidado dentro de Flexbox — sí, se puede
+   sin problema. */
+.login-right {
+  background: var(--color-crema);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive: en pantallas angostas (celular), en vez
+   de dos columnas los paneles se apilan verticalmente.
+   Cambiamos flex-direction de row (default) a column. */
+@media (max-width: 768px) {
+  .login-layout {
+    flex-direction: column;
+  }
+  .login-left {
+    min-height: auto;
+    padding: 2rem;
+  }
+}
