@@ -72,7 +72,43 @@
         </section>
 
         <div class="reportes-contenido" id="contenido-reportes">
-          <!-- Aquí se integrará el contenido de los reportes en los siguientes bloques. -->
+          <section aria-labelledby="titulo-indicadores">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+              <h2 class="h5 fw-semibold mb-0" id="titulo-indicadores">Resumen del período</h2>
+              <span class="badge rounded-pill app-estado app-estado-atencion">Datos de demostración</span>
+            </div>
+            <p class="small text-body-secondary mb-3">
+              Valores simulados para probar los filtros. Ventas muestra el total del negocio;
+              el insumo seleccionado se aplica a mermas y eficiencia.
+            </p>
+            <div class="row g-3">
+              <div class="col-12 col-md-6 col-xl-4">
+                <article class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-ventas">
+                  <h3 class="h6 text-body-secondary mb-3" id="titulo-ventas">Ventas</h3>
+                  <p class="reportes-indicador-valor fw-bold mb-2" id="valor-ventas">—</p>
+                  <p class="small text-body-secondary mb-0" id="detalle-ventas">Tacos vendidos en el período.</p>
+                </article>
+              </div>
+              <div class="col-12 col-md-6 col-xl-4">
+                <article class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-mermas">
+                  <h3 class="h6 text-body-secondary mb-3" id="titulo-mermas">Mermas</h3>
+                  <p class="reportes-indicador-valor reportes-valor-merma fw-bold mb-2" id="valor-mermas">—</p>
+                  <p class="small text-body-secondary mb-0" id="detalle-mermas">Costo estimado de los insumos desperdiciados.</p>
+                </article>
+              </div>
+              <div class="col-12 col-md-6 col-xl-4">
+                <article class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-eficiencia">
+                  <h3 class="h6 text-body-secondary mb-3" id="titulo-eficiencia">Eficiencia de porción</h3>
+                  <p class="reportes-indicador-valor fw-bold mb-2" id="valor-eficiencia">—</p>
+                  <p class="small text-body-secondary mb-0" id="detalle-eficiencia">Consumo estándar / consumo real × 100.</p>
+                </article>
+              </div>
+            </div>
+            <p class="small text-body-secondary mt-3 mb-0">
+              Eficiencia: 100% indica un consumo igual al estándar; menos de 100%, mayor consumo;
+              más de 100%, menor consumo. No representa por sí sola la calidad de la porción.
+            </p>
+          </section>
         </div>
       </main>
     </div>

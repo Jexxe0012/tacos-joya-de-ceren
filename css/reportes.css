@@ -1,2 +1,11 @@
-/* Los estilos generales están en main.css.
-   Este archivo queda reservado para las gráficas y otros elementos exclusivos de Reportes. */
+/* Los colores y paneles se reutilizan desde main.css. */
+.reportes-page .reportes-indicador-valor {
+  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.reportes-page .reportes-valor-merma {
+  color: var(--danger);
+}
