@@ -55,3 +55,7 @@
   outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
+
+.reportes-page .reportes-hallazgo {
+  border-left: 3px solid var(--accent);
+}

@@ -123,6 +123,60 @@ function mostrarIndicadores(indicadores, dias) {
     : `Estándar: ${decimales.format(indicadores.consumoEstandarKg)} kg · real: ${decimales.format(indicadores.consumoRealKg)} kg.`;
 }
 
+// Observaciones de cantidades registradas: no se infieren horarios ni causas.
+function calcularHallazgoOperativo(registros, rango, insumoSeleccionado) {
+  const finExclusivo = new Date(rango.fin);
+  finExclusivo.setDate(finExclusivo.getDate() + 1);
+  const hayRegistros = registros.some(registro =>
+    registro.fecha >= rango.inicio && registro.fecha < finExclusivo &&
+    registro.insumos.some(insumo => insumoSeleccionado === "todos" || insumo.id === insumoSeleccionado)
+  );
+  if (!hayRegistros) {
+    return {
+      titulo: "Sin registros para analizar",
+      detalle: "No hay registros del insumo y período seleccionados.",
+      sugerencia: "Seleccionar otro período o completar los registros antes de sacar conclusiones."
+    };
+  }
+
+  const mermas = prepararSeriesReportes(registros, rango, insumoSeleccionado).mermas;
+  const total = mermas.reduce((suma, insumo) => suma + insumo.valor, 0);
+  if (total === 0) {
+    return {
+      titulo: "Sin merma registrada",
+      detalle: "Los registros seleccionados suman 0 kg de merma.",
+      sugerencia: "Verificar que el registro del período esté completo y continuar el seguimiento."
+    };
+  }
+
+  const formatoKg = new Intl.NumberFormat("es-SV", { maximumFractionDigits: 2 });
+  if (insumoSeleccionado !== "todos") {
+    return {
+      titulo: `Merma de ${mermas[0].nombre}`,
+      detalle: `${mermas[0].nombre} acumula ${formatoKg.format(total)} kg de merma en el período seleccionado.`,
+      sugerencia: "Revisar los registros de preparación y porcionado de este ingrediente para identificar posibles ajustes."
+    };
+  }
+
+  const mayorMerma = mermas[0].valor;
+  const principales = mermas.filter(insumo => Math.abs(insumo.valor - mayorMerma) < 1e-9);
+  const nombres = principales.map(insumo => insumo.nombre).join(", ");
+  const porcentaje = new Intl.NumberFormat("es-SV", { maximumFractionDigits: 1 }).format(mayorMerma / total * 100);
+  return {
+    titulo: principales.length > 1 ? "Ingredientes con igual merma máxima" : "Ingrediente con mayor merma",
+    detalle: principales.length > 1
+      ? `${nombres}: ${formatoKg.format(mayorMerma)} kg cada uno, la mayor cantidad registrada en el período.`
+      : `${nombres} acumula ${formatoKg.format(mayorMerma)} kg y representa el ${porcentaje}% de la merma total del período.`,
+    sugerencia: `Priorizar la revisión de preparación y porcionado de ${nombres}. Comparar con las cantidades utilizadas antes de ajustar la producción.`
+  };
+}
+
+function mostrarHallazgoOperativo(hallazgo) {
+  document.getElementById("hallazgo-observacion").textContent = hallazgo.titulo;
+  document.getElementById("hallazgo-detalle").textContent = hallazgo.detalle;
+  document.getElementById("hallazgo-sugerencia").textContent = hallazgo.sugerencia;
+}
+
 function mostrarSeleccionFiltros() {
   const fechaActual = new Date();
   const rango = calcularRangoPeriodo(filtroPeriodo.value, fechaActual);
@@ -130,6 +184,7 @@ function mostrarSeleccionFiltros() {
   const indicadores = calcularIndicadores(registros, rango, filtroInsumo.value);
   mostrarIndicadores(indicadores, filtroPeriodo.value);
   mostrarGraficasReportes(registros, rango, filtroInsumo.value);
+  mostrarHallazgoOperativo(calcularHallazgoOperativo(registros, rango, filtroInsumo.value));
   const formatoFecha = new Intl.DateTimeFormat("es-SV", {
     day: "2-digit",
     month: "2-digit",
@@ -140,7 +195,7 @@ function mostrarSeleccionFiltros() {
   // El resumen y las tarjetas reflejan únicamente los filtros aplicados.
   resumenFiltros.textContent =
     `Período seleccionado: ${formatoFecha.format(rango.inicio)} al ` +
-    `${formatoFecha.format(rango.fin)} · ${nombreInsumo}. Indicadores y gráficas actualizados con datos de demostración.`;
+    `${formatoFecha.format(rango.fin)} · ${nombreInsumo}. Indicadores, gráficas y hallazgo actualizados con datos de demostración.`;
 }
 
 formularioFiltros.addEventListener("submit", (evento) => {
