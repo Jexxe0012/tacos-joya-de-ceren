@@ -147,3 +147,194 @@ body {
   position: absolute;         /* se ubica respecto al <li> (position: relative) */
   left: 0;                    /* pegado al borde izquierdo, dentro del padding */
 }
+/* ============================================
+   LOGIN — Panel derecho (formulario)
+   ============================================ */
+
+/* Tarjeta contenedora del formulario:
+   fondo blanco, sombra suave, bordes redondos,
+   ancho máximo para que no se estire feo. */
+.login-card {
+  background: var(--surface);
+  padding: 2.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 26rem;
+}
+
+/* Título "Bienvenido" en azul, sin margen
+   arriba para que respete el padding de la tarjeta. */
+.login-card h2 {
+  color: var(--color-azul);
+  font-size: 1.75rem;
+  margin: 0 0 0.5rem 0;
+}
+
+/* Subtítulo "Ingresa al sistema según tu rol":
+   más apagado, con margen inferior para separarlo
+   del primer input. */
+.login-card p {
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+/* Estilo común de los labels del form.
+   display:block para que ocupen su línea. */
+.login-card label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-azul);
+  margin-bottom: 0.4rem;
+  margin-top: 1rem;
+}
+
+/* Inputs de correo y contraseña:
+   ancho completo, padding cómodo, borde suave.
+   transition suaviza el cambio de color al hacer focus. */
+.login-card input[type="email"],
+.login-card input[type="password"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #E0DDD3;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;   /* hereda la fuente del body, no la del navegador */
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Estado focus: cuando el input está activo,
+   borde amarillo maíz + un halo sutil.
+   outline: none quita el borde azul feo default,
+   pero LO REEMPLAZAMOS con nuestro focus visible
+   (nunca quitar outline sin reemplazo — accesibilidad). */
+.login-card input[type="email"]:focus,
+.login-card input[type="password"]:focus {
+  outline: none;
+  border-color: var(--color-maiz);
+  box-shadow: 0 0 0 3px rgba(242, 182, 50, 0.2);
+}
+
+/* Fieldset del selector de rol: reseteamos
+   el borde default del navegador (que es feo). */
+.role-picker {
+  border: none;
+  padding: 0;
+  margin: 1.5rem 0 0 0;
+}
+
+.role-picker legend {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-azul);
+  margin-bottom: 0.5rem;
+  padding: 0;
+}
+
+/* Contenedor que pone las dos tarjetas de rol
+   lado a lado con Flexbox. */
+.role-picker {
+  display: flex;
+  flex-direction: column;
+}
+
+.role-picker legend {
+  margin-bottom: 0.6rem;
+}
+
+/* Wrapper que agrupa las dos <label> de rol
+   en fila con gap entre ellas. */
+.role-cards-wrapper {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Cada tarjeta de rol: la <label> que envuelve
+   el radio + los spans. La convertimos en
+   tarjeta clickeable. */
+.role-card {
+  flex: 1;
+  border: 1.5px solid #E0DDD3;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  /* Sobreescribe el estilo default de label del bloque anterior */
+  margin: 0;
+}
+
+/* Oculta el círculo default del radio.
+   Seguimos usando el radio para la lógica
+   (name="role"), pero visualmente desaparece. */
+.role-card input[type="radio"] {
+  appearance: none;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Título y descripción dentro de la tarjeta. */
+.role-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-azul);
+}
+.role-desc {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* Estado seleccionado: cuando el radio
+   dentro de la label está :checked, pintamos
+   la label completa con borde y fondo maíz.
+   :has() es un selector moderno que dice
+   "una .role-card que TIENE dentro un radio :checked". */
+.role-card:has(input:checked) {
+  border-color: var(--color-maiz);
+  background: rgba(242, 182, 50, 0.1);
+}
+
+/* Botón principal "Ingresar al sistema":
+   ancho completo, azul de marca, hover más claro. */
+.login-card button[type="submit"] {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.85rem;
+  background: var(--color-azul);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+.login-card button[type="submit"]:hover {
+  background: #1a2860;   /* azul un pelo más claro */
+}
+.login-card button[type="submit"]:active {
+  transform: translateY(1px);   /* efecto "presionado" */
+}
+
+/* Zona de error: oculta cuando está vacía,
+   visible con fondo rojo suave cuando tiene texto.
+   :empty es una pseudo-clase que aplica cuando
+   el elemento no tiene contenido. */
+#login-error {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(182, 36, 36, 0.1);
+  color: var(--color-rojo);
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+#login-error:empty {
+  display: none;
+}
