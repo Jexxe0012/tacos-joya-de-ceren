@@ -192,9 +192,10 @@ body {
   margin-top: 1rem;
 }
 
-/* Inputs de correo y contraseña:
+/* Inputs de texto, correo y contraseña:
    ancho completo, padding cómodo, borde suave.
    transition suaviza el cambio de color al hacer focus. */
+.login-card input[type="text"],
 .login-card input[type="email"],
 .login-card input[type="password"] {
   width: 100%;
@@ -211,6 +212,7 @@ body {
    outline: none quita el borde azul feo default,
    pero LO REEMPLAZAMOS con nuestro focus visible
    (nunca quitar outline sin reemplazo — accesibilidad). */
+.login-card input[type="text"]:focus,
 .login-card input[type="email"]:focus,
 .login-card input[type="password"]:focus {
   outline: none;
@@ -345,9 +347,12 @@ body {
    LOGIN — Link toggle entre login y registro
    ============================================ */
 
-.toggle-link {
+/* .login-card .toggle-link (dos clases) para ganarle en
+   especificidad a .login-card p (clase + etiqueta), que si
+   no le impone su margen, opacidad y tamaño de letra. */
+.login-card .toggle-link {
   text-align: center;
-  margin-top: 1.25rem;
+  margin: 1.25rem 0 0 0;
   font-size: 0.9rem;
   color: var(--text);
   opacity: 0.8;
