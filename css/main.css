@@ -1,0 +1,18 @@
+:root {
+  /* Paleta Raíces y familia — Tacos Joya de Cerén */
+  --color-crema: #FFF3DD;   /* fondo y superficies */
+  --color-azul:  #101B46;   /* navegación y textos */
+  --color-rojo:  #B62424;   /* alertas y atención */
+  --color-maiz:  #F2B632;   /* selección activa */
+  --color-verde: #426B3A;   /* estados favorables */
+
+  /* Roles semánticos (para no repetir hex por todos lados) */
+  --bg:        var(--color-crema);
+  --surface:   #FFFFFF;
+  --text:      var(--color-azul);
+  --nav-bg:    var(--color-azul);
+  --nav-text:  var(--color-crema);
+  --accent:    var(--color-maiz);
+  --danger:    var(--color-rojo);
+  --success:   var(--color-verde);
+}
