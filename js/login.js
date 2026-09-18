@@ -29,3 +29,38 @@ DB.seed("usuarios", [
 ]);
 
 console.log("login.js cargado. Usuarios en DB:", DB.getAll("usuarios"));
+
+/* ============================================
+   Toggle entre vista de login y de registro
+   ============================================ */
+
+const loginView    = document.getElementById("login-view");
+const registerView = document.getElementById("register-view");
+const cardTitle    = document.getElementById("card-title");
+const cardSubtitle = document.getElementById("card-subtitle");
+
+/**
+ * Muestra una vista y oculta la otra usando el atributo hidden.
+ * También cambia el título y subtítulo de la tarjeta, limpia los
+ * mensajes de error y pone el foco en el primer campo de la vista
+ * nueva (para quien navega con teclado).
+ */
+function mostrarVista(vista) {
+  const esRegistro = vista === "registro";
+
+  loginView.hidden    = esRegistro;
+  registerView.hidden = !esRegistro;
+
+  cardTitle.textContent    = esRegistro ? "Crear cuenta" : "Bienvenido";
+  cardSubtitle.textContent = esRegistro
+    ? "Completa tus datos para registrarte"
+    : "Ingresa al sistema según tu rol";
+
+  document.getElementById("login-error").textContent    = "";
+  document.getElementById("register-error").textContent = "";
+
+  document.getElementById(esRegistro ? "reg-nombre" : "email").focus();
+}
+
+document.getElementById("show-register").addEventListener("click", () => mostrarVista("registro"));
+document.getElementById("show-login").addEventListener("click", () => mostrarVista("login"));
