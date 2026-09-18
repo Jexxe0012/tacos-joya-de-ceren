@@ -28,8 +28,6 @@ DB.seed("usuarios", [
   }
 ]);
 
-console.log("login.js cargado. Usuarios en DB:", DB.getAll("usuarios"));
-
 /* ============================================
    Toggle entre vista de login y de registro
    ============================================ */
