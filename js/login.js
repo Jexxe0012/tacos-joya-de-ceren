@@ -64,3 +64,23 @@ function mostrarVista(vista) {
 
 document.getElementById("show-register").addEventListener("click", () => mostrarVista("registro"));
 document.getElementById("show-login").addEventListener("click", () => mostrarVista("login"));
+
+/* ============================================
+   Campo dinámico: clave de administrador
+   ============================================ */
+
+/**
+ * Cuando el usuario elige un rol en el formulario de registro,
+ * mostramos u ocultamos el campo "Clave de administrador".
+ * Solo aparece si eligió el rol "admin".
+ */
+document.querySelectorAll('input[name="reg-role"]').forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    const adminKeyField = document.getElementById('admin-key-field');
+    adminKeyField.hidden = e.target.value !== 'admin';
+    // Limpiar el input si se oculta, así no queda basura al enviar
+    if (adminKeyField.hidden) {
+      document.getElementById('reg-admin-key').value = '';
+    }
+  });
+});
