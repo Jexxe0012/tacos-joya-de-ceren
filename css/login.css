@@ -340,3 +340,37 @@ body {
 #login-error:empty {
   display: none;
 }
+
+/* ============================================
+   LOGIN — Link toggle entre login y registro
+   ============================================ */
+
+.toggle-link {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.toggle-link button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-azul);
+  font-weight: 600;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.toggle-link button:hover {
+  color: var(--color-rojo);
+}
+
+.toggle-link button:focus-visible {
+  outline: 2px solid var(--color-maiz);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
