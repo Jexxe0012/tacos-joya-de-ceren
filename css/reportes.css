@@ -1,29 +1,13 @@
-/* Paleta Raíces y familia, limitada a esta página para no afectar otros módulos. */
+/* Los colores provienen de css/main.css; aquí solo se aplican a Reportes. */
 .reportes-page {
-  --reportes-crema: #fff3dd;
-  --reportes-azul: #101b46;
-  --reportes-rojo: #b62424;
-  --reportes-maiz: #f2b632;
-  --reportes-verde: #426b3a;
+  /* Adaptación de las utilidades de Bootstrap a la paleta compartida. */
+  --bs-body-color: var(--text);
+  --bs-body-bg: var(--bg);
+  --bs-secondary-color: color-mix(in srgb, var(--text) 70%, var(--surface));
+  --bs-border-color: color-mix(in srgb, var(--text) 18%, var(--surface));
 
-  /* Tonos derivados para superficies, bordes y textos secundarios. */
-  --reportes-fondo: #f8f3e9;
-  --reportes-superficie: #fffdfa;
-  --reportes-azul-suave: #233058;
-  --reportes-borde: #e5e0d5;
-  --reportes-texto-secundario: #656879;
-  --reportes-texto-lateral: #d5d9e5;
-  --reportes-verde-suave: #e9f0e3;
-  --reportes-verde-borde: #c8d7c0;
-
-  /* Las utilidades de Bootstrap heredan estos colores dentro de Reportes. */
-  --bs-body-color: var(--reportes-azul);
-  --bs-body-color-rgb: 16, 27, 70;
-  --bs-secondary-color: var(--reportes-texto-secundario);
-  --bs-border-color: var(--reportes-borde);
-
-  background-color: var(--reportes-fondo);
-  color: var(--reportes-azul);
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 .reportes-page .reportes-layout {
@@ -33,11 +17,11 @@
 
 .reportes-page .reportes-sidebar {
   --bs-offcanvas-width: min(18rem, 85vw);
-  --bs-offcanvas-color: var(--reportes-crema);
-  --bs-offcanvas-bg: var(--reportes-azul);
-  color: var(--reportes-crema);
+  --bs-offcanvas-color: var(--nav-text);
+  --bs-offcanvas-bg: var(--nav-bg);
+  color: var(--nav-text);
   /* Bootstrap vuelve transparente el offcanvas en escritorio: mantenemos el azul. */
-  background-color: var(--reportes-azul) !important;
+  background-color: var(--nav-bg) !important;
 }
 
 .reportes-page .reportes-marca {
@@ -46,8 +30,8 @@
   width: 2.5rem;
   height: 2.5rem;
   flex-shrink: 0;
-  background-color: var(--reportes-rojo);
-  color: var(--reportes-crema);
+  background-color: var(--danger);
+  color: var(--nav-text);
   font-size: 0.875rem;
   font-weight: 700;
 }
@@ -55,28 +39,28 @@
 .reportes-page .reportes-sidebar .nav-link {
   padding: 0.875rem 1rem;
   border-left: 3px solid transparent;
-  color: var(--reportes-crema);
+  color: var(--nav-text);
 }
 
 .reportes-page .reportes-sidebar .nav-link:hover,
 .reportes-page .reportes-sidebar .nav-link:focus-visible {
-  background-color: var(--reportes-azul-suave);
-  color: var(--reportes-crema);
+  background-color: color-mix(in srgb, var(--nav-bg) 90%, var(--surface));
+  color: var(--nav-text);
 }
 
 .reportes-page .reportes-sidebar .nav-link.active {
-  background-color: var(--reportes-azul-suave);
-  border-left-color: var(--reportes-maiz);
-  color: var(--reportes-maiz);
+  background-color: color-mix(in srgb, var(--nav-bg) 90%, var(--surface));
+  border-left-color: var(--accent);
+  color: var(--accent);
   font-weight: 600;
 }
 
 .reportes-page .reportes-perfil {
-  background-color: var(--reportes-azul-suave);
+  background-color: color-mix(in srgb, var(--nav-bg) 90%, var(--surface));
 }
 
 .reportes-page .reportes-texto-lateral {
-  color: var(--reportes-texto-lateral);
+  color: color-mix(in srgb, var(--nav-text) 85%, var(--nav-bg));
 }
 
 .reportes-page .reportes-area {
@@ -84,45 +68,45 @@
 }
 
 .reportes-page .reportes-barra {
-  background-color: var(--reportes-superficie);
+  background-color: var(--surface);
 }
 
 .reportes-page .breadcrumb {
-  --bs-breadcrumb-divider-color: var(--reportes-texto-secundario);
-  --bs-breadcrumb-item-active-color: var(--reportes-texto-secundario);
+  --bs-breadcrumb-divider-color: var(--bs-secondary-color);
+  --bs-breadcrumb-item-active-color: var(--bs-secondary-color);
 }
 
 .reportes-page .reportes-rol {
-  --bs-border-color: var(--reportes-verde-borde);
+  --bs-border-color: color-mix(in srgb, var(--success) 30%, var(--surface));
   padding: 0.5rem 0.875rem;
-  background-color: var(--reportes-verde-suave);
-  color: var(--reportes-verde);
+  background-color: color-mix(in srgb, var(--success) 12%, var(--surface));
+  color: var(--success);
   font-weight: 600;
 }
 
 /* Variables de Bootstrap para conservar los estados del botón del menú móvil. */
 .reportes-page .reportes-menu-toggle {
-  --bs-btn-color: var(--reportes-azul);
-  --bs-btn-bg: var(--reportes-superficie);
-  --bs-btn-border-color: var(--reportes-azul);
-  --bs-btn-hover-color: var(--reportes-crema);
-  --bs-btn-hover-bg: var(--reportes-azul);
-  --bs-btn-hover-border-color: var(--reportes-azul);
-  --bs-btn-active-color: var(--reportes-crema);
-  --bs-btn-active-bg: var(--reportes-azul);
-  --bs-btn-active-border-color: var(--reportes-azul);
-  --bs-btn-focus-shadow-rgb: 16, 27, 70;
+  --bs-btn-color: var(--text);
+  --bs-btn-bg: var(--surface);
+  --bs-btn-border-color: var(--text);
+  --bs-btn-hover-color: var(--nav-text);
+  --bs-btn-hover-bg: var(--text);
+  --bs-btn-hover-border-color: var(--text);
+  --bs-btn-active-color: var(--nav-text);
+  --bs-btn-active-bg: var(--text);
+  --bs-btn-active-border-color: var(--text);
+  --bs-btn-focus-box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--text) 25%, transparent);
 }
 
 .reportes-page a:focus-visible,
 .reportes-page button:focus-visible {
-  outline: 3px solid var(--reportes-azul);
+  outline: 3px solid var(--text);
   outline-offset: 3px;
 }
 
 .reportes-page .reportes-sidebar a:focus-visible,
 .reportes-page .reportes-sidebar button:focus-visible {
-  outline-color: var(--reportes-maiz);
+  outline-color: var(--accent);
 }
 
 .reportes-page .reportes-salto {
@@ -131,13 +115,13 @@
   left: 0.75rem;
   z-index: 1100;
   padding: 0.75rem 1rem;
-  background-color: var(--reportes-superficie);
-  color: var(--reportes-azul);
+  background-color: var(--surface);
+  color: var(--text);
 }
 
 /* Barra de filtros: reutiliza la paleta y las columnas responsive de Bootstrap. */
 .reportes-page .reportes-filtros {
-  background-color: var(--reportes-superficie);
+  background-color: var(--surface);
 }
 
 .reportes-page .reportes-filtros .form-label {
@@ -147,27 +131,27 @@
 
 .reportes-page .reportes-filtros .form-select {
   min-height: 2.75rem;
-  background-color: var(--reportes-superficie);
-  border-color: var(--reportes-borde);
-  color: var(--reportes-azul);
+  background-color: var(--surface);
+  border-color: var(--bs-border-color);
+  color: var(--text);
 }
 
 .reportes-page .reportes-filtros .form-select:focus {
-  border-color: var(--reportes-azul);
-  box-shadow: 0 0 0 0.2rem rgba(16, 27, 70, 0.15);
+  border-color: var(--text);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--text) 15%, transparent);
 }
 
 .reportes-page .reportes-aplicar {
-  --bs-btn-color: var(--reportes-crema);
-  --bs-btn-bg: var(--reportes-rojo);
-  --bs-btn-border-color: var(--reportes-rojo);
-  --bs-btn-hover-color: var(--reportes-crema);
-  --bs-btn-hover-bg: #941d1d;
-  --bs-btn-hover-border-color: #941d1d;
-  --bs-btn-active-color: var(--reportes-crema);
-  --bs-btn-active-bg: #941d1d;
-  --bs-btn-active-border-color: #941d1d;
-  --bs-btn-focus-shadow-rgb: 182, 36, 36;
+  --bs-btn-color: var(--nav-text);
+  --bs-btn-bg: var(--danger);
+  --bs-btn-border-color: var(--danger);
+  --bs-btn-hover-color: var(--nav-text);
+  --bs-btn-hover-bg: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --bs-btn-hover-border-color: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --bs-btn-active-color: var(--nav-text);
+  --bs-btn-active-bg: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --bs-btn-active-border-color: color-mix(in srgb, var(--danger) 80%, var(--text));
+  --bs-btn-focus-box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--danger) 25%, transparent);
   min-height: 2.75rem;
   font-weight: 600;
 }
