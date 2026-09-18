@@ -126,8 +126,10 @@ function mostrarIndicadores(indicadores, dias) {
 function mostrarSeleccionFiltros() {
   const fechaActual = new Date();
   const rango = calcularRangoPeriodo(filtroPeriodo.value, fechaActual);
-  const indicadores = calcularIndicadores(crearDatosDemostracion(fechaActual), rango, filtroInsumo.value);
+  const registros = crearDatosDemostracion(fechaActual);
+  const indicadores = calcularIndicadores(registros, rango, filtroInsumo.value);
   mostrarIndicadores(indicadores, filtroPeriodo.value);
+  mostrarGraficasReportes(registros, rango, filtroInsumo.value);
   const formatoFecha = new Intl.DateTimeFormat("es-SV", {
     day: "2-digit",
     month: "2-digit",
@@ -138,7 +140,7 @@ function mostrarSeleccionFiltros() {
   // El resumen y las tarjetas reflejan únicamente los filtros aplicados.
   resumenFiltros.textContent =
     `Período seleccionado: ${formatoFecha.format(rango.inicio)} al ` +
-    `${formatoFecha.format(rango.fin)} · ${nombreInsumo}. Indicadores actualizados con datos de demostración.`;
+    `${formatoFecha.format(rango.fin)} · ${nombreInsumo}. Indicadores y gráficas actualizados con datos de demostración.`;
 }
 
 formularioFiltros.addEventListener("submit", (evento) => {
