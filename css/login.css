@@ -1,0 +1,381 @@
+/* ============================================
+   LOGIN — Layout split-screen
+   Depende de las variables de :root definidas en main.css
+   ============================================ */
+
+/* Reset mínimo: quita el margen que el navegador
+   pone por default en <body> y hace que padding
+   y border cuenten dentro del ancho del elemento
+   (box-sizing), no fuera. Sin esto, 100vw + padding
+   causa scroll horizontal. */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* El contenedor padre: ocupa toda la altura de la
+   pantalla (100vh = 100% viewport height) y activa
+   Flexbox para que sus dos hijos <section> se pongan
+   lado a lado. */
+.login-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Los dos paneles se reparten el espacio 50/50.
+   flex: 1 es atajo de flex-grow:1 flex-shrink:1 flex-basis:0.
+   Traducido: "creceme, achicame si hace falta, y arrancá
+   desde 0 para que el reparto sea equitativo". */
+.login-left,
+.login-right {
+  flex: 1;
+  padding: 3rem;
+}
+
+/* Panel izquierdo: fondo azul, texto claro.
+   Las variables vienen de main.css (:root). */
+.login-left {
+  background: var(--color-azul);
+  color: var(--color-crema);
+}
+
+/* Panel derecho: fondo crema, centra la tarjeta
+   del formulario vertical y horizontalmente.
+   Flexbox anidado dentro de Flexbox — sí, se puede
+   sin problema. */
+.login-right {
+  background: var(--color-crema);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive: en pantallas angostas (celular), en vez
+   de dos columnas los paneles se apilan verticalmente.
+   Cambiamos flex-direction de row (default) a column. */
+@media (max-width: 768px) {
+  .login-layout {
+    flex-direction: column;
+  }
+  .login-left {
+
+    padding: 2rem;
+  }
+}
+
+/* ============================================
+   LOGIN — Panel izquierdo (marca)
+   ============================================ */
+
+/* Convertimos el panel en columna flex para
+   apilar logo, título, subtítulo y features
+   con un espaciado uniforme (gap). */
+.login-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: center;   /* centra verticalmente el bloque de contenido */
+}
+
+/* Logo TJ: cuadrado rojo con la sigla blanca
+   centrada. width y height iguales = cuadrado.
+   display:flex para centrar el texto adentro. */
+.login-logo {
+  width: 3.5rem;
+  height: 3.5rem;
+  background: var(--color-rojo);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;   /* esquinas suavemente redondeadas */
+  letter-spacing: 0.05em;  /* separa un poquito la T de la J */
+}
+
+/* Título principal: grande, peso fuerte.
+   margin:0 para que no herede el margin default
+   de <h1> (que le mete espacio arriba/abajo). */
+.login-left h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Subtítulo: más chico, con opacidad para
+   dar jerarquía visual respecto al título. */
+.login-subtitle {
+  font-size: 1rem;
+  opacity: 0.85;
+  margin: 0;
+  max-width: 28rem;   /* limita el ancho para que no se estire feo en pantalla grande */
+}
+
+/* Lista de features: quitamos el puntito
+   default y el padding izquierdo que <ul>
+   trae de fábrica. */
+.login-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Cada <li> tiene un "check" custom antes
+   del texto, usando el pseudo-elemento ::before.
+   content: "✓" es el símbolo que insertamos. */
+.login-features li {
+  position: relative;
+  padding-left: 1.5rem;   /* deja espacio para el check */
+  font-size: 0.95rem;
+}
+
+.login-features li::before {
+  content: "✓";
+  color: var(--color-maiz);   /* amarillo maíz de la paleta */
+  font-weight: 700;
+  position: absolute;         /* se ubica respecto al <li> (position: relative) */
+  left: 0;                    /* pegado al borde izquierdo, dentro del padding */
+}
+/* ============================================
+   LOGIN — Panel derecho (formulario)
+   ============================================ */
+
+/* Tarjeta contenedora del formulario:
+   fondo blanco, sombra suave, bordes redondos,
+   ancho máximo para que no se estire feo. */
+.login-card {
+  background: var(--surface);
+  padding: 2.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 26rem;
+}
+
+/* Título "Bienvenido" en azul, sin margen
+   arriba para que respete el padding de la tarjeta. */
+.login-card h2 {
+  color: var(--color-azul);
+  font-size: 1.75rem;
+  margin: 0 0 0.5rem 0;
+}
+
+/* Subtítulo "Ingresa al sistema según tu rol":
+   más apagado, con margen inferior para separarlo
+   del primer input. */
+.login-card p {
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+/* Estilo común de los labels del form.
+   display:block para que ocupen su línea. */
+.login-card label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-azul);
+  margin-bottom: 0.4rem;
+  margin-top: 1rem;
+}
+
+/* Inputs de texto, correo y contraseña:
+   ancho completo, padding cómodo, borde suave.
+   transition suaviza el cambio de color al hacer focus. */
+.login-card input[type="text"],
+.login-card input[type="email"],
+.login-card input[type="password"] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid #E0DDD3;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;   /* hereda la fuente del body, no la del navegador */
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Estado focus: cuando el input está activo,
+   borde amarillo maíz + un halo sutil.
+   outline: none quita el borde azul feo default,
+   pero LO REEMPLAZAMOS con nuestro focus visible
+   (nunca quitar outline sin reemplazo — accesibilidad). */
+.login-card input[type="text"]:focus,
+.login-card input[type="email"]:focus,
+.login-card input[type="password"]:focus {
+  outline: none;
+  border-color: var(--color-maiz);
+  box-shadow: 0 0 0 3px rgba(242, 182, 50, 0.2);
+}
+
+/* Fieldset del selector de rol: reseteamos
+   el borde default del navegador (que es feo). */
+.role-picker {
+  border: none;
+  padding: 0;
+  margin: 1.5rem 0 0 0;
+}
+
+.role-picker legend {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-azul);
+  margin-bottom: 0.6rem;
+  padding: 0;
+}
+
+/* Wrapper que agrupa las dos <label> de rol
+   en fila con gap entre ellas. */
+.role-cards-wrapper {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Cada tarjeta de rol: la <label> que envuelve
+   el radio + los spans. La convertimos en
+   tarjeta clickeable.
+   Usamos .login-card .role-card (dos clases) para
+   ganarle en especificidad a .login-card label
+   (clase + etiqueta); si no, ese bloque le impone
+   display:block y sus márgenes. */
+.login-card .role-card {
+  position: relative;   /* ancla el radio oculto (position: absolute) dentro de la tarjeta */
+  flex: 1;
+  border: 1.5px solid #E0DDD3;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  margin: 0;
+}
+
+/* Oculta el círculo default del radio.
+   Seguimos usando el radio para la lógica
+   (name="role"), pero visualmente desaparece. */
+.role-card input[type="radio"] {
+  appearance: none;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Título y descripción dentro de la tarjeta. */
+.role-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-azul);
+}
+.role-desc {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* Estado seleccionado: cuando el radio
+   dentro de la label está :checked, pintamos
+   la label completa con borde y fondo maíz.
+   :has() es un selector moderno que dice
+   "una .role-card que TIENE dentro un radio :checked". */
+.role-card:has(input:checked) {
+  border-color: var(--color-maiz);
+  background: rgba(242, 182, 50, 0.1);
+}
+
+/* Foco con teclado: como el radio es invisible,
+   mostramos el foco en la tarjeta completa con el
+   mismo halo que los inputs. :focus-visible solo
+   aplica al navegar con teclado, no al hacer clic. */
+.role-card:has(input:focus-visible) {
+  border-color: var(--color-maiz);
+  box-shadow: 0 0 0 3px rgba(242, 182, 50, 0.35);
+}
+
+/* Botón principal "Ingresar al sistema":
+   ancho completo, azul de marca, hover más claro. */
+.login-card button[type="submit"] {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.85rem;
+  background: var(--color-azul);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+.login-card button[type="submit"]:hover {
+  background: #1a2860;   /* azul un pelo más claro */
+}
+.login-card button[type="submit"]:active {
+  transform: translateY(1px);   /* efecto "presionado" */
+}
+
+/* Zona de error: oculta cuando está vacía,
+   visible con fondo rojo suave cuando tiene texto.
+   :empty es una pseudo-clase que aplica cuando
+   el elemento no tiene contenido. */
+#login-error {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(182, 36, 36, 0.1);
+  color: var(--color-rojo);
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+#login-error:empty {
+  display: none;
+}
+
+/* ============================================
+   LOGIN — Link toggle entre login y registro
+   ============================================ */
+
+/* .login-card .toggle-link (dos clases) para ganarle en
+   especificidad a .login-card p (clase + etiqueta), que si
+   no le impone su margen, opacidad y tamaño de letra. */
+.login-card .toggle-link {
+  text-align: center;
+  margin: 1.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.toggle-link button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-azul);
+  font-weight: 600;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.toggle-link button:hover {
+  color: var(--color-rojo);
+}
+
+.toggle-link button:focus-visible {
+  outline: 2px solid var(--color-maiz);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
