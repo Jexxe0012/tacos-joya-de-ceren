@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recetas | Tacos Joya de Cerén</title>
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    crossorigin="anonymous"
+  >
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/recetas.css">
+
+  <script src="../js/storage.js"></script>
+  <script src="../js/guard.js"></script>
+  <script>Guard.requireLogin();</script>
+</head>
+<body class="app-page recetas-page" data-pagina="recetas" data-seccion="Gestión" data-rol="Equipo">
+  <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
+
+  <div class="app-layout d-lg-flex">
+    <aside class="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column"
+      tabindex="-1" id="menu-lateral" aria-labelledby="titulo-menu"></aside>
+
+    <div class="app-area flex-grow-1">
+      <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
+
+      <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1">
+        <div class="row mb-4">
+          <div class="col-12">
+            <h1 class="h3 fw-bold mb-2">Recetas y fichas técnicas</h1>
+            <p class="text-body-secondary mb-0" id="recetas-intro">
+              Cantidad estándar de cada ingrediente por receta. Es la base para calcular consumo, costo y merma.
+            </p>
+          </div>
+        </div>
+
+        <section class="mb-4" aria-labelledby="titulo-indicadores">
+          <h2 class="h5 fw-semibold mb-3" id="titulo-indicadores">Resumen del catálogo</h2>
+          <div class="row g-3">
+            <div class="col-12 col-md-6 col-xl-3">
+              <article class="app-panel h-100 p-3 p-md-4">
+                <h3 class="h6 text-body-secondary mb-3">Recetas registradas</h3>
+                <p class="recetas-indicador-valor fw-bold mb-2" id="valor-total">—</p>
+                <p class="small text-body-secondary mb-0" id="detalle-total">Incluye activas e inactivas.</p>
+              </article>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+              <article class="app-panel h-100 p-3 p-md-4">
+                <h3 class="h6 text-body-secondary mb-3">Activas en el menú</h3>
+                <p class="recetas-indicador-valor fw-bold mb-2" id="valor-activas">—</p>
+                <p class="small text-body-secondary mb-0" id="detalle-activas">Disponibles para la venta.</p>
+              </article>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+              <article class="app-panel h-100 p-3 p-md-4">
+                <h3 class="h6 text-body-secondary mb-3" id="titulo-tercer-indicador">Costo promedio por porción</h3>
+                <p class="recetas-indicador-valor fw-bold mb-2" id="valor-costo">—</p>
+                <p class="small text-body-secondary mb-0" id="detalle-costo">Calculado con el catálogo de insumos.</p>
+              </article>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+              <article class="app-panel h-100 p-3 p-md-4">
+                <h3 class="h6 text-body-secondary mb-3" id="titulo-cuarto-indicador">Margen promedio</h3>
+                <p class="recetas-indicador-valor fw-bold mb-2" id="valor-margen">—</p>
+                <p class="small text-body-secondary mb-0" id="detalle-margen">Precio de venta menos costo.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="app-panel p-3 p-md-4 mb-4" aria-labelledby="titulo-filtros">
+          <h2 class="h6 fw-semibold mb-3" id="titulo-filtros">Buscar en el catálogo</h2>
+          <form id="formulario-filtros" novalidate>
+            <div class="row g-3 align-items-end">
+              <div class="col-12 col-xl-4">
+                <label class="form-label" for="filtro-texto">Nombre o ingrediente</label>
+                <input class="form-control" type="search" id="filtro-texto" name="texto"
+                  placeholder="Por ejemplo: pastor" maxlength="40" autocomplete="off">
+                <p class="invalid-feedback receta-error" id="error-filtro-texto"></p>
+              </div>
+              <div class="col-12 col-sm-6 col-xl-2">
+                <label class="form-label" for="filtro-categoria">Categoría</label>
+                <select class="form-select" id="filtro-categoria" name="categoria">
+                  <option value="todas" selected>Todas</option>
+                </select>
+              </div>
+              <div class="col-12 col-sm-6 col-xl-2">
+                <label class="form-label" for="filtro-estado">Estado</label>
+                <select class="form-select" id="filtro-estado" name="estado">
+                  <option value="todos" selected>Todos</option>
+                  <option value="activa">Activas</option>
+                  <option value="inactiva">Inactivas</option>
+                </select>
+              </div>
+              <div class="col-12 col-sm-6 col-xl-2">
+                <label class="form-label" for="filtro-orden">Ordenar por</label>
+                <select class="form-select" id="filtro-orden" name="orden">
+                  <option value="nombre" selected>Nombre (A-Z)</option>
+                  <option value="categoria">Categoría</option>
+                  <option value="costo" data-solo-admin>Costo por porción</option>
+                  <option value="margen" data-solo-admin>Margen</option>
+                </select>
+              </div>
+              <div class="col-12 col-sm-6 col-xl-2 d-grid">
+                <button class="btn btn-app-secondary" type="reset">Limpiar filtros</button>
+              </div>
+            </div>
+          </form>
+          <noscript>
+            <p class="mt-3 mb-0">Activa JavaScript en tu navegador para consultar y gestionar las recetas.</p>
+          </noscript>
+          <p class="small text-body-secondary mt-3 mb-0" id="resumen-filtros" role="status" aria-live="polite" aria-atomic="true"></p>
+        </section>
+
+        <section aria-labelledby="titulo-listado">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <h2 class="h5 fw-semibold mb-0" id="titulo-listado">Catálogo de recetas</h2>
+            <button class="btn btn-app-primary" type="button" id="btn-nueva-receta" data-solo-admin>
+              Nueva receta
+            </button>
+          </div>
+
+          <p class="alert d-none" id="mensaje-global" role="status" aria-live="polite"></p>
+
+          <div class="row g-3" id="lista-recetas"></div>
+
+          <div class="receta-vacio p-4 text-center d-none" id="estado-vacio">
+            <p class="fw-semibold mb-1" id="estado-vacio-titulo">Todavía no hay recetas registradas</p>
+            <p class="small text-body-secondary mb-0" id="estado-vacio-detalle">
+              Agrega la primera receta para empezar a calcular costos y consumo estándar.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-receta" tabindex="-1" aria-labelledby="titulo-modal-receta" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-receta">Nueva receta</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <form id="formulario-receta" novalidate>
+          <div class="modal-body">
+            <input type="hidden" id="receta-id">
+
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label" for="receta-nombre">Nombre de la receta</label>
+                <input class="form-control" type="text" id="receta-nombre" maxlength="60" autocomplete="off" required>
+                <p class="receta-error" id="error-receta-nombre"></p>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label" for="receta-categoria">Categoría</label>
+                <select class="form-select" id="receta-categoria" required>
+                  <option value="">Selecciona una categoría</option>
+                </select>
+                <p class="receta-error" id="error-receta-categoria"></p>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="receta-porciones">Porciones que rinde</label>
+                <input class="form-control" type="number" id="receta-porciones" min="1" max="200" step="1" required>
+                <p class="receta-error" id="error-receta-porciones"></p>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="receta-tiempo">Tiempo (minutos)</label>
+                <input class="form-control" type="number" id="receta-tiempo" min="1" max="240" step="1" required>
+                <p class="receta-error" id="error-receta-tiempo"></p>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="receta-precio">Precio de venta</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input class="form-control" type="number" id="receta-precio" min="0" max="100" step="0.01">
+                </div>
+                <p class="small text-body-secondary mt-1 mb-0" id="ayuda-receta-precio">Precio de una porción.</p>
+                <p class="receta-error" id="error-receta-precio"></p>
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label" for="receta-estado">Estado</label>
+                <select class="form-select" id="receta-estado" required>
+                  <option value="activa">Activa</option>
+                  <option value="inactiva">Inactiva</option>
+                </select>
+                <p class="receta-error" id="error-receta-estado"></p>
+              </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+              <h3 class="h6 fw-semibold mb-0" id="titulo-ingredientes">Ingredientes de la receta</h3>
+              <button class="btn btn-app-secondary btn-sm" type="button" id="btn-agregar-ingrediente">
+                Agregar ingrediente
+              </button>
+            </div>
+            <p class="small text-body-secondary" id="ayuda-ingredientes">
+              Anota la cantidad que lleva la receta completa, no la de una sola porción.
+            </p>
+            <div id="ingredientes-lista" role="group" aria-labelledby="titulo-ingredientes"></div>
+            <p class="receta-error mt-2" id="error-ingredientes"></p>
+
+            <div class="app-panel p-3 mt-3">
+              <dl class="mb-0">
+                <div class="receta-dato">
+                  <dt class="fw-normal">Costo total de la receta</dt>
+                  <dd id="calculo-costo-total">$0.00</dd>
+                </div>
+                <div class="receta-dato">
+                  <dt class="fw-normal">Costo por porción</dt>
+                  <dd id="calculo-costo-porcion">$0.00</dd>
+                </div>
+                <div class="receta-dato">
+                  <dt class="fw-normal">Margen por porción</dt>
+                  <dd id="calculo-margen">$0.00</dd>
+                </div>
+              </dl>
+            </div>
+
+            <hr class="my-4">
+
+            <label class="form-label" for="receta-preparacion">Preparación</label>
+            <textarea class="form-control" id="receta-preparacion" rows="4" maxlength="1000" required
+              placeholder="Escribe los pasos en el orden en que se hacen."></textarea>
+            <p class="small text-body-secondary mt-1 mb-0">
+              <span id="contador-preparacion">0</span> de 1000 caracteres.
+            </p>
+            <p class="receta-error" id="error-receta-preparacion"></p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-app-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            <button class="btn btn-app-primary" type="submit" id="btn-guardar-receta">Guardar receta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-detalle" tabindex="-1" aria-labelledby="titulo-modal-detalle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-detalle">Ficha de la receta</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body" id="contenido-detalle"></div>
+        <div class="modal-footer">
+          <button class="btn btn-app-secondary" type="button" data-bs-dismiss="modal">Cerrar</button>
+          <button class="btn btn-app-primary" type="button" id="btn-editar-desde-detalle" data-solo-admin>Editar receta</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modal-eliminar" tabindex="-1" aria-labelledby="titulo-modal-eliminar" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="titulo-modal-eliminar">Eliminar receta</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-1">Se eliminará <strong id="nombre-a-eliminar"></strong> del catálogo.</p>
+          <p class="small text-body-secondary mb-0">
+            Los reportes dejarán de tomar en cuenta su consumo estándar. Esta acción no se puede deshacer.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-app-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+          <button class="btn btn-app-primary" type="button" id="btn-confirmar-eliminar">Sí, eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <noscript><p class="p-3">Activa JavaScript para utilizar la navegación y el módulo de recetas.</p></noscript>
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+    crossorigin="anonymous"
+  ></script>
+
+  <script>
+    (() => {
+      const sesion = Guard.getSesion();
+      if (sesion) {
+        document.body.dataset.rol = sesion.rol === "admin" ? "Dueño / Admin" : "Empleado";
+      }
+    })();
+  </script>
+  <script src="../js/main.js"></script>
+  <script src="../js/recetas.js"></script>
+</body>
+</html>
