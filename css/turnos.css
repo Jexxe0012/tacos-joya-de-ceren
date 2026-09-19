@@ -764,3 +764,157 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* ============================================
+   SOLICITUDES — Empleado y Admin
+   ============================================ */
+
+.solicitud-actions-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-solicitudes-container {
+  margin-bottom: 1.5rem;
+}
+
+.solicitudes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.solicitud-card {
+  background: var(--surface);
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-left-width: 4px;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.solicitud-card.pendiente {
+  border-left-color: var(--color-maiz);
+}
+
+.solicitud-card.aceptada {
+  border-left-color: var(--color-verde);
+}
+
+.solicitud-card.rechazada {
+  border-left-color: var(--color-rojo);
+}
+
+.solicitud-info {
+  flex: 1;
+  min-width: 220px;
+}
+
+.solicitud-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.solicitud-nombre {
+  font-weight: 600;
+  color: var(--color-azul);
+  font-size: 0.9rem;
+}
+
+.solicitud-fecha {
+  opacity: 0.6;
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.solicitud-mensaje {
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.solicitud-estado {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.solicitud-estado.pendiente {
+  background: rgba(242, 182, 50, 0.2); /* var(--color-maiz) al 20% */
+  color: var(--color-maiz);
+}
+
+.solicitud-estado.aceptada {
+  background: rgba(66, 107, 58, 0.15); /* var(--color-verde) al 15% */
+  color: var(--color-verde);
+}
+
+.solicitud-estado.rechazada {
+  background: rgba(182, 36, 36, 0.15); /* var(--color-rojo) al 15% */
+  color: var(--color-rojo);
+}
+
+.solicitud-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-accept {
+  background: var(--color-verde);
+  color: var(--color-crema);
+  border: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn-accept:hover {
+  filter: brightness(1.15);
+}
+
+.btn-reject {
+  background: rgba(182, 36, 36, 0.1); /* var(--color-rojo) al 10% */
+  color: var(--color-rojo);
+  border: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn-reject:hover {
+  background: rgba(182, 36, 36, 0.2); /* var(--color-rojo) al 20% */
+}
+
+.solicitudes-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text);
+  opacity: 0.5;
+  font-style: italic;
+  background: var(--surface);
+  border: 1.5px dashed rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}

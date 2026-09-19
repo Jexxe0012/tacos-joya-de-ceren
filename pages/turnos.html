@@ -93,6 +93,13 @@
           </div>
           <p class="calendar-hint">Hacé click en una celda para crear o editar el turno. Los turnos con ↻ se repiten cada semana.</p>
         </div>
+
+        <div class="admin-solicitudes-container">
+          <h2 class="section-title">Solicitudes pendientes</h2>
+          <div class="solicitudes-list" id="admin-solicitudes-list">
+            <!-- Se llena con JS -->
+          </div>
+        </div>
       </section>
 
       <!-- Vista Empleado -->
@@ -124,6 +131,14 @@
             <div class="action-title">Alerta merma</div>
             <div class="action-desc">Sin alertas actualmente</div>
           </div>
+        </div>
+
+        <div class="solicitud-actions-container">
+          <h2 class="quick-actions-title" style="margin: 0;">Mis solicitudes</h2>
+          <button type="button" class="btn-primary" id="btn-crear-solicitud">+ Nueva solicitud</button>
+        </div>
+        <div class="solicitudes-list" id="emp-solicitudes-list">
+          <!-- Se llena con JS -->
         </div>
       </section>
 
@@ -213,6 +228,26 @@
           <button type="button" class="btn-danger" id="btn-turno-delete" hidden>Borrar</button>
           <button type="button" class="btn-cancel" id="btn-turno-cancel">Cancelar</button>
           <button type="submit" class="btn-submit" id="btn-turno-save">Crear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Crear solicitud -->
+  <div class="modal-overlay" id="modal-solicitud" hidden>
+    <div class="modal-card" role="dialog" aria-labelledby="modal-solicitud-title">
+      <h2 id="modal-solicitud-title">Nueva solicitud</h2>
+      <p class="modal-subtitle">Contale al administrador qué necesitás: día libre, cambio de turno, etc.</p>
+
+      <form id="form-solicitud" novalidate>
+        <label for="solicitud-mensaje">Mensaje</label>
+        <textarea id="solicitud-mensaje" required minlength="5" placeholder="Ej: Necesito el domingo 12 libre por un tema familiar…"></textarea>
+
+        <div class="modal-msg" id="solicitud-msg" role="alert" aria-live="polite"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="btn-solicitud-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit">Enviar</button>
         </div>
       </form>
     </div>

@@ -118,6 +118,8 @@ function setupVistaEmpleado() {
 
   // Modal para registrar merma
   setupModalMerma();
+
+  setupSolicitudesEmpleado();
 }
 
 /* ---------- Helpers de fecha ---------- */
@@ -328,6 +330,8 @@ function setupVistaAdmin() {
   });
 
   setupModalTurno(() => renderAdminWeek(mondayShown));
+
+  renderSolicitudesAdmin();
 }
 
 function populateEmpleadoSelect() {
@@ -572,4 +576,191 @@ function openTurnoModal(turno, prefill = {}) {
   }
 
   modal.hidden = false;
+}
+
+/* ============================================
+   SOLICITUDES — Compartido, Empleado y Admin
+   ============================================ */
+
+function formatFechaHumana(fechaIso) {
+  const d = new Date(fechaIso);
+  const h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${d.getDate()} ${MESES[d.getMonth()]} · ${h}:${m}`;
+}
+
+function buildSolicitudCard(solicitud, showActions, onAction) {
+  const card = document.createElement('div');
+  card.className = `solicitud-card ${solicitud.estado}`;
+
+  const info = document.createElement('div');
+  info.className = 'solicitud-info';
+
+  const header = document.createElement('div');
+  header.className = 'solicitud-header';
+
+  const empleado = DB.getById('usuarios', solicitud.empleadoId);
+  const nombre = empleado ? empleado.nombre : 'Empleado desconocido';
+
+  const nombreSpan = document.createElement('span');
+  nombreSpan.className = 'solicitud-nombre';
+  nombreSpan.textContent = nombre;
+  header.appendChild(nombreSpan);
+
+  const fechaSpan = document.createElement('span');
+  fechaSpan.className = 'solicitud-fecha';
+  fechaSpan.textContent = formatFechaHumana(solicitud.fecha);
+  header.appendChild(fechaSpan);
+
+  const estadoSpan = document.createElement('span');
+  estadoSpan.className = `solicitud-estado ${solicitud.estado}`;
+  estadoSpan.textContent = solicitud.estado;
+  header.appendChild(estadoSpan);
+
+  info.appendChild(header);
+
+  const mensaje = document.createElement('div');
+  mensaje.className = 'solicitud-mensaje';
+  mensaje.textContent = solicitud.mensaje;
+  info.appendChild(mensaje);
+
+  card.appendChild(info);
+
+  if (showActions && solicitud.estado === 'pendiente') {
+    const actions = document.createElement('div');
+    actions.className = 'solicitud-actions';
+
+    const btnAccept = document.createElement('button');
+    btnAccept.type = 'button';
+    btnAccept.className = 'btn-accept';
+    btnAccept.textContent = 'Aceptar';
+    btnAccept.addEventListener('click', () => {
+      DB.update('solicitudes', solicitud.id, { estado: 'aceptada' });
+      if (onAction) onAction();
+    });
+
+    const btnReject = document.createElement('button');
+    btnReject.type = 'button';
+    btnReject.className = 'btn-reject';
+    btnReject.textContent = 'Rechazar';
+    btnReject.addEventListener('click', () => {
+      DB.update('solicitudes', solicitud.id, { estado: 'rechazada' });
+      if (onAction) onAction();
+    });
+
+    actions.appendChild(btnAccept);
+    actions.appendChild(btnReject);
+    card.appendChild(actions);
+  }
+
+  return card;
+}
+
+/* ---------- Empleado: crear + ver propias ---------- */
+
+function setupSolicitudesEmpleado() {
+  renderMisSolicitudes();
+
+  document.getElementById('btn-crear-solicitud').addEventListener('click', () => {
+    openSolicitudModal();
+  });
+
+  setupModalSolicitud(() => renderMisSolicitudes());
+}
+
+function renderMisSolicitudes() {
+  const list = document.getElementById('emp-solicitudes-list');
+  list.innerHTML = '';
+
+  const mias = DB.getAll('solicitudes')
+    .filter(s => s.empleadoId === sesion.id)
+    .sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  if (mias.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'solicitudes-empty';
+    empty.textContent = 'No has enviado solicitudes todavía.';
+    list.appendChild(empty);
+    return;
+  }
+
+  mias.forEach(s => list.appendChild(buildSolicitudCard(s, false)));
+}
+
+function setupModalSolicitud(onSubmit) {
+  const modal = document.getElementById('modal-solicitud');
+  const form = document.getElementById('form-solicitud');
+  const btnCancel = document.getElementById('btn-solicitud-cancel');
+  const msgBox = document.getElementById('solicitud-msg');
+
+  btnCancel.addEventListener('click', () => { modal.hidden = true; });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.hidden = true;
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    msgBox.textContent = '';
+    msgBox.className = 'modal-msg';
+
+    const mensaje = document.getElementById('solicitud-mensaje').value.trim();
+
+    if (!mensaje) {
+      msgBox.textContent = 'Escribí el mensaje de tu solicitud.';
+      msgBox.className = 'modal-msg error';
+      return;
+    }
+    if (mensaje.length < 5) {
+      msgBox.textContent = 'El mensaje debe tener al menos 5 caracteres.';
+      msgBox.className = 'modal-msg error';
+      return;
+    }
+
+    DB.create('solicitudes', {
+      empleadoId: sesion.id,
+      mensaje,
+      fecha: new Date().toISOString(),
+      estado: 'pendiente'
+    });
+
+    msgBox.textContent = 'Solicitud enviada correctamente.';
+    msgBox.className = 'modal-msg success';
+    setTimeout(() => {
+      modal.hidden = true;
+      onSubmit();
+    }, 1000);
+  });
+}
+
+function openSolicitudModal() {
+  const modal = document.getElementById('modal-solicitud');
+  const form = document.getElementById('form-solicitud');
+  const msgBox = document.getElementById('solicitud-msg');
+  form.reset();
+  msgBox.textContent = '';
+  msgBox.className = 'modal-msg';
+  modal.hidden = false;
+}
+
+/* ---------- Admin: revisar pendientes ---------- */
+
+function renderSolicitudesAdmin() {
+  const list = document.getElementById('admin-solicitudes-list');
+  list.innerHTML = '';
+
+  const pendientes = DB.getAll('solicitudes')
+    .filter(s => s.estado === 'pendiente')
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+  if (pendientes.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'solicitudes-empty';
+    empty.textContent = 'No hay solicitudes pendientes.';
+    list.appendChild(empty);
+    return;
+  }
+
+  pendientes.forEach(s => {
+    list.appendChild(buildSolicitudCard(s, true, () => renderSolicitudesAdmin()));
+  });
 }
