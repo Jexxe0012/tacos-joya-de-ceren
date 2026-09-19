@@ -15,5 +15,12 @@
 .dashboard-page .dashboard-progreso-estable { background-color: color-mix(in srgb, var(--text) 65%, var(--surface)); }
 .dashboard-page .dashboard-cobertura { font-size: 0.875rem; white-space: nowrap; }
 .dashboard-page .dashboard-cobertura-critica { color: var(--danger); }
+.dashboard-page .dashboard-pedidos { min-width: 0; }
+.dashboard-page .dashboard-pedido { display: grid; grid-template-columns: minmax(5.5rem, 1fr) auto auto; align-items: center; gap: 0.5rem; padding: 0.75rem 0; border-top: 1px solid var(--bs-border-color); font-size: 0.75rem; }
+.dashboard-page .dashboard-pedido > div { display: grid; gap: 0.15rem; min-width: 0; }
+.dashboard-page .dashboard-pedido > div span { color: var(--bs-secondary-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dashboard-page .dashboard-pedido > strong { font-variant-numeric: tabular-nums; }
+.dashboard-page .dashboard-estado-preparando { background-color: color-mix(in srgb, var(--danger) 12%, var(--surface)); color: var(--danger); }
+.dashboard-page .dashboard-estado-entregado { background-color: color-mix(in srgb, var(--success) 12%, var(--surface)); color: var(--success); }
 @media (max-width: 575.98px) { .dashboard-page .dashboard-grafica { height: 15rem; } }
 @media (max-width: 575.98px) { .dashboard-page .dashboard-abastecimiento-item { grid-template-columns: 1fr auto; } .dashboard-page .dashboard-progreso { grid-column: 1 / -1; grid-row: 2; } }
