@@ -1,13 +1,12 @@
 /**
  * turnos.js — Lógica del módulo Turnos.
- * Requiere: storage.js (DB), guard.js (Guard) cargados antes.
+ * Requiere: storage.js (DB), guard.js (Guard) y main.js cargados antes.
  *
- * Fase 1: setup del sidebar (usuario, avatar, logout) y
- * decisión de qué vista mostrar según el rol de la sesión.
+ * Personaliza la plantilla compartida y muestra la vista según la sesión.
  */
 
 /* ============================================
-   Setup inicial del sidebar y de la vista
+   Setup de la plantilla compartida y de la vista
    ============================================ */
 
 const sesion = Guard.getSesion();
@@ -18,20 +17,11 @@ if (!sesion) {
   throw new Error('No hay sesión activa.');
 }
 
-// Nombre y rol en el sidebar
-document.getElementById('sidebar-user-name').textContent = sesion.nombre;
-document.getElementById('sidebar-user-role').textContent =
-  sesion.rol === 'admin' ? 'Dueño / Admin' : 'Empleado';
-
-// Iniciales para el avatar (máximo 2 letras)
-const iniciales = sesion.nombre
-  .split(' ')
-  .filter(Boolean)
-  .map(palabra => palabra[0])
-  .slice(0, 2)
-  .join('')
-  .toUpperCase();
-document.getElementById('sidebar-user-avatar').textContent = iniciales;
+// main.js ya creó la navegación y el cierre de sesión comunes.
+const rolTurnos = sesion.rol === 'admin' ? 'Dueño / Admin' : 'Empleado';
+document.body.dataset.rol = rolTurnos;
+document.getElementById('rol-menu').textContent = `${sesion.nombre} · ${rolTurnos}`;
+document.getElementById('rol-barra').textContent = rolTurnos;
 
 // Mostrar la vista que corresponde al rol
 if (sesion.rol === 'admin') {
@@ -39,11 +29,6 @@ if (sesion.rol === 'admin') {
 } else {
   document.getElementById('empleado-view').hidden = false;
 }
-
-// Botón de logout
-document.getElementById('btn-logout').addEventListener('click', () => {
-  Guard.logout();
-});
 
 /* ============================================
    VISTA EMPLEADO — Saludo, calendario, acciones

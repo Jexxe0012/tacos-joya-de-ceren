@@ -4,46 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Turnos — Tacos Joya de Cerén</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    crossorigin="anonymous"
+  >
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/turnos.css">
   <script src="../js/storage.js"></script>
   <script src="../js/guard.js"></script>
   <script>Guard.requireLogin();</script>
 </head>
-<body>
-  <div class="app-layout">
+<body class="app-page turnos-page" data-pagina="turnos" data-seccion="Programación" data-rol="Equipo">
+  <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
 
-    <!-- ============ SIDEBAR ============ -->
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <div class="sidebar-logo">TJ</div>
-        <div class="sidebar-brand-text">
-          <span class="name">Tacos Joya</span>
-          <span class="sub">de Cerén</span>
-        </div>
-      </div>
+  <div class="app-layout d-lg-flex">
+    <!-- La navegación y el cierre de sesión usan la plantilla compartida. -->
+    <aside class="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column"
+      tabindex="-1" id="menu-lateral" aria-labelledby="titulo-menu"></aside>
 
-      <nav class="sidebar-nav" aria-label="Módulos">
-        <a href="dashboard.html">Dashboard</a>
-        <a href="recetas.html">Recetas</a>
-        <a href="mermas.html">Mermas</a>
-        <a href="turnos.html" class="active" aria-current="page">Turnos</a>
-        <a href="reportes.html">Reportes</a>
-        <a href="abastecimientos.html">Abastecimiento</a>
-      </nav>
+    <div class="app-area flex-grow-1">
+      <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
 
-      <div class="sidebar-user">
-        <div class="sidebar-user-avatar" id="sidebar-user-avatar">?</div>
-        <div class="sidebar-user-info">
-          <div class="user-name" id="sidebar-user-name">…</div>
-          <div class="user-role" id="sidebar-user-role">…</div>
-        </div>
-        <button id="btn-logout" type="button" title="Cerrar sesión">Salir</button>
-      </div>
-    </aside>
-
-    <!-- ============ MAIN CONTENT ============ -->
-    <main class="main-content">
+      <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1" aria-label="Gestión de turnos">
 
       <!-- Vista Admin -->
       <section id="admin-view" hidden>
@@ -52,7 +36,7 @@
             <h1>Turnos y días libres</h1>
             <p class="subtitle">Organizá los turnos de los empleados durante la semana.</p>
           </div>
-          <button type="button" class="btn-primary" id="btn-crear-turno">+ Crear turno</button>
+          <button type="button" class="btn btn-app-primary" id="btn-crear-turno">+ Crear turno</button>
         </div>
 
         <div class="week-nav">
@@ -135,15 +119,15 @@
 
         <div class="solicitud-actions-container">
           <h2 class="quick-actions-title" style="margin: 0;">Mis solicitudes</h2>
-          <button type="button" class="btn-primary" id="btn-crear-solicitud">+ Nueva solicitud</button>
+          <button type="button" class="btn btn-app-primary" id="btn-crear-solicitud">+ Nueva solicitud</button>
         </div>
         <div class="solicitudes-list" id="emp-solicitudes-list">
           <!-- Se llena con JS -->
         </div>
       </section>
 
-    </main>
-
+      </main>
+    </div>
   </div>
 
   <!-- Modal: Registrar merma -->
@@ -253,6 +237,13 @@
     </div>
   </div>
 
+  <noscript><p class="p-3">Activa JavaScript para utilizar el menú lateral y gestionar los turnos.</p></noscript>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+    crossorigin="anonymous"
+  ></script>
+  <script src="../js/main.js"></script>
   <script src="../js/turnos.js"></script>
 </body>
 </html>
