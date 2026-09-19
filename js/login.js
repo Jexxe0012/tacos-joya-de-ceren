@@ -170,7 +170,7 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
 
   // Redirigir según rol.
   if (usuario.rol === 'admin') {
-    window.location.href = 'dashboard.html';
+    window.location.href = 'turnos.html';
   } else {
     window.location.href = 'turnos.html';
   }
@@ -269,7 +269,7 @@ document.getElementById('register-form').addEventListener('submit', (e) => {
 
   // Redirigir según rol
   if (nuevoUsuario.rol === 'admin') {
-    window.location.href = 'dashboard.html';
+    window.location.href = 'turnos.html';
   } else {
     window.location.href = 'turnos.html';
   }
