@@ -34,25 +34,50 @@
           </div>
         </section>
 
-        <section class="mt-4" aria-labelledby="titulo-ventas-dia">
-          <article class="app-panel p-3 p-md-4">
-            <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
-              <div>
-                <h2 class="h5 fw-semibold mb-1" id="titulo-ventas-dia">Ventas por día</h2>
-                <p class="small text-body-secondary mb-0" id="descripcion-ventas-dia">Histórico de tacos vendidos durante la semana.</p>
+        <div class="row g-3 mt-1">
+          <section class="col-12 col-xl-8" aria-labelledby="titulo-ventas-dia">
+            <article class="app-panel h-100 p-3 p-md-4">
+              <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+                <div>
+                  <h2 class="h5 fw-semibold mb-1" id="titulo-ventas-dia">Ventas por día</h2>
+                  <p class="small text-body-secondary mb-0" id="descripcion-ventas-dia">Histórico de tacos vendidos durante la semana.</p>
+                </div>
+                <span class="badge rounded-pill app-estado app-estado-ok">Tacos</span>
               </div>
-              <span class="badge rounded-pill app-estado app-estado-ok">Tacos</span>
-            </div>
-            <div class="dashboard-grafica">
-              <canvas id="grafica-ventas-dashboard" role="img" aria-labelledby="titulo-ventas-dia" aria-describedby="descripcion-ventas-dia">
-                Gráfica de ventas semanales. Consulta los valores en el resumen debajo.
-              </canvas>
-            </div>
-            <p class="small text-body-secondary mt-3 mb-0" id="resumen-ventas-dashboard">
-              Semana actual: 1,078 tacos vendidos en datos de demostración.
-            </p>
-          </article>
-        </section>
+              <div class="dashboard-grafica">
+                <canvas id="grafica-ventas-dashboard" role="img" aria-labelledby="titulo-ventas-dia" aria-describedby="descripcion-ventas-dia">
+                  Gráfica de ventas semanales. Consulta los valores en el resumen debajo.
+                </canvas>
+              </div>
+              <p class="small text-body-secondary mt-3 mb-0" id="resumen-ventas-dashboard">
+                Semana actual: 1,078 tacos vendidos en datos de demostración.
+              </p>
+            </article>
+          </section>
+
+          <section class="col-12 col-xl-4" aria-labelledby="titulo-alertas">
+            <article class="app-panel dashboard-alertas h-100 p-3 p-md-4">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <h2 class="h5 fw-semibold mb-0" id="titulo-alertas">Requiere atención</h2>
+                <span class="badge rounded-pill app-estado app-estado-atencion">3 alertas</span>
+              </div>
+              <ul class="list-unstyled mb-0" aria-label="Alertas operativas">
+                <li class="dashboard-alerta">
+                  <h3 class="h6 fw-semibold mb-1">Carne al pastor</h3>
+                  <p class="small text-body-secondary mb-0">Cobertura: 1.2 días</p>
+                </li>
+                <li class="dashboard-alerta">
+                  <h3 class="h6 fw-semibold mb-1">Merma de res</h3>
+                  <p class="small text-body-secondary mb-0">0.9 kg sobre el límite</p>
+                </li>
+                <li class="dashboard-alerta">
+                  <h3 class="h6 fw-semibold mb-1">Tortillas</h3>
+                  <p class="small text-body-secondary mb-0">Recomprar mañana</p>
+                </li>
+              </ul>
+            </article>
+          </section>
+        </div>
       </main>
     </div>
   </div>

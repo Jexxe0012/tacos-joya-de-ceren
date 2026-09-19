@@ -4,4 +4,6 @@
 .dashboard-page .dashboard-valor { font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.1; font-variant-numeric: tabular-nums; }
 .dashboard-page .dashboard-valor-alerta, .dashboard-page .dashboard-texto-alerta { color: var(--danger); }
 .dashboard-page .dashboard-grafica { height: 18rem; position: relative; }
+.dashboard-page .dashboard-alerta { border-left: 3px solid var(--danger); padding-left: 0.75rem; }
+.dashboard-page .dashboard-alerta + .dashboard-alerta { margin-top: 1.25rem; }
 @media (max-width: 575.98px) { .dashboard-page .dashboard-grafica { height: 15rem; } }
