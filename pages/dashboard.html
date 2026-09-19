@@ -3,13 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — Tacos Joya de Cerén</title>
+  <title>Dashboard | Tacos Joya de Cerén</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
   <script src="../js/guard.js"></script>
   <script>Guard.requireRole('admin');</script>
 </head>
-<body>
-  <h1>Dashboard (Admin)</h1>
-  <p>Bienvenido al panel de administración.</p>
+<body class="app-page dashboard-page" data-pagina="dashboard" data-seccion="Resumen" data-rol="Dueño">
+  <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
+  <div class="app-layout d-lg-flex">
+    <aside class="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column" tabindex="-1" id="menu-lateral" aria-labelledby="titulo-menu"></aside>
+    <div class="app-area flex-grow-1">
+      <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
+      <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1">
+        <section class="mb-4" aria-labelledby="titulo-dashboard">
+          <h1 class="h3 fw-bold mb-2" id="titulo-dashboard">Resumen de operación</h1>
+          <p class="text-body-secondary mb-0">Indicadores de ventas, consumo, mermas y cobertura.</p>
+        </section>
+        <section aria-labelledby="titulo-indicadores">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <h2 class="h5 fw-semibold mb-0" id="titulo-indicadores">Indicadores de hoy</h2>
+            <span class="small text-body-secondary">Datos de demostración</span>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-ventas-previstas"><p class="dashboard-etiqueta mb-2" id="titulo-ventas-previstas">Ventas previstas</p><p class="dashboard-valor fw-bold mb-1">162</p><p class="small text-body-secondary mb-0">tacos para hoy</p></article></div>
+            <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-consumo-esperado"><p class="dashboard-etiqueta mb-2" id="titulo-consumo-esperado">Consumo esperado</p><p class="dashboard-valor fw-bold mb-1">28.4 kg</p><p class="small text-body-secondary mb-0">según recetas estándar</p></article></div>
+            <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-merma-semanal"><p class="dashboard-etiqueta mb-2" id="titulo-merma-semanal">Merma semanal</p><p class="dashboard-valor dashboard-valor-alerta fw-bold mb-1">3.8 kg</p><p class="small dashboard-texto-alerta mb-0">12% sobre lo esperado</p></article></div>
+            <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-cobertura-menor"><p class="dashboard-etiqueta mb-2" id="titulo-cobertura-menor">Cobertura menor</p><p class="dashboard-valor dashboard-valor-alerta fw-bold mb-1">1.2 días</p><p class="small dashboard-texto-alerta mb-0">Carne al pastor · pedir hoy</p></article></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <noscript><p class="p-3">Activa JavaScript para utilizar la navegación.</p></noscript>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  <script src="../js/main.js"></script>
 </body>
 </html>
