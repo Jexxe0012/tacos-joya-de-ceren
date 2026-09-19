@@ -303,20 +303,6 @@
       $("titulo-cuarto-indicador").textContent = "Tiempo promedio";
       $("detalle-margen").textContent = "Minutos de preparación por receta.";
     }
-
-    const barra = $("barra-superior");
-    if (barra && !$("btn-logout")) {
-      const boton = document.createElement("button");
-      boton.id = "btn-logout";
-      boton.type = "button";
-      boton.className = "btn btn-app-secondary btn-sm";
-      boton.textContent = "Cerrar sesión";
-      boton.addEventListener("click", () => Guard.logout());
-      barra.append(boton);
-    }
-
-    const perfil = $("rol-menu");
-    if (perfil) perfil.textContent = sesion.nombre;
   }
 
   let temporizadorMensaje = null;
