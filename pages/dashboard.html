@@ -33,11 +33,33 @@
             <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-cobertura-menor"><p class="dashboard-etiqueta mb-2" id="titulo-cobertura-menor">Cobertura menor</p><p class="dashboard-valor dashboard-valor-alerta fw-bold mb-1">1.2 días</p><p class="small dashboard-texto-alerta mb-0">Carne al pastor · pedir hoy</p></article></div>
           </div>
         </section>
+
+        <section class="mt-4" aria-labelledby="titulo-ventas-dia">
+          <article class="app-panel p-3 p-md-4">
+            <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+              <div>
+                <h2 class="h5 fw-semibold mb-1" id="titulo-ventas-dia">Ventas por día</h2>
+                <p class="small text-body-secondary mb-0" id="descripcion-ventas-dia">Histórico de tacos vendidos durante la semana.</p>
+              </div>
+              <span class="badge rounded-pill app-estado app-estado-ok">Tacos</span>
+            </div>
+            <div class="dashboard-grafica">
+              <canvas id="grafica-ventas-dashboard" role="img" aria-labelledby="titulo-ventas-dia" aria-describedby="descripcion-ventas-dia">
+                Gráfica de ventas semanales. Consulta los valores en el resumen debajo.
+              </canvas>
+            </div>
+            <p class="small text-body-secondary mt-3 mb-0" id="resumen-ventas-dashboard">
+              Semana actual: 1,078 tacos vendidos en datos de demostración.
+            </p>
+          </article>
+        </section>
       </main>
     </div>
   </div>
   <noscript><p class="p-3">Activa JavaScript para utilizar la navegación.</p></noscript>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
   <script src="../js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <script src="../js/dashboard.js"></script>
 </body>
 </html>
