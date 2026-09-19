@@ -54,6 +54,40 @@ document.getElementById('btn-logout').addEventListener('click', () => {
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
+/* ---------- Helpers compartidos empleado/admin ---------- */
+
+/**
+ * Devuelve los turnos aplicables a una fecha para un empleado.
+ * Considera:
+ *  - Match directo por fecha exacta.
+ *  - Recurrencia semanal: mismo día de la semana, con fecha original <= la buscada.
+ */
+function turnosForDate(date, empleadoId = null) {
+  const iso = formatDateISO(date);
+  const dow = date.getDay();
+  return DB.getAll('turnos').filter(t => {
+    if (empleadoId && t.empleadoId !== empleadoId) return false;
+    if (t.fecha === iso) return true;
+    if (t.esRecurrenteSemanal) {
+      const tDate = new Date(t.fecha + 'T00:00:00');
+      if (tDate.getDay() === dow && tDate <= date) return true;
+    }
+    return false;
+  });
+}
+
+/**
+ * Etiqueta de rango de semana. Ej: "14–20 sep" o "28 sep – 4 oct".
+ */
+function formatWeekLabel(monday, sunday) {
+  const mMonth = MESES[monday.getMonth()];
+  const sMonth = MESES[sunday.getMonth()];
+  if (monday.getMonth() === sunday.getMonth()) {
+    return `${monday.getDate()}–${sunday.getDate()} ${sMonth}`;
+  }
+  return `${monday.getDate()} ${mMonth} – ${sunday.getDate()} ${sMonth}`;
+}
+
 if (sesion.rol === 'empleado') {
   setupVistaEmpleado();
 }
@@ -155,19 +189,18 @@ function seedTurnosDePrueba() {
 
 function renderEmpleadoWeek(monday) {
   const sunday = addDays(monday, 6);
-  document.getElementById('week-label').textContent =
-    `${monday.getDate()}–${sunday.getDate()} ${MESES[sunday.getMonth()]}`;
+  document.getElementById('week-label').textContent = formatWeekLabel(monday, sunday);
 
   const container = document.getElementById('emp-week');
   container.innerHTML = '';
 
-  const misTurnos = DB.getAll('turnos').filter(t => t.empleadoId === sesion.id);
+  // (Usaremos el helper turnosForDate() por cada día, respetando recurrencia)
   const hoy = new Date();
 
   for (let i = 0; i < 7; i++) {
     const day = addDays(monday, i);
     const iso = formatDateISO(day);
-    const turnosDelDia = misTurnos.filter(t => t.fecha === iso);
+    const turnosDelDia = turnosForDate(day, sesion.id);
 
     const card = document.createElement('div');
     card.className = 'day-card' + (isSameDate(day, hoy) ? ' day-today' : '');
@@ -265,4 +298,278 @@ function setupModalMerma() {
     msgBox.className = 'modal-msg success';
     setTimeout(() => { modal.hidden = true; }, 1200);
   });
+}
+
+/* ============================================
+   VISTA ADMIN — Stats, calendario, CRUD de turnos
+   ============================================ */
+
+if (sesion.rol === 'admin') {
+  setupVistaAdmin();
+}
+
+function setupVistaAdmin() {
+  let mondayShown = getMondayOf(new Date());
+
+  populateEmpleadoSelect();
+  renderAdminWeek(mondayShown);
+
+  document.getElementById('btn-admin-week-prev').addEventListener('click', () => {
+    mondayShown = addDays(mondayShown, -7);
+    renderAdminWeek(mondayShown);
+  });
+  document.getElementById('btn-admin-week-next').addEventListener('click', () => {
+    mondayShown = addDays(mondayShown, 7);
+    renderAdminWeek(mondayShown);
+  });
+
+  document.getElementById('btn-crear-turno').addEventListener('click', () => {
+    openTurnoModal(null);
+  });
+
+  setupModalTurno(() => renderAdminWeek(mondayShown));
+}
+
+function populateEmpleadoSelect() {
+  const select = document.getElementById('turno-empleado');
+  const empleados = DB.getAll('usuarios').filter(u => u.rol === 'empleado');
+  select.innerHTML = '<option value="">— Seleccioná —</option>';
+  empleados.forEach(emp => {
+    const opt = document.createElement('option');
+    opt.value = emp.id;
+    opt.textContent = emp.nombre;
+    select.appendChild(opt);
+  });
+}
+
+function renderAdminWeek(monday) {
+  const sunday = addDays(monday, 6);
+  document.getElementById('admin-week-label').textContent = formatWeekLabel(monday, sunday);
+
+  const empleados = DB.getAll('usuarios').filter(u => u.rol === 'empleado');
+  const table = document.getElementById('admin-calendar');
+  table.innerHTML = '';
+
+  if (empleados.length === 0) {
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 8;
+    cell.className = 'no-empleados';
+    cell.textContent = 'No hay empleados registrados aún.';
+    row.appendChild(cell);
+    table.appendChild(row);
+    updateAdminStats(monday, empleados);
+    return;
+  }
+
+  // Header
+  const thead = document.createElement('thead');
+  const trHead = document.createElement('tr');
+  const thEmp = document.createElement('th');
+  thEmp.className = 'col-employee';
+  thEmp.textContent = 'Empleado';
+  trHead.appendChild(thEmp);
+  for (let i = 0; i < 7; i++) {
+    const day = addDays(monday, i);
+    const th = document.createElement('th');
+    th.textContent = `${DIAS_SEMANA[i]} ${day.getDate()}`;
+    trHead.appendChild(th);
+  }
+  thead.appendChild(trHead);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  const hoy = new Date();
+
+  empleados.forEach(emp => {
+    const row = document.createElement('tr');
+    const tdName = document.createElement('td');
+    tdName.className = 'col-employee';
+    tdName.textContent = emp.nombre;
+    row.appendChild(tdName);
+
+    for (let i = 0; i < 7; i++) {
+      const day = addDays(monday, i);
+      const iso = formatDateISO(day);
+      const turnos = turnosForDate(day, emp.id);
+
+      const td = document.createElement('td');
+      td.className = 'cell';
+      if (isSameDate(day, hoy)) td.classList.add('today');
+      td.dataset.empleadoId = emp.id;
+      td.dataset.fecha = iso;
+
+      if (turnos.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'cell-empty';
+        empty.textContent = 'Libre';
+        td.appendChild(empty);
+      } else {
+        td.classList.add('has-turno');
+        const t = turnos[0];
+        td.dataset.turnoId = t.id;
+
+        const horas = document.createElement('div');
+        horas.className = 'cell-hours';
+        horas.textContent = `${formatHora(t.horaInicio)}–${formatHora(t.horaFin)}`;
+        if (t.esRecurrenteSemanal) {
+          const mark = document.createElement('span');
+          mark.className = 'cell-recurrent-mark';
+          mark.textContent = ' ↻';
+          mark.title = 'Se repite cada semana';
+          horas.appendChild(mark);
+        }
+        td.appendChild(horas);
+
+        const est = document.createElement('div');
+        est.className = 'cell-station';
+        est.textContent = t.estacion;
+        td.appendChild(est);
+      }
+
+      td.addEventListener('click', () => {
+        if (turnos.length === 0) {
+          openTurnoModal(null, { empleadoId: emp.id, fecha: iso });
+        } else {
+          openTurnoModal(turnos[0]);
+        }
+      });
+
+      row.appendChild(td);
+    }
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+
+  updateAdminStats(monday, empleados);
+}
+
+function updateAdminStats(monday, empleados) {
+  const hoy = new Date();
+  const turnosHoy = empleados.filter(e => turnosForDate(hoy, e.id).length > 0).length;
+  const libreHoy = Math.max(0, empleados.length - turnosHoy);
+
+  let totalHoras = 0;
+  let totalTurnos = 0;
+  for (let i = 0; i < 7; i++) {
+    const day = addDays(monday, i);
+    empleados.forEach(e => {
+      const turnos = turnosForDate(day, e.id);
+      turnos.forEach(t => {
+        totalTurnos++;
+        totalHoras += horasEntre(t.horaInicio, t.horaFin);
+      });
+    });
+  }
+
+  document.getElementById('stat-en-turno').textContent = turnosHoy;
+  document.getElementById('stat-dia-libre').textContent = libreHoy;
+  document.getElementById('stat-horas').textContent = `${Math.round(totalHoras)} h`;
+  document.getElementById('stat-turnos-total').textContent = totalTurnos;
+}
+
+function horasEntre(inicio, fin) {
+  const [h1, m1] = inicio.split(':').map(Number);
+  const [h2, m2] = fin.split(':').map(Number);
+  return (h2 + m2 / 60) - (h1 + m1 / 60);
+}
+
+/* ---------- Modal: Crear / Editar / Borrar turno ---------- */
+
+function setupModalTurno(onSave) {
+  const modal = document.getElementById('modal-turno');
+  const form = document.getElementById('form-turno');
+  const btnCancel = document.getElementById('btn-turno-cancel');
+  const btnDelete = document.getElementById('btn-turno-delete');
+  const msgBox = document.getElementById('turno-msg');
+
+  btnCancel.addEventListener('click', () => { modal.hidden = true; });
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.hidden = true;
+  });
+
+  btnDelete.addEventListener('click', () => {
+    const id = document.getElementById('turno-id').value;
+    if (!id) return;
+    if (!confirm('¿Borrar este turno?')) return;
+    DB.remove('turnos', id);
+    modal.hidden = true;
+    onSave();
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    msgBox.textContent = '';
+    msgBox.className = 'modal-msg';
+
+    const id = document.getElementById('turno-id').value;
+    const empleadoId = document.getElementById('turno-empleado').value;
+    const fecha = document.getElementById('turno-fecha').value;
+    const horaInicio = document.getElementById('turno-hora-inicio').value;
+    const horaFin = document.getElementById('turno-hora-fin').value;
+    const estacion = document.getElementById('turno-estacion').value;
+    const notas = document.getElementById('turno-notas').value.trim();
+    const esRecurrenteSemanal = document.getElementById('turno-recurrente').checked;
+
+    if (!empleadoId || !fecha || !horaInicio || !horaFin || !estacion) {
+      msgBox.textContent = 'Empleado, fecha, horas y estación son obligatorios.';
+      msgBox.className = 'modal-msg error';
+      return;
+    }
+    if (horaFin <= horaInicio) {
+      msgBox.textContent = 'La hora de fin debe ser después de la hora de inicio.';
+      msgBox.className = 'modal-msg error';
+      return;
+    }
+
+    const data = { empleadoId, fecha, horaInicio, horaFin, estacion, notas, esRecurrenteSemanal };
+
+    if (id) {
+      DB.update('turnos', id, data);
+    } else {
+      DB.create('turnos', data);
+    }
+
+    modal.hidden = true;
+    onSave();
+  });
+}
+
+function openTurnoModal(turno, prefill = {}) {
+  const modal = document.getElementById('modal-turno');
+  const title = document.getElementById('modal-turno-title');
+  const btnDelete = document.getElementById('btn-turno-delete');
+  const btnSave = document.getElementById('btn-turno-save');
+  const msgBox = document.getElementById('turno-msg');
+
+  msgBox.textContent = '';
+  msgBox.className = 'modal-msg';
+
+  if (turno) {
+    title.textContent = 'Editar turno';
+    btnSave.textContent = 'Guardar';
+    btnDelete.hidden = false;
+    document.getElementById('turno-id').value = turno.id;
+    document.getElementById('turno-empleado').value = turno.empleadoId;
+    document.getElementById('turno-fecha').value = turno.fecha;
+    document.getElementById('turno-hora-inicio').value = turno.horaInicio;
+    document.getElementById('turno-hora-fin').value = turno.horaFin;
+    document.getElementById('turno-estacion').value = turno.estacion;
+    document.getElementById('turno-notas').value = turno.notas || '';
+    document.getElementById('turno-recurrente').checked = !!turno.esRecurrenteSemanal;
+  } else {
+    title.textContent = 'Crear turno';
+    btnSave.textContent = 'Crear';
+    btnDelete.hidden = true;
+    document.getElementById('turno-id').value = '';
+    document.getElementById('turno-empleado').value = prefill.empleadoId || '';
+    document.getElementById('turno-fecha').value = prefill.fecha || formatDateISO(new Date());
+    document.getElementById('turno-hora-inicio').value = '14:00';
+    document.getElementById('turno-hora-fin').value = '21:00';
+    document.getElementById('turno-estacion').value = '';
+    document.getElementById('turno-notas').value = '';
+    document.getElementById('turno-recurrente').checked = false;
+  }
+
+  modal.hidden = false;
 }

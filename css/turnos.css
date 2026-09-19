@@ -525,3 +525,242 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================
+   VISTA ADMIN — Header, stats, calendario tabla
+   ============================================ */
+
+.admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-header h1 {
+  color: var(--color-azul);
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+}
+
+.admin-header .subtitle {
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0;
+}
+
+.btn-primary {
+  background: var(--color-azul);
+  color: var(--color-crema);
+  border: none;
+  padding: 0.65rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.15);
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-azul);
+  line-height: 1;
+}
+
+.stat-sub {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 0.4rem;
+  color: var(--text);
+}
+
+/* Calendar container */
+.section-title {
+  font-size: 1.1rem;
+  color: var(--color-azul);
+  margin: 0 0 0.75rem;
+}
+
+.admin-calendar-container {
+  background: var(--surface);
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-hint {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin: 0.75rem 0 0;
+  color: var(--text);
+}
+
+.admin-calendar-scroll {
+  overflow-x: auto;
+}
+
+.admin-calendar {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 700px;
+}
+
+.admin-calendar th,
+.admin-calendar td {
+  padding: 0.5rem 0.4rem;
+  text-align: center;
+  font-size: 0.85rem;
+  border: 1px solid rgba(16, 27, 70, 0.06); /* var(--color-azul) al 6% */
+}
+
+.admin-calendar th {
+  color: var(--color-azul);
+  font-weight: 600;
+  font-size: 0.8rem;
+  background: rgba(16, 27, 70, 0.03); /* var(--color-azul) al 3% */
+}
+
+.admin-calendar th.col-employee,
+.admin-calendar td.col-employee {
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-azul);
+  min-width: 8rem;
+  background: rgba(16, 27, 70, 0.03); /* var(--color-azul) al 3% */
+}
+
+.admin-calendar td.cell {
+  cursor: pointer;
+  transition: background 0.1s ease;
+  min-width: 5rem;
+}
+
+.admin-calendar td.cell:hover {
+  background: rgba(242, 182, 50, 0.15); /* var(--color-maiz) al 15% */
+}
+
+.admin-calendar td.cell.has-turno {
+  background: rgba(242, 182, 50, 0.12); /* var(--color-maiz) al 12% */
+  border-left: 3px solid var(--color-maiz);
+}
+
+.admin-calendar td.cell.today {
+  outline: 2px solid var(--color-rojo);
+  outline-offset: -2px;
+}
+
+.cell-hours {
+  font-weight: 600;
+  color: var(--color-azul);
+  font-size: 0.8rem;
+}
+
+.cell-station {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.cell-empty {
+  opacity: 0.35;
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+.cell-recurrent-mark {
+  font-size: 0.7rem;
+  color: var(--color-maiz);
+  font-weight: 700;
+  margin-left: 0.15rem;
+}
+
+.no-empleados {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text);
+  opacity: 0.6;
+}
+
+/* Modal — ancho extra y layout de dos columnas */
+.modal-card-wide {
+  max-width: 32rem;
+}
+
+.modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+/* .modal-card delante para ganarle en especificidad a ".modal-card label" */
+.modal-card .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+  font-weight: 500;
+  color: var(--color-azul);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.btn-danger {
+  background: rgba(182, 36, 36, 0.1); /* var(--color-rojo) al 10% */
+  color: var(--color-rojo);
+  border: none;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  flex: 1;
+}
+
+.btn-danger:hover {
+  background: rgba(182, 36, 36, 0.2); /* var(--color-rojo) al 20% */
+}
+
+/* Responsive stats */
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

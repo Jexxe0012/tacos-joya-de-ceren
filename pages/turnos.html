@@ -45,10 +45,54 @@
     <!-- ============ MAIN CONTENT ============ -->
     <main class="main-content">
 
-      <!-- Vista Admin (placeholder) -->
+      <!-- Vista Admin -->
       <section id="admin-view" hidden>
-        <h1>Turnos y días libres</h1>
-        <p class="subtitle">Vista Admin (en construcción — Fase 2 y 3).</p>
+        <div class="admin-header">
+          <div>
+            <h1>Turnos y días libres</h1>
+            <p class="subtitle">Organizá los turnos de los empleados durante la semana.</p>
+          </div>
+          <button type="button" class="btn-primary" id="btn-crear-turno">+ Crear turno</button>
+        </div>
+
+        <div class="week-nav">
+          <button type="button" id="btn-admin-week-prev" aria-label="Semana anterior">←</button>
+          <span class="week-label" id="admin-week-label">…</span>
+          <button type="button" id="btn-admin-week-next" aria-label="Semana siguiente">→</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">EN TURNO HOY</div>
+            <div class="stat-value" id="stat-en-turno">0</div>
+            <div class="stat-sub">empleados asignados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">DÍA LIBRE HOY</div>
+            <div class="stat-value" id="stat-dia-libre">0</div>
+            <div class="stat-sub">empleados descansan</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">HORAS SEMANALES</div>
+            <div class="stat-value" id="stat-horas">0 h</div>
+            <div class="stat-sub">total de la semana</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">TURNOS TOTALES</div>
+            <div class="stat-value" id="stat-turnos-total">0</div>
+            <div class="stat-sub">esta semana</div>
+          </div>
+        </div>
+
+        <div class="admin-calendar-container">
+          <h2 class="section-title">Calendario semanal</h2>
+          <div class="admin-calendar-scroll">
+            <table class="admin-calendar" id="admin-calendar">
+              <!-- Se llena con JS -->
+            </table>
+          </div>
+          <p class="calendar-hint">Hacé click en una celda para crear o editar el turno. Los turnos con ↻ se repiten cada semana.</p>
+        </div>
       </section>
 
       <!-- Vista Empleado -->
@@ -111,6 +155,64 @@
         <div class="modal-actions">
           <button type="button" class="btn-cancel" id="btn-merma-cancel">Cancelar</button>
           <button type="submit" class="btn-submit">Registrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Crear / Editar / Borrar turno -->
+  <div class="modal-overlay" id="modal-turno" hidden>
+    <div class="modal-card modal-card-wide" role="dialog" aria-labelledby="modal-turno-title">
+      <h2 id="modal-turno-title">Crear turno</h2>
+      <p class="modal-subtitle">Asigná un turno a un empleado.</p>
+
+      <form id="form-turno" novalidate>
+        <input type="hidden" id="turno-id">
+
+        <label for="turno-empleado">Empleado</label>
+        <select id="turno-empleado" required>
+          <option value="">— Seleccioná —</option>
+        </select>
+
+        <label for="turno-fecha">Fecha</label>
+        <input type="date" id="turno-fecha" required>
+
+        <div class="modal-row">
+          <div>
+            <label for="turno-hora-inicio">Hora inicio</label>
+            <input type="time" id="turno-hora-inicio" required>
+          </div>
+          <div>
+            <label for="turno-hora-fin">Hora fin</label>
+            <input type="time" id="turno-hora-fin" required>
+          </div>
+        </div>
+
+        <label for="turno-estacion">Estación</label>
+        <select id="turno-estacion" required>
+          <option value="">— Seleccioná —</option>
+          <option value="Cocina">Cocina</option>
+          <option value="Plancha">Plancha</option>
+          <option value="Caja">Caja</option>
+          <option value="Apoyo">Apoyo</option>
+          <option value="Mesero">Mesero</option>
+          <option value="Domicilio">Domicilio</option>
+        </select>
+
+        <label for="turno-notas">Notas (opcional)</label>
+        <textarea id="turno-notas"></textarea>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="turno-recurrente">
+          Repetir este turno cada semana
+        </label>
+
+        <div class="modal-msg" id="turno-msg" role="alert" aria-live="polite"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-danger" id="btn-turno-delete" hidden>Borrar</button>
+          <button type="button" class="btn-cancel" id="btn-turno-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit" id="btn-turno-save">Crear</button>
         </div>
       </form>
     </div>
