@@ -6,4 +6,14 @@
 .dashboard-page .dashboard-grafica { height: 18rem; position: relative; }
 .dashboard-page .dashboard-alerta { border-left: 3px solid var(--danger); padding-left: 0.75rem; }
 .dashboard-page .dashboard-alerta + .dashboard-alerta { margin-top: 1.25rem; }
+.dashboard-page .dashboard-abastecimiento-lista { display: grid; gap: 1rem; }
+.dashboard-page .dashboard-abastecimiento-item { display: grid; grid-template-columns: minmax(9rem, 1fr) minmax(7rem, 2.5fr) auto; align-items: center; gap: 1rem; }
+.dashboard-page .dashboard-abastecimiento-nombre { display: grid; gap: 0.2rem; font-size: 0.875rem; }
+.dashboard-page .dashboard-abastecimiento-nombre span { color: var(--bs-secondary-color); font-size: 0.75rem; }
+.dashboard-page .dashboard-progreso { --bs-progress-bg: color-mix(in srgb, var(--text) 10%, var(--surface)); height: 0.35rem; }
+.dashboard-page .dashboard-progreso-critico { background-color: var(--danger); }
+.dashboard-page .dashboard-progreso-estable { background-color: color-mix(in srgb, var(--text) 65%, var(--surface)); }
+.dashboard-page .dashboard-cobertura { font-size: 0.875rem; white-space: nowrap; }
+.dashboard-page .dashboard-cobertura-critica { color: var(--danger); }
 @media (max-width: 575.98px) { .dashboard-page .dashboard-grafica { height: 15rem; } }
+@media (max-width: 575.98px) { .dashboard-page .dashboard-abastecimiento-item { grid-template-columns: 1fr auto; } .dashboard-page .dashboard-progreso { grid-column: 1 / -1; grid-row: 2; } }
