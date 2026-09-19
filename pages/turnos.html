@@ -5,11 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Turnos — Tacos Joya de Cerén</title>
   <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/turnos.css">
+  <script src="../js/storage.js"></script>
   <script src="../js/guard.js"></script>
   <script>Guard.requireLogin();</script>
 </head>
 <body>
-  <h1>Turnos</h1>
-  <p>Módulo de gestión de turnos rotativos.</p>
+  <div class="app-layout">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">TJ</div>
+        <div class="sidebar-brand-text">
+          <span class="name">Tacos Joya</span>
+          <span class="sub">de Cerén</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Módulos">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="recetas.html">Recetas</a>
+        <a href="mermas.html">Mermas</a>
+        <a href="turnos.html" class="active" aria-current="page">Turnos</a>
+        <a href="reportes.html">Reportes</a>
+        <a href="abastecimientos.html">Abastecimiento</a>
+      </nav>
+
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar" id="sidebar-user-avatar">?</div>
+        <div class="sidebar-user-info">
+          <div class="user-name" id="sidebar-user-name">…</div>
+          <div class="user-role" id="sidebar-user-role">…</div>
+        </div>
+        <button id="btn-logout" type="button" title="Cerrar sesión">Salir</button>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <main class="main-content">
+
+      <!-- Vista Admin (placeholder) -->
+      <section id="admin-view" hidden>
+        <h1>Turnos y días libres</h1>
+        <p class="subtitle">Vista Admin (en construcción — Fase 2 y 3).</p>
+      </section>
+
+      <!-- Vista Empleado (placeholder) -->
+      <section id="empleado-view" hidden>
+        <h1>Mi turno</h1>
+        <p class="subtitle">Vista Empleado (en construcción — Fase 2).</p>
+      </section>
+
+    </main>
+
+  </div>
+
+  <script src="../js/turnos.js"></script>
 </body>
 </html>
