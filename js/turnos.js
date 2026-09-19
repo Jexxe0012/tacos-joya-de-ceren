@@ -88,6 +88,10 @@ function formatWeekLabel(monday, sunday) {
   return `${monday.getDate()} ${mMonth} – ${sunday.getDate()} ${sMonth}`;
 }
 
+// Seed compartido: corre siempre, antes de decidir qué vista mostrar.
+// seedTurnosDePrueba() es idempotente — no duplica si ya hay turnos.
+seedTurnosDePrueba();
+
 if (sesion.rol === 'empleado') {
   setupVistaEmpleado();
 }
@@ -98,9 +102,6 @@ function setupVistaEmpleado() {
   const saludo = hora < 12 ? 'Buenos días' : hora < 19 ? 'Buenas tardes' : 'Buenas noches';
   const primerNombre = sesion.nombre.split(' ')[0];
   document.getElementById('emp-greeting').textContent = `${saludo}, ${primerNombre}`;
-
-  // Sembrar datos de prueba si no hay turnos
-  seedTurnosDePrueba();
 
   // Estado: lunes de la semana actualmente mostrada
   let mondayShown = getMondayOf(new Date());
@@ -260,6 +261,7 @@ function setupModalMerma() {
     msgBox.textContent = '';
     msgBox.className = 'modal-msg';
     fechaInput.value = formatDateISO(new Date());
+    form.querySelector('.btn-submit').disabled = false;
     modal.hidden = false;
   });
 
@@ -288,6 +290,9 @@ function setupModalMerma() {
       return;
     }
 
+    const btnSubmit = form.querySelector('.btn-submit');
+    btnSubmit.disabled = true;
+
     DB.create('mermas', {
       producto,
       cantidad,
@@ -298,7 +303,10 @@ function setupModalMerma() {
 
     msgBox.textContent = 'Merma registrada correctamente.';
     msgBox.className = 'modal-msg success';
-    setTimeout(() => { modal.hidden = true; }, 1200);
+    setTimeout(() => {
+      modal.hidden = true;
+      btnSubmit.disabled = false;
+    }, 1200);
   });
 }
 
@@ -410,33 +418,41 @@ function renderAdminWeek(monday) {
         td.appendChild(empty);
       } else {
         td.classList.add('has-turno');
-        const t = turnos[0];
-        td.dataset.turnoId = t.id;
+        // Un bloque clickeable por cada turno del día
+        turnos.forEach(t => {
+          const block = document.createElement('div');
+          block.className = 'cell-turno-block';
 
-        const horas = document.createElement('div');
-        horas.className = 'cell-hours';
-        horas.textContent = `${formatHora(t.horaInicio)}–${formatHora(t.horaFin)}`;
-        if (t.esRecurrenteSemanal) {
-          const mark = document.createElement('span');
-          mark.className = 'cell-recurrent-mark';
-          mark.textContent = ' ↻';
-          mark.title = 'Se repite cada semana';
-          horas.appendChild(mark);
-        }
-        td.appendChild(horas);
+          const horas = document.createElement('div');
+          horas.className = 'cell-hours';
+          horas.textContent = `${formatHora(t.horaInicio)}–${formatHora(t.horaFin)}`;
+          if (t.esRecurrenteSemanal) {
+            const mark = document.createElement('span');
+            mark.className = 'cell-recurrent-mark';
+            mark.textContent = ' ↻';
+            mark.title = 'Se repite cada semana';
+            horas.appendChild(mark);
+          }
+          block.appendChild(horas);
 
-        const est = document.createElement('div');
-        est.className = 'cell-station';
-        est.textContent = t.estacion;
-        td.appendChild(est);
+          const est = document.createElement('div');
+          est.className = 'cell-station';
+          est.textContent = t.estacion;
+          block.appendChild(est);
+
+          // Click en el bloque = editar ESE turno específico
+          block.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openTurnoModal(t);
+          });
+
+          td.appendChild(block);
+        });
       }
 
+      // Click en la celda (fuera de un bloque) = crear nuevo turno para ese slot
       td.addEventListener('click', () => {
-        if (turnos.length === 0) {
-          openTurnoModal(null, { empleadoId: emp.id, fecha: iso });
-        } else {
-          openTurnoModal(turnos[0]);
-        }
+        openTurnoModal(null, { empleadoId: emp.id, fecha: iso });
       });
 
       row.appendChild(td);
@@ -468,7 +484,7 @@ function updateAdminStats(monday, empleados) {
 
   document.getElementById('stat-en-turno').textContent = turnosHoy;
   document.getElementById('stat-dia-libre').textContent = libreHoy;
-  document.getElementById('stat-horas').textContent = `${Math.round(totalHoras)} h`;
+  document.getElementById('stat-horas').textContent = `${totalHoras.toFixed(1)} h`;
   document.getElementById('stat-turnos-total').textContent = totalTurnos;
 }
 
@@ -716,6 +732,9 @@ function setupModalSolicitud(onSubmit) {
       return;
     }
 
+    const btnSubmit = form.querySelector('.btn-submit');
+    btnSubmit.disabled = true;
+
     DB.create('solicitudes', {
       empleadoId: sesion.id,
       mensaje,
@@ -727,6 +746,7 @@ function setupModalSolicitud(onSubmit) {
     msgBox.className = 'modal-msg success';
     setTimeout(() => {
       modal.hidden = true;
+      btnSubmit.disabled = false;
       onSubmit();
     }, 1000);
   });
@@ -739,6 +759,7 @@ function openSolicitudModal() {
   form.reset();
   msgBox.textContent = '';
   msgBox.className = 'modal-msg';
+  form.querySelector('.btn-submit').disabled = false;
   modal.hidden = false;
 }
 

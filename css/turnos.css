@@ -855,8 +855,8 @@ body {
 }
 
 .solicitud-estado.pendiente {
-  background: rgba(242, 182, 50, 0.2); /* var(--color-maiz) al 20% */
-  color: var(--color-maiz);
+  background: rgba(242, 182, 50, 0.3); /* var(--color-maiz) al 30% */
+  color: var(--color-azul);
 }
 
 .solicitud-estado.aceptada {
@@ -917,4 +917,23 @@ body {
   border: 1.5px dashed rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
   border-radius: 0.5rem;
   font-size: 0.9rem;
+}
+
+/* Bloques individuales de turno dentro de una celda del admin */
+.cell-turno-block {
+  padding: 0.15rem 0.3rem;
+  margin: 0.15rem 0;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.cell-turno-block:hover {
+  background: rgba(242, 182, 50, 0.25); /* var(--color-maiz) al 25% */
+}
+
+.cell-turno-block + .cell-turno-block {
+  border-top: 1px dashed rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
+  padding-top: 0.35rem;
+  margin-top: 0.35rem;
 }
