@@ -63,16 +63,43 @@
               </div>
               <ul class="list-unstyled mb-0" aria-label="Alertas operativas">
                 <li class="dashboard-alerta">
-                  <h3 class="h6 fw-semibold mb-1">Carne al pastor</h3>
-                  <p class="small text-body-secondary mb-0">Cobertura: 1.2 días</p>
+                  <button class="dashboard-alerta-boton" type="button" data-bs-toggle="collapse" data-bs-target="#detalle-alerta-pastor" aria-expanded="false" aria-controls="detalle-alerta-pastor">
+                    <span><strong>Carne al pastor</strong><small>Abastecimiento · cobertura: 1.2 días</small></span>
+                    <span aria-hidden="true">Ver detalle</span>
+                  </button>
+                  <div class="collapse" id="detalle-alerta-pastor">
+                    <div class="dashboard-alerta-detalle">
+                      <p><strong>Origen:</strong> módulo de Abastecimiento; el inventario disponible se compara con la venta prevista.</p>
+                      <p><strong>Qué significa:</strong> la carne al pastor alcanzaría aproximadamente 1.2 días si se mantiene la demanda actual.</p>
+                      <p class="mb-0"><strong>Acción recomendada:</strong> registrar o confirmar un pedido de carne al pastor para evitar faltantes.</p>
+                    </div>
+                  </div>
                 </li>
                 <li class="dashboard-alerta">
-                  <h3 class="h6 fw-semibold mb-1">Merma de res</h3>
-                  <p class="small text-body-secondary mb-0">0.9 kg sobre el límite</p>
+                  <button class="dashboard-alerta-boton" type="button" data-bs-toggle="collapse" data-bs-target="#detalle-alerta-merma" aria-expanded="false" aria-controls="detalle-alerta-merma">
+                    <span><strong>Merma de res</strong><small>Mermas · 0.9 kg sobre el límite</small></span>
+                    <span aria-hidden="true">Ver detalle</span>
+                  </button>
+                  <div class="collapse" id="detalle-alerta-merma">
+                    <div class="dashboard-alerta-detalle">
+                      <p><strong>Origen:</strong> módulo de Mermas; compara los desperdicios registrados con el límite semanal esperado.</p>
+                      <p><strong>Qué significa:</strong> se registraron 0.9 kg más de res que el límite de merma definido para la semana.</p>
+                      <p class="mb-0"><strong>Acción recomendada:</strong> revisar las capturas de merma y el porcionado de res antes de ajustar la producción.</p>
+                    </div>
+                  </div>
                 </li>
                 <li class="dashboard-alerta">
-                  <h3 class="h6 fw-semibold mb-1">Tortillas</h3>
-                  <p class="small text-body-secondary mb-0">Recomprar mañana</p>
+                  <button class="dashboard-alerta-boton" type="button" data-bs-toggle="collapse" data-bs-target="#detalle-alerta-tortillas" aria-expanded="false" aria-controls="detalle-alerta-tortillas">
+                    <span><strong>Tortillas</strong><small>Abastecimiento · recompra prevista para mañana</small></span>
+                    <span aria-hidden="true">Ver detalle</span>
+                  </button>
+                  <div class="collapse" id="detalle-alerta-tortillas">
+                    <div class="dashboard-alerta-detalle">
+                      <p><strong>Origen:</strong> módulo de Abastecimiento; usa el stock de tortillas y el consumo estimado.</p>
+                      <p><strong>Qué significa:</strong> el inventario actual cubre la operación de hoy, pero debe reponerse antes del siguiente día de atención.</p>
+                      <p class="mb-0"><strong>Acción recomendada:</strong> incluir tortillas en la compra de mañana y confirmar la cantidad con el proveedor.</p>
+                    </div>
+                  </div>
                 </li>
               </ul>
             </article>

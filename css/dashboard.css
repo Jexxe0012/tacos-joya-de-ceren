@@ -6,6 +6,14 @@
 .dashboard-page .dashboard-grafica { height: 18rem; position: relative; }
 .dashboard-page .dashboard-alerta { border-left: 3px solid var(--danger); padding-left: 0.75rem; }
 .dashboard-page .dashboard-alerta + .dashboard-alerta { margin-top: 1.25rem; }
+.dashboard-page .dashboard-alerta-boton { align-items: center; background: transparent; border: 0; color: var(--text); display: flex; font-size: 0.75rem; justify-content: space-between; padding: 0; text-align: left; width: 100%; }
+.dashboard-page .dashboard-alerta-boton > span:first-child { display: grid; gap: 0.15rem; }
+.dashboard-page .dashboard-alerta-boton small { color: var(--bs-secondary-color); font-size: 0.75rem; }
+.dashboard-page .dashboard-alerta-boton > span:last-child { color: var(--danger); font-weight: 600; white-space: nowrap; }
+.dashboard-page .dashboard-alerta-boton[aria-expanded="true"] > span:last-child { font-size: 0; }
+.dashboard-page .dashboard-alerta-boton[aria-expanded="true"] > span:last-child::after { content: "Ocultar"; font-size: 0.75rem; }
+.dashboard-page .dashboard-alerta-detalle { background-color: color-mix(in srgb, var(--danger) 5%, var(--surface)); border-radius: 0.5rem; font-size: 0.75rem; margin-top: 0.75rem; padding: 0.75rem; }
+.dashboard-page .dashboard-alerta-detalle p { margin-bottom: 0.5rem; }
 .dashboard-page .dashboard-abastecimiento-lista { display: grid; gap: 1rem; }
 .dashboard-page .dashboard-abastecimiento-item { display: grid; grid-template-columns: minmax(9rem, 1fr) minmax(7rem, 2.5fr) auto; align-items: center; gap: 1rem; }
 .dashboard-page .dashboard-abastecimiento-nombre { display: grid; gap: 0.2rem; font-size: 0.875rem; }
