@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario — Tacos Joya de Cerén</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    crossorigin="anonymous"
+  >
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/inventario.css">
+  <script src="../js/storage.js"></script>
+  <script src="../js/guard.js"></script>
+  <!-- Por ahora el módulo es solo para administración. La vista de empleado
+       (consultar y buscar productos) se agrega en una etapa posterior. -->
+  <script>Guard.requireRole('admin');</script>
+</head>
+<body class="app-page inventario-page" data-pagina="inventario" data-seccion="Operación" data-rol="Dueño / Admin">
+  <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
+
+  <div class="app-layout d-lg-flex">
+    <!-- La navegación y el cierre de sesión usan la plantilla compartida. -->
+    <aside class="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column"
+      tabindex="-1" id="menu-lateral" aria-labelledby="titulo-menu"></aside>
+
+    <div class="app-area flex-grow-1">
+      <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
+
+      <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1" aria-label="Inventario de la taquería">
+
+      <!-- Vista Admin -->
+      <section id="admin-view">
+        <div class="inv-header">
+          <div>
+            <h1>Inventario</h1>
+            <p class="subtitle">Controlá las existencias de la taquería: qué hay, qué falta y qué está por vencer.</p>
+          </div>
+        </div>
+
+        <section class="inv-panel">
+          <div class="inv-panel-header">
+            <h2 class="section-title">Productos en inventario</h2>
+            <span class="inv-contador" id="inv-contador"></span>
+          </div>
+          <div class="inv-lista" id="inv-lista">
+            <!-- Se llena con JS -->
+          </div>
+        </section>
+      </section>
+
+      </main>
+    </div>
+  </div>
+
+  <noscript><p class="p-3">Activa JavaScript para utilizar el menú lateral y gestionar el inventario.</p></noscript>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+    crossorigin="anonymous"
+  ></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/inventario.js"></script>
+</body>
+</html>

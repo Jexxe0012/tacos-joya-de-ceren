@@ -1,0 +1,140 @@
+/* Estilos exclusivos del módulo Inventario. El layout, el menú y los botones
+   principales se comparten mediante main.css y main.js, como en index.html. */
+
+/* ============================================
+   Encabezado
+   ============================================ */
+
+.inventario-page .inv-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.inventario-page .inv-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-azul);
+  margin: 0 0 0.25rem;
+}
+
+.inventario-page .inv-header .subtitle {
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0;
+  max-width: 44ch;
+}
+
+/* ============================================
+   Paneles
+   ============================================ */
+
+.inventario-page .inv-panel {
+  background: var(--surface);
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-radius: 0.9rem;
+  padding: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.inventario-page .inv-panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.inventario-page .section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-azul);
+  margin: 0;
+}
+
+.inventario-page .inv-contador {
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.inventario-page .inv-vacio {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  opacity: 0.55;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ============================================
+   Listado de productos
+   ============================================ */
+
+.inventario-page .inv-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inventario-page .inv-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-radius: 0.6rem;
+}
+
+.inventario-page .inv-fila-info {
+  min-width: 0;
+}
+
+.inventario-page .inv-fila-nombre {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-azul);
+}
+
+.inventario-page .inv-fila-detalle {
+  margin: 0.1rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.inventario-page .inv-fila-meta {
+  text-align: right;
+  margin-left: auto;
+}
+
+.inventario-page .inv-fila-cantidad {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-azul);
+}
+
+.inventario-page .inv-fila-valor {
+  margin: 0.1rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.6;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 767.98px) {
+  .inventario-page .inv-panel {
+    padding: 1rem;
+  }
+
+  .inventario-page .inv-fila-meta {
+    text-align: left;
+    margin-left: 0;
+  }
+}

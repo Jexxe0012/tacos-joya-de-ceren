@@ -13,6 +13,7 @@
   const paginas = [
     { id: "dashboard", nombre: "Dashboard", ruta: "pages/dashboard.html" },
     { id: "recetas", nombre: "Recetas", ruta: "pages/recetas.html" },
+    { id: "inventario", nombre: "Inventario", ruta: "pages/inventario.html" },
     { id: "mermas", nombre: "Mermas", ruta: "pages/mermas.html" },
     { id: "turnos", nombre: "Turnos", ruta: "pages/turnos.html" },
     { id: "reportes", nombre: "Reportes", ruta: "pages/reportes.html" },
