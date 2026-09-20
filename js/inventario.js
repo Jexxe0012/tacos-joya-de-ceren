@@ -118,15 +118,6 @@ function formatFechaCorta(iso) {
 }
 
 /**
- * Fecha y hora de un movimiento. Ej: "24 sep · 15:40".
- */
-function formatFechaHora(isoCompleto) {
-  const d = new Date(isoCompleto);
-  const m = String(d.getMinutes()).padStart(2, '0');
-  return `${d.getDate()} ${MESES[d.getMonth()]} · ${d.getHours()}:${m}`;
-}
-
-/**
  * Días que faltan para la caducidad. Negativo si ya venció,
  * null si el producto no maneja fecha de caducidad.
  */
@@ -318,7 +309,7 @@ function renderTabla() {
   if (productos.length === 0) {
     const fila = document.createElement('tr');
     const celda = document.createElement('td');
-    celda.colSpan = 8;
+    celda.colSpan = 9;
     celda.className = 'inv-vacio';
     celda.textContent = total === 0
       ? 'Todavía no hay productos. Agregá el primero con "+ Nuevo producto".'
@@ -405,7 +396,205 @@ function buildFilaProducto(producto) {
   }
   fila.appendChild(tdCaducidad);
 
+  // Acciones rápidas
+  const tdAcciones = document.createElement('td');
+  tdAcciones.className = 'col-acciones';
+  const acciones = document.createElement('div');
+  acciones.className = 'celda-acciones';
+
+  acciones.appendChild(botonAccion('Editar', 'Editar producto', 'btn-mini-editar',
+    () => abrirModalProducto(producto)));
+  acciones.appendChild(botonAccion('Eliminar', 'Eliminar producto', 'btn-mini-eliminar',
+    () => abrirModalEliminar(producto)));
+
+  tdAcciones.appendChild(acciones);
+  fila.appendChild(tdAcciones);
+
   return fila;
+}
+
+function botonAccion(texto, titulo, clase, alHacerClick) {
+  const boton = document.createElement('button');
+  boton.type = 'button';
+  boton.className = `btn-mini ${clase}`;
+  boton.textContent = texto;
+  boton.title = titulo;
+  boton.setAttribute('aria-label', titulo);
+  boton.addEventListener('click', alHacerClick);
+  return boton;
+}
+
+/* ============================================
+   Alta, edición y baja de productos
+   ============================================ */
+
+/** Llena los select de categoría y unidad desde los catálogos. */
+function poblarSelectsProducto() {
+  const selectCategoria = document.getElementById('producto-categoria');
+  CATEGORIAS.forEach(categoria => {
+    const opcion = document.createElement('option');
+    opcion.value = categoria;
+    opcion.textContent = categoria;
+    selectCategoria.appendChild(opcion);
+  });
+
+  const selectUnidad = document.getElementById('producto-unidad');
+  UNIDADES.forEach(unidad => {
+    const opcion = document.createElement('option');
+    opcion.value = unidad;
+    opcion.textContent = unidad;
+    selectUnidad.appendChild(opcion);
+  });
+}
+
+/**
+ * Abre el modal de producto. Sin argumento crea uno nuevo;
+ * con un producto, lo abre en modo edición.
+ */
+function abrirModalProducto(producto = null) {
+  const modal = document.getElementById('modal-producto');
+  const titulo = document.getElementById('modal-producto-title');
+  const btnEliminar = document.getElementById('btn-producto-delete');
+  const mensaje = document.getElementById('producto-msg');
+
+  mensaje.textContent = '';
+  mensaje.className = 'modal-msg';
+
+  if (producto) {
+    titulo.textContent = 'Editar producto';
+    btnEliminar.hidden = false;
+    document.getElementById('producto-id').value = producto.id;
+    document.getElementById('producto-nombre').value = producto.nombre;
+    document.getElementById('producto-categoria').value = producto.categoria;
+    document.getElementById('producto-unidad').value = producto.unidad;
+    document.getElementById('producto-cantidad').value = producto.cantidad;
+    document.getElementById('producto-minimo').value = producto.stockMinimo;
+    document.getElementById('producto-costo').value = producto.costoUnitario;
+    document.getElementById('producto-caducidad').value = producto.caducidad || '';
+    document.getElementById('producto-proveedor').value = producto.proveedor || '';
+    document.getElementById('producto-ubicacion').value = producto.ubicacion || '';
+  } else {
+    titulo.textContent = 'Nuevo producto';
+    btnEliminar.hidden = true;
+    document.getElementById('form-producto').reset();
+    document.getElementById('producto-id').value = '';
+  }
+
+  modal.hidden = false;
+  document.getElementById('producto-nombre').focus();
+}
+
+function setupModalProducto() {
+  const modal = document.getElementById('modal-producto');
+  const form = document.getElementById('form-producto');
+  const mensaje = document.getElementById('producto-msg');
+
+  document.getElementById('btn-producto-cancel').addEventListener('click', () => { modal.hidden = true; });
+  modal.addEventListener('click', evento => {
+    if (evento.target === modal) modal.hidden = true;
+  });
+
+  document.getElementById('btn-producto-delete').addEventListener('click', () => {
+    const producto = DB.getById('inventario', document.getElementById('producto-id').value);
+    if (producto) {
+      modal.hidden = true;
+      abrirModalEliminar(producto);
+    }
+  });
+
+  form.addEventListener('submit', evento => {
+    evento.preventDefault();
+    mensaje.textContent = '';
+    mensaje.className = 'modal-msg';
+
+    const id = document.getElementById('producto-id').value;
+    const nombre = document.getElementById('producto-nombre').value.trim();
+    const categoria = document.getElementById('producto-categoria').value;
+    const unidad = document.getElementById('producto-unidad').value;
+    const cantidad = Number(document.getElementById('producto-cantidad').value);
+    const stockMinimo = Number(document.getElementById('producto-minimo').value);
+    const costoUnitario = Number(document.getElementById('producto-costo').value);
+    const caducidad = document.getElementById('producto-caducidad').value;
+    const proveedor = document.getElementById('producto-proveedor').value.trim();
+    const ubicacion = document.getElementById('producto-ubicacion').value.trim();
+
+    const error = validarProducto({ id, nombre, categoria, unidad, cantidad, stockMinimo, costoUnitario });
+    if (error) {
+      mensaje.textContent = error;
+      mensaje.className = 'modal-msg error';
+      return;
+    }
+
+    const datos = { nombre, categoria, unidad, cantidad, stockMinimo, costoUnitario, caducidad, proveedor, ubicacion };
+
+    if (id) {
+      DB.update('inventario', id, { ...datos, actualizadoEn: new Date().toISOString() });
+    } else {
+      DB.create('inventario', {
+        ...datos,
+        creadoEn: new Date().toISOString(),
+        actualizadoEn: new Date().toISOString()
+      });
+    }
+
+    modal.hidden = true;
+    renderTodo();
+  });
+}
+
+/** Devuelve el mensaje de error, o null si el producto es válido. */
+function validarProducto({ id, nombre, categoria, unidad, cantidad, stockMinimo, costoUnitario }) {
+  if (!nombre) return 'Escribí el nombre del producto.';
+  if (nombre.length < 3) return 'El nombre debe tener al menos 3 caracteres.';
+  if (!categoria) return 'Elegí la categoría del producto.';
+  if (!unidad) return 'Elegí la unidad de medida.';
+  if (!Number.isFinite(cantidad) || cantidad < 0) return 'La existencia debe ser un número de 0 o más.';
+  if (!Number.isFinite(stockMinimo) || stockMinimo < 0) return 'El mínimo debe ser un número de 0 o más.';
+  if (!Number.isFinite(costoUnitario) || costoUnitario < 0) return 'El costo por unidad debe ser un número de 0 o más.';
+
+  // Nombres repetidos dentro de la misma categoría confunden al buscar.
+  const repetido = DB.getAll('inventario').some(p =>
+    String(p.id) !== String(id) &&
+    p.nombre.toLowerCase() === nombre.toLowerCase() &&
+    p.categoria === categoria
+  );
+  if (repetido) return 'Ya existe un producto con ese nombre en esa categoría.';
+
+  return null;
+}
+
+/* ---------- Eliminar producto ---------- */
+
+// Producto pendiente de confirmación de borrado.
+let productoAEliminar = null;
+
+function abrirModalEliminar(producto) {
+  productoAEliminar = producto;
+  document.getElementById('eliminar-detalle').textContent =
+    `Vas a eliminar "${producto.nombre}" con ${formatCantidad(producto.cantidad)} ${producto.unidad} en existencia.`;
+  document.getElementById('modal-eliminar').hidden = false;
+}
+
+function setupModalEliminar() {
+  const modal = document.getElementById('modal-eliminar');
+
+  const cerrar = () => {
+    modal.hidden = true;
+    productoAEliminar = null;
+  };
+
+  document.getElementById('btn-eliminar-cancel').addEventListener('click', cerrar);
+  modal.addEventListener('click', evento => {
+    if (evento.target === modal) cerrar();
+  });
+
+  document.getElementById('btn-eliminar-confirmar').addEventListener('click', () => {
+    if (!productoAEliminar) return;
+    DB.remove('inventario', productoAEliminar.id);
+
+    cerrar();
+    renderTodo();
+  });
 }
 
 /* ============================================
@@ -413,6 +602,11 @@ function buildFilaProducto(producto) {
    ============================================ */
 
 seedInventarioDePrueba();
+poblarSelectsProducto();
+setupModalProducto();
+setupModalEliminar();
+
+document.getElementById('btn-nuevo-producto').addEventListener('click', () => abrirModalProducto());
 
 document.getElementById('inv-buscar').addEventListener('input', evento => {
   filtros.texto = evento.target.value;
@@ -439,6 +633,15 @@ document.getElementById('btn-limpiar-filtros').addEventListener('click', () => {
   document.getElementById('inv-orden').value = 'alerta';
   renderChips();
   renderTabla();
+});
+
+// Escape cierra cualquier modal abierto.
+document.addEventListener('keydown', evento => {
+  if (evento.key !== 'Escape') return;
+  ['modal-producto', 'modal-eliminar'].forEach(id => {
+    document.getElementById(id).hidden = true;
+  });
+  productoAEliminar = null;
 });
 
 renderTodo();

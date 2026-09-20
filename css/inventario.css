@@ -28,6 +28,12 @@
   max-width: 44ch;
 }
 
+.inventario-page .inv-header-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
 /* Tarjetas de resumen */
 .inventario-page .stats-grid {
   display: grid;
@@ -74,7 +80,7 @@
 }
 
 /* ============================================
-   Paneles
+   Paneles (productos y modales)
    ============================================ */
 
 .inventario-page .inv-panel {
@@ -250,6 +256,11 @@
   white-space: nowrap;
 }
 
+.inventario-page .inv-tabla .col-acciones {
+  text-align: right;
+  white-space: nowrap;
+}
+
 /* Franja de color al inicio de la fila según la urgencia */
 .inventario-page .inv-tabla .fila-agotado td:first-child {
   box-shadow: inset 3px 0 0 var(--color-rojo);
@@ -330,13 +341,231 @@
   text-decoration: underline wavy;
 }
 
+/* Botones pequeños de acción */
+.inventario-page .celda-acciones {
+  display: inline-flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.inventario-page .btn-mini {
+  padding: 0.3rem 0.6rem;
+  border: 1.5px solid transparent;
+  border-radius: 0.4rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.inventario-page .btn-mini-editar {
+  background: rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  color: var(--color-azul);
+}
+
+.inventario-page .btn-mini-editar:hover {
+  background: var(--color-azul);
+  color: var(--color-crema);
+}
+
+.inventario-page .btn-mini-eliminar {
+  background: transparent;
+  color: var(--color-rojo);
+  border-color: rgba(182, 36, 36, 0.3); /* var(--color-rojo) al 30% */
+}
+
+.inventario-page .btn-mini-eliminar:hover {
+  background: var(--color-rojo);
+  color: var(--color-crema);
+}
+
+/* ============================================
+   Modales (mismo patrón visual que Turnos)
+   ============================================ */
+
+.inventario-page .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 27, 70, 0.55); /* var(--color-azul) al 55% */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1060; /* Sobre la navegación offcanvas de Bootstrap. */
+}
+
+.inventario-page .modal-overlay[hidden] {
+  display: none;
+}
+
+.inventario-page .modal-card {
+  background: var(--surface);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 28rem;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(16, 27, 70, 0.2); /* var(--color-azul) al 20% */
+}
+
+.inventario-page .modal-card-wide {
+  max-width: 38rem;
+}
+
+.inventario-page .modal-card h2 {
+  color: var(--color-azul);
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+}
+
+.inventario-page .modal-card .modal-subtitle {
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+}
+
+.inventario-page .modal-card .modal-aviso {
+  background: rgba(182, 36, 36, 0.08); /* var(--color-rojo) al 8% */
+  color: var(--color-rojo);
+  border-radius: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.inventario-page .modal-card label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-azul);
+  margin: 1rem 0 0.4rem;
+}
+
+.inventario-page .modal-card input,
+.inventario-page .modal-card textarea,
+.inventario-page .modal-card select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.inventario-page .modal-card input:focus,
+.inventario-page .modal-card textarea:focus,
+.inventario-page .modal-card select:focus {
+  outline: none;
+  border-color: var(--color-maiz);
+  box-shadow: 0 0 0 3px rgba(242, 182, 50, 0.2); /* var(--color-maiz) al 20% */
+}
+
+.inventario-page .modal-card textarea {
+  min-height: 4.5rem;
+  resize: vertical;
+}
+
+.inventario-page .modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.inventario-page .modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.inventario-page .modal-actions button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.inventario-page .modal-actions .btn-cancel {
+  background: rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  color: var(--color-azul);
+}
+
+.inventario-page .modal-actions .btn-cancel:hover {
+  background: rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
+}
+
+.inventario-page .modal-actions .btn-submit {
+  background: var(--color-azul);
+  color: var(--color-crema);
+}
+
+.inventario-page .modal-actions .btn-submit:hover {
+  filter: brightness(1.15);
+}
+
+.inventario-page .modal-actions .btn-danger {
+  background: rgba(182, 36, 36, 0.12); /* var(--color-rojo) al 12% */
+  color: var(--color-rojo);
+}
+
+.inventario-page .modal-actions .btn-danger:hover,
+.inventario-page .modal-actions .btn-danger-full {
+  background: var(--color-rojo);
+  color: var(--color-crema);
+}
+
+.inventario-page .modal-msg {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.inventario-page .modal-msg.error {
+  background: rgba(182, 36, 36, 0.1); /* var(--color-rojo) al 10% */
+  color: var(--color-rojo);
+}
+
+.inventario-page .modal-msg.success {
+  background: rgba(66, 107, 58, 0.12); /* var(--color-verde) al 12% */
+  color: var(--color-verde);
+}
+
+.inventario-page .modal-msg:empty {
+  display: none;
+}
+
 /* ============================================
    Responsive
    ============================================ */
 
 @media (max-width: 767.98px) {
+  .inventario-page .inv-header-acciones {
+    width: 100%;
+  }
+
+  .inventario-page .inv-header-acciones .btn {
+    flex: 1;
+  }
+
   .inventario-page .inv-panel {
     padding: 1rem;
+  }
+
+  .inventario-page .modal-card {
+    padding: 1.5rem;
+  }
+
+  .inventario-page .modal-row {
+    grid-template-columns: 1fr;
   }
 
 }
