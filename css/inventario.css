@@ -733,6 +733,239 @@
 }
 
 /* ============================================
+   Vista del empleado — consulta visual
+   ============================================ */
+
+.inventario-page .emp-header {
+  margin-bottom: 1.5rem;
+}
+
+.inventario-page .emp-header h1 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--color-azul);
+  margin: 0 0 0.35rem;
+}
+
+.inventario-page .emp-header .subtitle {
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0;
+  max-width: 52ch;
+}
+
+/* Buscador grande: es la acción principal del empleado. */
+.inventario-page .emp-buscador input {
+  width: 100%;
+  padding: 0.95rem 1.15rem;
+  border: 2px solid rgba(16, 27, 70, 0.12); /* var(--color-azul) al 12% */
+  border-radius: 0.85rem;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1.05rem;
+}
+
+.inventario-page .emp-buscador input:focus {
+  outline: none;
+  border-color: var(--color-maiz);
+  box-shadow: 0 0 0 4px rgba(242, 182, 50, 0.25); /* var(--color-maiz) al 25% */
+}
+
+/* Contadores por disponibilidad */
+.inventario-page .emp-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.inventario-page .emp-resumen-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-left: 4px solid rgba(16, 27, 70, 0.25); /* var(--color-azul) al 25% */
+  border-radius: 0.75rem;
+  background: var(--surface);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inventario-page .emp-resumen-card:hover {
+  border-color: rgba(16, 27, 70, 0.2); /* var(--color-azul) al 20% */
+}
+
+.inventario-page .emp-resumen-ok {
+  border-left-color: var(--color-verde);
+}
+
+.inventario-page .emp-resumen-poco {
+  border-left-color: var(--color-maiz);
+}
+
+.inventario-page .emp-resumen-agotado {
+  border-left-color: var(--color-rojo);
+}
+
+.inventario-page .emp-resumen-card.activo {
+  background: var(--color-azul);
+  border-color: var(--color-azul);
+}
+
+.inventario-page .emp-resumen-card.activo .emp-resumen-num,
+.inventario-page .emp-resumen-card.activo .emp-resumen-nombre {
+  color: var(--color-crema);
+}
+
+.inventario-page .emp-resumen-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-azul);
+  line-height: 1.1;
+}
+
+.inventario-page .emp-resumen-nombre {
+  font-size: 0.8rem;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.inventario-page .emp-chips {
+  margin-bottom: 0.75rem;
+}
+
+.inventario-page .emp-contador {
+  font-size: 0.85rem;
+  opacity: 0.6;
+  margin: 0 0 1rem;
+}
+
+/* Secciones del inventario */
+.inventario-page .emp-seccion {
+  margin-bottom: 1.75rem;
+}
+
+.inventario-page .emp-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-azul);
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid rgba(242, 182, 50, 0.5); /* var(--color-maiz) al 50% */
+}
+
+.inventario-page .emp-seccion-num {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+}
+
+.inventario-page .emp-grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.85rem;
+}
+
+/* Tarjeta de producto */
+.inventario-page .emp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 1rem;
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-top: 5px solid var(--color-verde);
+  border-radius: 0.85rem;
+  background: var(--surface);
+}
+
+.inventario-page .emp-card-poco {
+  border-top-color: var(--color-maiz);
+}
+
+.inventario-page .emp-card-agotado {
+  border-top-color: var(--color-rojo);
+  background: rgba(182, 36, 36, 0.05); /* var(--color-rojo) al 5% */
+}
+
+.inventario-page .emp-card-nombre {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-azul);
+  line-height: 1.3;
+}
+
+.inventario-page .emp-card-cantidad {
+  margin: 0.4rem 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-azul);
+  line-height: 1.1;
+}
+
+.inventario-page .emp-card-cantidad.emp-card-sin {
+  font-size: 1.35rem;
+  color: var(--color-rojo);
+}
+
+.inventario-page .emp-card-unidad {
+  font-size: 0.95rem;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.inventario-page .emp-card-estado {
+  display: inline-block;
+  align-self: flex-start;
+  margin: 0.5rem 0 0;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.inventario-page .emp-estado-ok {
+  background: rgba(66, 107, 58, 0.12); /* var(--color-verde) al 12% */
+  color: var(--color-verde);
+}
+
+.inventario-page .emp-estado-poco {
+  background: rgba(242, 182, 50, 0.2); /* var(--color-maiz) al 20% */
+  color: #8a6200; /* var(--color-maiz) oscurecido para contraste sobre el relleno */
+}
+
+.inventario-page .emp-estado-agotado {
+  background: var(--color-rojo);
+  color: var(--color-crema);
+}
+
+.inventario-page .emp-card-lugar {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  opacity: 0.6;
+}
+
+.inventario-page .emp-vacio {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  margin: 0;
+  opacity: 0.6;
+  font-size: 0.95rem;
+}
+
+/* ============================================
    Responsive
    ============================================ */
 
@@ -769,5 +1002,13 @@
     text-align: left;
     width: 100%;
     padding-left: 2.85rem; /* alinea con el texto, salvando la marca */
+  }
+
+  .inventario-page .emp-grilla {
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  }
+
+  .inventario-page .emp-card-cantidad {
+    font-size: 1.5rem;
   }
 }
