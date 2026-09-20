@@ -3,6 +3,11 @@
 .dashboard-page .dashboard-etiqueta { color: var(--bs-secondary-color); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.025em; text-transform: uppercase; }
 .dashboard-page .dashboard-valor { font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.1; font-variant-numeric: tabular-nums; }
 .dashboard-page .dashboard-valor-alerta, .dashboard-page .dashboard-texto-alerta { color: var(--danger); }
+.dashboard-page .dashboard-consumo-boton { background: transparent; border: 0; color: var(--text); font-size: 0.75rem; font-weight: 600; padding: 0; text-decoration: underline; text-underline-offset: 0.2rem; }
+.dashboard-page .dashboard-consumo-detalle { background-color: color-mix(in srgb, var(--text) 4%, var(--surface)); border-radius: 0.5rem; font-size: 0.75rem; margin-top: 0.75rem; padding: 0.75rem; }
+.dashboard-page .dashboard-consumo-detalle p { color: var(--bs-secondary-color); }
+.dashboard-page .dashboard-consumo-insumo { display: flex; gap: 0.5rem; justify-content: space-between; padding: 0.2rem 0; }
+.dashboard-page .dashboard-consumo-insumo strong { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dashboard-page .dashboard-grafica { height: 18rem; position: relative; }
 .dashboard-page .dashboard-alerta { border-left: 3px solid var(--danger); padding-left: 0.75rem; }
 .dashboard-page .dashboard-alerta + .dashboard-alerta { margin-top: 1.25rem; }

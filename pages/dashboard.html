@@ -28,7 +28,7 @@
           </div>
           <div class="row g-3">
             <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-ventas-previstas"><p class="dashboard-etiqueta mb-2" id="titulo-ventas-previstas">Ventas previstas</p><p class="dashboard-valor fw-bold mb-1">162</p><p class="small text-body-secondary mb-0">tacos para hoy</p></article></div>
-            <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-consumo-esperado"><p class="dashboard-etiqueta mb-2" id="titulo-consumo-esperado">Consumo esperado</p><p class="dashboard-valor fw-bold mb-1">28.4 kg</p><p class="small text-body-secondary mb-0">según recetas estándar</p></article></div>
+            <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-consumo-esperado"><p class="dashboard-etiqueta mb-2" id="titulo-consumo-esperado">Consumo esperado</p><p class="dashboard-valor fw-bold mb-1" id="valor-consumo-esperado">—</p><p class="small text-body-secondary mb-2" id="detalle-consumo-esperado">Calculando con recetas activas.</p><button class="dashboard-consumo-boton" type="button" data-bs-toggle="collapse" data-bs-target="#detalle-consumo-insumos" aria-expanded="false" aria-controls="detalle-consumo-insumos">Ver detalle por insumo</button><div class="collapse" id="detalle-consumo-insumos"><div class="dashboard-consumo-detalle"><p class="mb-2" id="nota-consumo-insumos"></p><ul class="list-unstyled mb-0" id="lista-consumo-insumos" aria-label="Consumo estimado por insumo"></ul></div></div></article></div>
             <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-merma-semanal"><p class="dashboard-etiqueta mb-2" id="titulo-merma-semanal">Merma semanal</p><p class="dashboard-valor dashboard-valor-alerta fw-bold mb-1">3.8 kg</p><p class="small dashboard-texto-alerta mb-0">12% sobre lo esperado</p></article></div>
             <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-cobertura-menor"><p class="dashboard-etiqueta mb-2" id="titulo-cobertura-menor">Cobertura menor</p><p class="dashboard-valor dashboard-valor-alerta fw-bold mb-1">1.2 días</p><p class="small dashboard-texto-alerta mb-0">Carne al pastor · pedir hoy</p></article></div>
           </div>
@@ -172,6 +172,7 @@
   </div>
   <noscript><p class="p-3">Activa JavaScript para utilizar la navegación.</p></noscript>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  <script src="../js/storage.js"></script>
   <script src="../js/main.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
   <script src="../js/dashboard.js"></script>
