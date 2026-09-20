@@ -21,15 +21,20 @@
     { id: "reportes", nombre: "Reportes", ruta: "pages/reportes.html", roles: ["admin"] },
     { id: "abastecimientos", nombre: "Abastecimiento", ruta: "pages/abastecimientos.html", roles: ["admin"] }
   ];
-  const ordenEmpleado = ["turnos", "recetas", "mermas"];
+  const ordenEmpleado = ["turnos", "recetas", "inventario", "mermas"];
   const paginas = sesion.rol === "empleado"
     ? ordenEmpleado.map(id => {
       const pagina = catalogo.find(pagina => pagina.id === id);
-      return { ...pagina, nombre: id === "turnos" ? "Mis turnos" : pagina.nombre };
+      return {
+        ...pagina,
+        nombre: id === "turnos" ? "Mis turnos" : pagina.nombre,
+        // Solo la opción del menú: la vista de inventario del empleado está pendiente.
+        pendiente: id === "inventario"
+      };
     })
     : catalogo.filter(pagina => pagina.roles.includes(sesion.rol));
   const paginaActual = paginas.find(pagina => pagina.id === document.body.dataset.pagina);
-  if (!paginaActual) {
+  if (!paginaActual || paginaActual.pendiente) {
     Guard.irAlInicio();
     return;
   }
@@ -72,7 +77,14 @@
     elemento.className = "nav-item";
     const enlace = document.createElement("a");
     enlace.className = "nav-link";
-    enlace.href = new URL(pagina.ruta, raizProyecto).href;
+    if (pagina.pendiente) {
+      enlace.classList.add("disabled");
+      enlace.setAttribute("role", "link");
+      enlace.setAttribute("aria-disabled", "true");
+      enlace.title = "Vista de inventario para empleados pendiente";
+    } else {
+      enlace.href = new URL(pagina.ruta, raizProyecto).href;
+    }
 
     const marca = document.createElement("span");
     marca.className = "app-nav-marca";

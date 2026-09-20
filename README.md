@@ -23,7 +23,7 @@ Este repositorio corresponde a un proyecto universitario. En la fase 2 se desarr
 | Administrador | Consultar Dashboard y Reportes; crear, consultar, editar y eliminar recetas y turnos; revisar costos de recetas; aceptar o rechazar solicitudes de días libres. |
 | Empleado | Consultar recetas e instrucciones de preparación, ver sus turnos, enviar solicitudes de días libres y registrar mermas desde Turnos. |
 
-El administrador ve el menú completo. El empleado ve únicamente **Mis turnos, Recetas y Mermas**, en ese orden. La plantilla obtiene el rol desde la sesión y las páginas protegidas comprueban también el acceso por URL.
+El administrador ve el menú completo. El empleado ve **Mis turnos, Recetas, Inventario y Mermas**, en ese orden. Inventario aparece deshabilitado mientras se desarrolla su vista para empleados; la vista actual sigue siendo exclusiva del administrador. La plantilla obtiene el rol desde la sesión y las páginas protegidas comprueban también el acceso por URL.
 
 ## Módulos
 
