@@ -10,19 +10,38 @@
 
   // Se calcula desde js/main.js para funcionar en index, pages/ y GitHub Pages.
   const raizProyecto = new URL("../", document.currentScript.src);
-  const paginas = [
-    { id: "dashboard", nombre: "Dashboard", ruta: "pages/dashboard.html" },
-    { id: "recetas", nombre: "Recetas", ruta: "pages/recetas.html" },
-    { id: "inventario", nombre: "Inventario", ruta: "pages/inventario.html" },
-    { id: "mermas", nombre: "Mermas", ruta: "pages/mermas.html" },
-    { id: "turnos", nombre: "Turnos", ruta: "pages/turnos.html" },
-    { id: "reportes", nombre: "Reportes", ruta: "pages/reportes.html" },
-    { id: "abastecimientos", nombre: "Abastecimiento", ruta: "pages/abastecimientos.html" }
+  if (!Guard.requireLogin()) return;
+  const sesion = Guard.getSesion();
+  const catalogo = [
+    { id: "dashboard", nombre: "Dashboard", ruta: "pages/dashboard.html", roles: ["admin"] },
+    { id: "recetas", nombre: "Recetas", ruta: "pages/recetas.html", roles: ["admin", "empleado"] },
+    { id: "inventario", nombre: "Inventario", ruta: "pages/inventario.html", roles: ["admin"] },
+    { id: "mermas", nombre: "Mermas", ruta: "pages/mermas.html", roles: ["admin", "empleado"] },
+    { id: "turnos", nombre: "Turnos", ruta: "pages/turnos.html", roles: ["admin", "empleado"] },
+    { id: "reportes", nombre: "Reportes", ruta: "pages/reportes.html", roles: ["admin"] },
+    { id: "abastecimientos", nombre: "Abastecimiento", ruta: "pages/abastecimientos.html", roles: ["admin"] }
   ];
+  const ordenEmpleado = ["turnos", "recetas", "inventario", "mermas"];
+  const paginas = sesion.rol === "empleado"
+    ? ordenEmpleado.map(id => {
+      const pagina = catalogo.find(pagina => pagina.id === id);
+      return {
+        ...pagina,
+        nombre: id === "turnos" ? "Mis turnos" : pagina.nombre,
+        // Solo la opción del menú: la vista de inventario del empleado está pendiente.
+        pendiente: id === "inventario"
+      };
+    })
+    : catalogo.filter(pagina => pagina.roles.includes(sesion.rol));
   const paginaActual = paginas.find(pagina => pagina.id === document.body.dataset.pagina);
+  if (!paginaActual || paginaActual.pendiente) {
+    Guard.irAlInicio();
+    return;
+  }
   const seccion = document.body.dataset.seccion || "General";
-  // Solo es la etiqueta visual. La autenticación y los permisos se integran por separado.
-  const rol = document.body.dataset.rol || "Equipo";
+  const rol = sesion.rol === "admin" ? "Dueño / Admin" : "Empleado";
+  document.body.dataset.rol = rol;
+  document.title = `${paginaActual.nombre} | Tacos Joya de Cerén`;
 
   menuLateral.innerHTML = `
     <div class="d-flex align-items-center justify-content-between gap-3 p-4">
@@ -50,11 +69,7 @@
     </div>
   `;
 
-  document.getElementById("btn-cerrar-sesion").addEventListener("click", () => {
-    // Conserva los datos de los módulos y elimina únicamente la sesión activa.
-    localStorage.removeItem("sesion");
-    window.location.replace(new URL("pages/login.html", raizProyecto).href);
-  });
+  document.getElementById("btn-cerrar-sesion").addEventListener("click", () => Guard.logout());
 
   const listaMenu = document.getElementById("enlaces-menu");
   paginas.forEach(pagina => {
@@ -62,7 +77,14 @@
     elemento.className = "nav-item";
     const enlace = document.createElement("a");
     enlace.className = "nav-link";
-    enlace.href = new URL(pagina.ruta, raizProyecto).href;
+    if (pagina.pendiente) {
+      enlace.classList.add("disabled");
+      enlace.setAttribute("role", "link");
+      enlace.setAttribute("aria-disabled", "true");
+      enlace.title = "Vista de inventario para empleados pendiente";
+    } else {
+      enlace.href = new URL(pagina.ruta, raizProyecto).href;
+    }
 
     const marca = document.createElement("span");
     marca.className = "app-nav-marca";
@@ -93,6 +115,6 @@
 
   document.getElementById("nombre-pagina").textContent = paginaActual ? paginaActual.nombre : "Tacos Joya de Cerén";
   document.getElementById("nombre-seccion").textContent = seccion;
-  document.getElementById("rol-menu").textContent = rol;
+  document.getElementById("rol-menu").textContent = sesion.nombre ? `${sesion.nombre} · ${rol}` : rol;
   document.getElementById("rol-barra").textContent = rol;
 })();

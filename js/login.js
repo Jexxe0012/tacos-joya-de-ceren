@@ -169,11 +169,7 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
   }));
 
   // Redirigir según rol.
-  if (usuario.rol === 'admin') {
-    window.location.href = 'turnos.html';
-  } else {
-    window.location.href = 'turnos.html';
-  }
+  Guard.irAlInicio();
 });
 
 /* ============================================
@@ -268,9 +264,5 @@ document.getElementById('register-form').addEventListener('submit', (e) => {
   }));
 
   // Redirigir según rol
-  if (nuevoUsuario.rol === 'admin') {
-    window.location.href = 'turnos.html';
-  } else {
-    window.location.href = 'turnos.html';
-  }
+  Guard.irAlInicio();
 });
