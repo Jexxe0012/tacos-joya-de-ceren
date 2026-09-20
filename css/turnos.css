@@ -1,245 +1,32 @@
-/* ============================================
-   TURNOS — Layout general: sidebar + main content
-   Depende de las variables :root de main.css
-   ============================================ */
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  color: var(--text);
-  background: var(--bg);
-}
-
-.app-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-/* ========== SIDEBAR ========== */
-
-.sidebar {
-  width: 240px;
-  background: var(--color-azul);
-  color: var(--color-crema);
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem 0;
-  flex-shrink: 0;
-}
-
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0 1.5rem 1.5rem;
-  /* Overlay claro derivado de var(--color-crema) */
-  border-bottom: 1px solid rgba(255, 243, 221, 0.1);
-}
-
-.sidebar-logo {
-  width: 2.5rem;
-  height: 2.5rem;
-  background: var(--color-rojo);
-  color: #ffffff;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 1rem;
-}
-
-.sidebar-brand-text {
-  font-size: 0.95rem;
-  line-height: 1.2;
-}
-
-.sidebar-brand-text .name {
-  font-weight: 700;
-  display: block;
-}
-
-.sidebar-brand-text .sub {
-  display: block;
-  opacity: 0.7;
-  font-size: 0.8rem;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem 0;
-  flex: 1;
-}
-
-.sidebar-nav a {
-  color: var(--color-crema);
-  text-decoration: none;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.95rem;
-  border-left: 3px solid transparent;
-  opacity: 0.7;
-  transition: opacity 0.15s ease, background 0.15s ease;
-}
-
-.sidebar-nav a:hover {
-  opacity: 1;
-  background: rgba(255, 243, 221, 0.05);
-}
-
-.sidebar-nav a.active {
-  opacity: 1;
-  border-left-color: var(--color-rojo);
-  background: rgba(255, 243, 221, 0.08);
-  font-weight: 600;
-}
-
-.sidebar-user {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid rgba(255, 243, 221, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.sidebar-user-avatar {
-  width: 2.25rem;
-  height: 2.25rem;
-  background: rgba(255, 243, 221, 0.15);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 0.85rem;
-  flex-shrink: 0;
-}
-
-.sidebar-user-info {
-  flex: 1;
-  font-size: 0.85rem;
-  line-height: 1.2;
-  overflow: hidden;
-}
-
-.sidebar-user-info .user-name {
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sidebar-user-info .user-role {
-  opacity: 0.7;
-  font-size: 0.75rem;
-}
-
-#btn-logout {
-  background: none;
-  border: none;
-  color: var(--color-crema);
-  cursor: pointer;
-  opacity: 0.6;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.85rem;
-  transition: opacity 0.15s ease, background 0.15s ease;
-}
-
-#btn-logout:hover {
-  opacity: 1;
-  background: rgba(255, 243, 221, 0.1);
-}
-
-/* ========== MAIN CONTENT ========== */
-
-.main-content {
-  flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
-  background: var(--bg);
-}
-
-.main-content h1 {
-  color: var(--color-azul);
-  margin-top: 0;
-}
-
-.main-content .subtitle {
-  color: var(--text);
-  opacity: 0.7;
-  margin-top: -0.5rem;
-}
-
-/* ========== RESPONSIVE ========== */
-
-@media (max-width: 768px) {
-  .app-layout {
-    flex-direction: column;
-  }
-  .sidebar {
-    width: 100%;
-    padding: 1rem;
-  }
-  .sidebar-brand {
-    border-bottom: none;
-    padding: 0 0 1rem;
-  }
-  .sidebar-nav {
-    flex-direction: row;
-    overflow-x: auto;
-    padding: 0.5rem 0;
-    flex: unset;
-  }
-  .sidebar-nav a {
-    border-left: none;
-    border-bottom: 3px solid transparent;
-    white-space: nowrap;
-    padding: 0.5rem 1rem;
-  }
-  .sidebar-nav a.active {
-    border-left-color: transparent;
-    border-bottom-color: var(--color-rojo);
-  }
-  .sidebar-user {
-    border-top: none;
-    padding: 0.5rem 0;
-  }
-  .main-content {
-    padding: 1rem;
-  }
-}
+/* Estilos exclusivos del módulo. El layout, menú y botones principales
+   se comparten mediante main.css y main.js, como en index.html. */
 
 /* ============================================
    VISTA EMPLEADO — Saludo, calendario, acciones
    ============================================ */
 
-.emp-greeting {
+.turnos-page .emp-greeting {
   font-size: 1.75rem;
   color: var(--color-azul);
   margin: 0 0 0.25rem;
   font-weight: 700;
 }
 
-.emp-subtitle {
+.turnos-page .emp-subtitle {
   color: var(--text);
   opacity: 0.7;
   margin: 0 0 1.5rem;
 }
 
 /* Navegación de semana */
-.week-nav {
+.turnos-page .week-nav {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 
-.week-nav button {
+.turnos-page .week-nav button {
   background: var(--surface);
   border: 1.5px solid rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
   color: var(--color-azul);
@@ -250,24 +37,24 @@ body {
   font-family: inherit;
 }
 
-.week-nav button:hover {
+.turnos-page .week-nav button:hover {
   background: rgba(16, 27, 70, 0.05); /* var(--color-azul) al 5% */
 }
 
-.week-nav .week-label {
+.turnos-page .week-nav .week-label {
   font-weight: 600;
   color: var(--color-azul);
 }
 
 /* Calendario semanal empleado */
-.emp-week {
+.turnos-page .emp-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.75rem;
   margin-bottom: 2rem;
 }
 
-.day-card {
+.turnos-page .day-card {
   background: var(--surface);
   border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
   border-radius: 0.75rem;
@@ -277,7 +64,7 @@ body {
   flex-direction: column;
 }
 
-.day-header {
+.turnos-page .day-header {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -285,14 +72,14 @@ body {
   margin-bottom: 0.25rem;
 }
 
-.day-number {
+.turnos-page .day-number {
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--color-azul);
   margin-bottom: 0.75rem;
 }
 
-.day-turno {
+.turnos-page .day-turno {
   background: rgba(242, 182, 50, 0.15); /* var(--color-maiz) al 15% */
   border-left: 3px solid var(--color-maiz);
   padding: 0.5rem;
@@ -301,19 +88,19 @@ body {
   margin-top: 0.25rem;
 }
 
-.day-turno .turno-hours {
+.turnos-page .day-turno .turno-hours {
   font-weight: 600;
   color: var(--color-azul);
 }
 
-.day-turno .turno-station {
+.turnos-page .day-turno .turno-station {
   color: var(--text);
   opacity: 0.75;
   font-size: 0.8rem;
   margin-top: 0.1rem;
 }
 
-.day-libre {
+.turnos-page .day-libre {
   color: var(--text);
   opacity: 0.4;
   font-size: 0.85rem;
@@ -321,26 +108,26 @@ body {
   margin-top: auto;
 }
 
-.day-today {
+.turnos-page .day-today {
   border-color: var(--color-rojo);
   box-shadow: 0 0 0 1px var(--color-rojo);
 }
 
 /* Acciones rápidas */
-.quick-actions-title {
+.turnos-page .quick-actions-title {
   font-size: 1.1rem;
   color: var(--color-azul);
   margin: 1.5rem 0 0.75rem;
 }
 
-.quick-actions {
+.turnos-page .quick-actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-bottom: 2rem;
 }
 
-.action-card {
+.turnos-page .action-card {
   background: var(--surface);
   border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
   border-radius: 0.75rem;
@@ -356,31 +143,32 @@ body {
   width: 100%;
 }
 
-.action-card:hover {
+.turnos-page .action-card:hover {
   border-color: var(--color-maiz);
 }
 
-.action-card:active {
+.turnos-page .action-card:active {
   transform: translateY(1px);
 }
 
-.action-title {
+.turnos-page .action-title {
   font-weight: 600;
   color: var(--color-azul);
   margin-bottom: 0.25rem;
 }
 
-.action-desc {
+.turnos-page .action-desc {
   font-size: 0.85rem;
   opacity: 0.7;
 }
 
-.action-card.alert {
+.turnos-page .action-card.alert {
+  margin-bottom: 0;
   border-color: rgba(182, 36, 36, 0.3); /* var(--color-rojo) al 30% */
   cursor: default;
 }
 
-.action-card.alert .action-title {
+.turnos-page .action-card.alert .action-title {
   color: var(--color-rojo);
 }
 
@@ -388,7 +176,7 @@ body {
    MODAL (usado por registrar merma y otros)
    ============================================ */
 
-.modal-overlay {
+.turnos-page .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(16, 27, 70, 0.55); /* var(--color-azul) al 55% */
@@ -396,36 +184,38 @@ body {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  z-index: 100;
+  z-index: 1060; /* Sobre la navegación offcanvas de Bootstrap. */
 }
 
-.modal-overlay[hidden] {
+.turnos-page .modal-overlay[hidden] {
   display: none;
 }
 
-.modal-card {
+.turnos-page .modal-card {
   background: var(--surface);
   border-radius: 1rem;
   padding: 2rem;
   max-width: 28rem;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
   width: 100%;
   box-shadow: 0 20px 40px rgba(16, 27, 70, 0.2); /* var(--color-azul) al 20% */
 }
 
-.modal-card h2 {
+.turnos-page .modal-card h2 {
   color: var(--color-azul);
   margin: 0 0 0.5rem;
   font-size: 1.35rem;
 }
 
-.modal-card .modal-subtitle {
+.turnos-page .modal-card .modal-subtitle {
   color: var(--text);
   opacity: 0.7;
   margin: 0 0 1.25rem;
   font-size: 0.9rem;
 }
 
-.modal-card label {
+.turnos-page .modal-card label {
   display: block;
   font-size: 0.85rem;
   font-weight: 600;
@@ -433,9 +223,9 @@ body {
   margin: 1rem 0 0.4rem;
 }
 
-.modal-card input,
-.modal-card textarea,
-.modal-card select {
+.turnos-page .modal-card input,
+.turnos-page .modal-card textarea,
+.turnos-page .modal-card select {
   width: 100%;
   padding: 0.65rem 0.85rem;
   border: 1.5px solid rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
@@ -446,27 +236,27 @@ body {
   background: var(--surface);
 }
 
-.modal-card input:focus,
-.modal-card textarea:focus,
-.modal-card select:focus {
+.turnos-page .modal-card input:focus,
+.turnos-page .modal-card textarea:focus,
+.turnos-page .modal-card select:focus {
   outline: none;
   border-color: var(--color-maiz);
   box-shadow: 0 0 0 3px rgba(242, 182, 50, 0.2); /* var(--color-maiz) al 20% */
 }
 
-.modal-card textarea {
+.turnos-page .modal-card textarea {
   min-height: 5rem;
   resize: vertical;
   font-family: inherit;
 }
 
-.modal-actions {
+.turnos-page .modal-actions {
   display: flex;
   gap: 0.75rem;
   margin-top: 1.5rem;
 }
 
-.modal-actions button {
+.turnos-page .modal-actions button {
   flex: 1;
   padding: 0.75rem;
   border: none;
@@ -477,51 +267,51 @@ body {
   cursor: pointer;
 }
 
-.btn-cancel {
+.turnos-page .btn-cancel {
   background: rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
   color: var(--color-azul);
 }
 
-.btn-cancel:hover {
+.turnos-page .btn-cancel:hover {
   background: rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
 }
 
-.btn-submit {
+.turnos-page .btn-submit {
   background: var(--color-azul);
   color: var(--color-crema);
 }
 
-.btn-submit:hover {
+.turnos-page .btn-submit:hover {
   filter: brightness(1.15);
 }
 
-.modal-msg {
+.turnos-page .modal-msg {
   margin-top: 1rem;
   padding: 0.75rem;
   border-radius: 0.5rem;
   font-size: 0.9rem;
 }
 
-.modal-msg.error {
+.turnos-page .modal-msg.error {
   background: rgba(182, 36, 36, 0.1); /* var(--color-rojo) al 10% */
   color: var(--color-rojo);
 }
 
-.modal-msg.success {
+.turnos-page .modal-msg.success {
   background: rgba(66, 107, 58, 0.12); /* var(--color-verde) al 12% */
   color: var(--color-verde);
 }
 
-.modal-msg:empty {
+.turnos-page .modal-msg:empty {
   display: none;
 }
 
 /* Responsive del calendario y acciones */
 @media (max-width: 1024px) {
-  .emp-week {
+  .turnos-page .emp-week {
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
-  .quick-actions {
+  .turnos-page .quick-actions {
     grid-template-columns: 1fr;
   }
 }
@@ -530,7 +320,7 @@ body {
    VISTA ADMIN — Header, stats, calendario tabla
    ============================================ */
 
-.admin-header {
+.turnos-page .admin-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -539,51 +329,34 @@ body {
   flex-wrap: wrap;
 }
 
-.admin-header h1 {
+.turnos-page .admin-header h1 {
   color: var(--color-azul);
   margin: 0 0 0.25rem;
   font-size: 1.75rem;
 }
 
-.admin-header .subtitle {
+.turnos-page .admin-header .subtitle {
   color: var(--text);
   opacity: 0.7;
   margin: 0;
 }
 
-.btn-primary {
-  background: var(--color-azul);
-  color: var(--color-crema);
-  border: none;
-  padding: 0.65rem 1.25rem;
-  border-radius: 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.btn-primary:hover {
-  filter: brightness(1.15);
-}
-
 /* Stats grid */
-.stats-grid {
+.turnos-page .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
-.stat-card {
+.turnos-page .stat-card {
   background: var(--surface);
   border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
   border-radius: 0.75rem;
   padding: 1rem 1.25rem;
 }
 
-.stat-label {
+.turnos-page .stat-label {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -592,14 +365,14 @@ body {
   color: var(--text);
 }
 
-.stat-value {
+.turnos-page .stat-value {
   font-size: 2rem;
   font-weight: 700;
   color: var(--color-azul);
   line-height: 1;
 }
 
-.stat-sub {
+.turnos-page .stat-sub {
   font-size: 0.8rem;
   opacity: 0.7;
   margin-top: 0.4rem;
@@ -607,13 +380,13 @@ body {
 }
 
 /* Calendar container */
-.section-title {
+.turnos-page .section-title {
   font-size: 1.1rem;
   color: var(--color-azul);
   margin: 0 0 0.75rem;
 }
 
-.admin-calendar-container {
+.turnos-page .admin-calendar-container {
   background: var(--surface);
   border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
   border-radius: 0.75rem;
@@ -621,40 +394,40 @@ body {
   margin-bottom: 1.5rem;
 }
 
-.calendar-hint {
+.turnos-page .calendar-hint {
   font-size: 0.8rem;
   opacity: 0.6;
   margin: 0.75rem 0 0;
   color: var(--text);
 }
 
-.admin-calendar-scroll {
+.turnos-page .admin-calendar-scroll {
   overflow-x: auto;
 }
 
-.admin-calendar {
+.turnos-page .admin-calendar {
   border-collapse: collapse;
   width: 100%;
   min-width: 700px;
 }
 
-.admin-calendar th,
-.admin-calendar td {
+.turnos-page .admin-calendar th,
+.turnos-page .admin-calendar td {
   padding: 0.5rem 0.4rem;
   text-align: center;
   font-size: 0.85rem;
   border: 1px solid rgba(16, 27, 70, 0.06); /* var(--color-azul) al 6% */
 }
 
-.admin-calendar th {
+.turnos-page .admin-calendar th {
   color: var(--color-azul);
   font-weight: 600;
   font-size: 0.8rem;
   background: rgba(16, 27, 70, 0.03); /* var(--color-azul) al 3% */
 }
 
-.admin-calendar th.col-employee,
-.admin-calendar td.col-employee {
+.turnos-page .admin-calendar th.col-employee,
+.turnos-page .admin-calendar td.col-employee {
   text-align: left;
   font-weight: 600;
   color: var(--color-azul);
@@ -662,51 +435,51 @@ body {
   background: rgba(16, 27, 70, 0.03); /* var(--color-azul) al 3% */
 }
 
-.admin-calendar td.cell {
+.turnos-page .admin-calendar td.cell {
   cursor: pointer;
   transition: background 0.1s ease;
   min-width: 5rem;
 }
 
-.admin-calendar td.cell:hover {
+.turnos-page .admin-calendar td.cell:hover {
   background: rgba(242, 182, 50, 0.15); /* var(--color-maiz) al 15% */
 }
 
-.admin-calendar td.cell.has-turno {
+.turnos-page .admin-calendar td.cell.has-turno {
   background: rgba(242, 182, 50, 0.12); /* var(--color-maiz) al 12% */
   border-left: 3px solid var(--color-maiz);
 }
 
-.admin-calendar td.cell.today {
+.turnos-page .admin-calendar td.cell.today {
   outline: 2px solid var(--color-rojo);
   outline-offset: -2px;
 }
 
-.cell-hours {
+.turnos-page .cell-hours {
   font-weight: 600;
   color: var(--color-azul);
   font-size: 0.8rem;
 }
 
-.cell-station {
+.turnos-page .cell-station {
   font-size: 0.7rem;
   opacity: 0.7;
 }
 
-.cell-empty {
+.turnos-page .cell-empty {
   opacity: 0.35;
   font-style: italic;
   font-size: 0.8rem;
 }
 
-.cell-recurrent-mark {
+.turnos-page .cell-recurrent-mark {
   font-size: 0.7rem;
   color: var(--color-maiz);
   font-weight: 700;
   margin-left: 0.15rem;
 }
 
-.no-empleados {
+.turnos-page .no-empleados {
   padding: 2rem;
   text-align: center;
   color: var(--text);
@@ -714,18 +487,18 @@ body {
 }
 
 /* Modal — ancho extra y layout de dos columnas */
-.modal-card-wide {
+.turnos-page .modal-card-wide {
   max-width: 32rem;
 }
 
-.modal-row {
+.turnos-page .modal-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
 }
 
 /* .modal-card delante para ganarle en especificidad a ".modal-card label" */
-.modal-card .checkbox-label {
+.turnos-page .modal-card .checkbox-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -736,12 +509,12 @@ body {
   font-size: 0.9rem;
 }
 
-.checkbox-label input[type="checkbox"] {
+.turnos-page .checkbox-label input[type="checkbox"] {
   width: auto;
   margin: 0;
 }
 
-.btn-danger {
+.turnos-page .btn-danger {
   background: rgba(182, 36, 36, 0.1); /* var(--color-rojo) al 10% */
   color: var(--color-rojo);
   border: none;
@@ -754,13 +527,13 @@ body {
   flex: 1;
 }
 
-.btn-danger:hover {
+.turnos-page .btn-danger:hover {
   background: rgba(182, 36, 36, 0.2); /* var(--color-rojo) al 20% */
 }
 
 /* Responsive stats */
 @media (max-width: 900px) {
-  .stats-grid {
+  .turnos-page .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -769,7 +542,7 @@ body {
    SOLICITUDES — Empleado y Admin
    ============================================ */
 
-.solicitud-actions-container {
+.turnos-page .solicitud-actions-container {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -777,18 +550,18 @@ body {
   flex-wrap: wrap;
 }
 
-.admin-solicitudes-container {
+.turnos-page .admin-solicitudes-container {
   margin-bottom: 1.5rem;
 }
 
-.solicitudes-list {
+.turnos-page .solicitudes-list {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 2rem;
 }
 
-.solicitud-card {
+.turnos-page .solicitud-card {
   background: var(--surface);
   border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
   border-left-width: 4px;
@@ -801,24 +574,24 @@ body {
   flex-wrap: wrap;
 }
 
-.solicitud-card.pendiente {
+.turnos-page .solicitud-card.pendiente {
   border-left-color: var(--color-maiz);
 }
 
-.solicitud-card.aceptada {
+.turnos-page .solicitud-card.aceptada {
   border-left-color: var(--color-verde);
 }
 
-.solicitud-card.rechazada {
+.turnos-page .solicitud-card.rechazada {
   border-left-color: var(--color-rojo);
 }
 
-.solicitud-info {
+.turnos-page .solicitud-info {
   flex: 1;
   min-width: 220px;
 }
 
-.solicitud-header {
+.turnos-page .solicitud-header {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -826,26 +599,26 @@ body {
   margin-bottom: 0.4rem;
 }
 
-.solicitud-nombre {
+.turnos-page .solicitud-nombre {
   font-weight: 600;
   color: var(--color-azul);
   font-size: 0.9rem;
 }
 
-.solicitud-fecha {
+.turnos-page .solicitud-fecha {
   opacity: 0.6;
   font-size: 0.75rem;
   color: var(--text);
 }
 
-.solicitud-mensaje {
+.turnos-page .solicitud-mensaje {
   color: var(--text);
   font-size: 0.9rem;
   line-height: 1.45;
   white-space: pre-wrap;
 }
 
-.solicitud-estado {
+.turnos-page .solicitud-estado {
   font-size: 0.7rem;
   padding: 0.15rem 0.55rem;
   border-radius: 0.75rem;
@@ -854,28 +627,28 @@ body {
   font-weight: 700;
 }
 
-.solicitud-estado.pendiente {
+.turnos-page .solicitud-estado.pendiente {
   background: rgba(242, 182, 50, 0.3); /* var(--color-maiz) al 30% */
   color: var(--color-azul);
 }
 
-.solicitud-estado.aceptada {
+.turnos-page .solicitud-estado.aceptada {
   background: rgba(66, 107, 58, 0.15); /* var(--color-verde) al 15% */
   color: var(--color-verde);
 }
 
-.solicitud-estado.rechazada {
+.turnos-page .solicitud-estado.rechazada {
   background: rgba(182, 36, 36, 0.15); /* var(--color-rojo) al 15% */
   color: var(--color-rojo);
 }
 
-.solicitud-actions {
+.turnos-page .solicitud-actions {
   display: flex;
   gap: 0.5rem;
   flex-shrink: 0;
 }
 
-.btn-accept {
+.turnos-page .btn-accept {
   background: var(--color-verde);
   color: var(--color-crema);
   border: none;
@@ -887,11 +660,11 @@ body {
   cursor: pointer;
 }
 
-.btn-accept:hover {
+.turnos-page .btn-accept:hover {
   filter: brightness(1.15);
 }
 
-.btn-reject {
+.turnos-page .btn-reject {
   background: rgba(182, 36, 36, 0.1); /* var(--color-rojo) al 10% */
   color: var(--color-rojo);
   border: none;
@@ -903,11 +676,11 @@ body {
   cursor: pointer;
 }
 
-.btn-reject:hover {
+.turnos-page .btn-reject:hover {
   background: rgba(182, 36, 36, 0.2); /* var(--color-rojo) al 20% */
 }
 
-.solicitudes-empty {
+.turnos-page .solicitudes-empty {
   padding: 1.5rem;
   text-align: center;
   color: var(--text);
@@ -920,7 +693,7 @@ body {
 }
 
 /* Bloques individuales de turno dentro de una celda del admin */
-.cell-turno-block {
+.turnos-page .cell-turno-block {
   padding: 0.15rem 0.3rem;
   margin: 0.15rem 0;
   border-radius: 0.25rem;
@@ -928,11 +701,11 @@ body {
   transition: background 0.1s ease;
 }
 
-.cell-turno-block:hover {
+.turnos-page .cell-turno-block:hover {
   background: rgba(242, 182, 50, 0.25); /* var(--color-maiz) al 25% */
 }
 
-.cell-turno-block + .cell-turno-block {
+.turnos-page .cell-turno-block + .cell-turno-block {
   border-top: 1px dashed rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
   padding-top: 0.35rem;
   margin-top: 0.35rem;

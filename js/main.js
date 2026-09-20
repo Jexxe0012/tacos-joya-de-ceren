@@ -42,9 +42,18 @@
       <div class="app-perfil rounded-3 p-3 mt-auto">
         <p class="small fw-semibold mb-1" id="rol-menu"></p>
         <p class="small app-texto-lateral mb-0">Tacos Joya de Cerén</p>
+        <button class="btn btn-app-primary w-100 mt-3" type="button" id="btn-cerrar-sesion">
+          Cerrar sesión
+        </button>
       </div>
     </div>
   `;
+
+  document.getElementById("btn-cerrar-sesion").addEventListener("click", () => {
+    // Conserva los datos de los módulos y elimina únicamente la sesión activa.
+    localStorage.removeItem("sesion");
+    window.location.replace(new URL("pages/login.html", raizProyecto).href);
+  });
 
   const listaMenu = document.getElementById("enlaces-menu");
   paginas.forEach(pagina => {

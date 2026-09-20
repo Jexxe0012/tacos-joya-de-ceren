@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reportes | Tacos Joya de Cerén</title>
 
+  <!-- Validar la sesion antes de cargar el contenido de Reportes. -->
+  <script src="../js/guard.js"></script>
+  <script>Guard.requireRole('admin');</script>
+
   <!-- Bootstrap primero; los estilos propios se cargan después. -->
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
