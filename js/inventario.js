@@ -1,13 +1,14 @@
 /**
- * inventario.js — Lógica del módulo Inventario (vista de administrador).
+ * inventario.js — Lógica del módulo Inventario.
  * Requiere: storage.js (DB), guard.js (Guard) y main.js cargados antes.
  *
  * Guarda dos colecciones en localStorage:
  *   - "inventario": los productos con su existencia, mínimo y costo.
  *   - "movimientos": el historial de entradas, salidas y ajustes.
  *
- * La vista de empleado (solo consultar y buscar) se agrega más adelante:
- * reutilizará estas mismas colecciones sin tocar el modelo de datos.
+ * Muestra una vista según el rol de la sesión:
+ *   - admin: gestiona productos, registra movimientos y revisa alertas.
+ *   - empleado: solo consulta y busca. No modifica nada.
  */
 
 /* ============================================
@@ -16,14 +17,13 @@
 
 const sesion = Guard.getSesion();
 
-// Guard.requireRole('admin') en el <head> ya rebotó a quien no sea admin,
-// pero por defensa cortamos si esto se ejecutara sin sesión.
+// Guard.requireLogin() en el <head> ya rebotó a quien no tiene sesión,
+// pero por defensa cortamos si esto se ejecutara sin ella.
 if (!sesion) {
   throw new Error('No hay sesión activa.');
 }
 
-// main.js ya creó la navegación y el cierre de sesión comunes.
-document.getElementById('rol-menu').textContent = `${sesion.nombre} · Dueño / Admin`;
+// main.js ya creó la navegación, la etiqueta del rol y el cierre de sesión.
 
 /* ============================================
    Catálogos y datos de prueba
@@ -978,54 +978,309 @@ function buildMovimientoFila(movimiento) {
 }
 
 /* ============================================
+   Vista del empleado — solo consultar
+   ============================================ */
+
+// El empleado ve el inventario agrupado por sección y en un lenguaje simple:
+// lo único que necesita saber es si hay, si queda poco o si ya se acabó.
+const ETIQUETAS_EMPLEADO = {
+  ok: 'Disponible',
+  bajo: 'Queda poco',
+  critico: 'Queda poco',
+  agotado: 'Agotado'
+};
+
+// Los cuatro estados internos se reducen a tres para el empleado.
+const RESUMEN_EMPLEADO = [
+  { id: 'todos', nombre: 'Todo' },
+  { id: 'ok', nombre: 'Disponible' },
+  { id: 'poco', nombre: 'Queda poco' },
+  { id: 'agotado', nombre: 'Agotado' }
+];
+
+const filtrosEmpleado = {
+  texto: '',
+  categoria: 'todas',
+  estado: 'todos'
+};
+
+function setupVistaEmpleado() {
+  document.getElementById('emp-buscar').addEventListener('input', evento => {
+    filtrosEmpleado.texto = evento.target.value;
+    renderEmpleado();
+  });
+
+  renderEmpleado();
+}
+
+/** Agrupa el estado real en las tres categorías que ve el empleado. */
+function estadoEmpleado(producto) {
+  const estado = estadoStock(producto);
+  if (estado === 'agotado') return 'agotado';
+  if (estado === 'ok') return 'ok';
+  return 'poco';
+}
+
+function productosParaEmpleado() {
+  const texto = filtrosEmpleado.texto.trim().toLowerCase();
+
+  return DB.getAll('inventario').filter(producto => {
+    if (filtrosEmpleado.categoria !== 'todas' && producto.categoria !== filtrosEmpleado.categoria) return false;
+    if (filtrosEmpleado.estado !== 'todos' && estadoEmpleado(producto) !== filtrosEmpleado.estado) return false;
+
+    if (texto) {
+      const campos = [producto.nombre, producto.categoria, producto.ubicacion]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      if (!campos.includes(texto)) return false;
+    }
+
+    return true;
+  });
+}
+
+function renderEmpleado() {
+  renderResumenEmpleado();
+  renderChipsEmpleado();
+  renderSeccionesEmpleado();
+}
+
+/** Contadores por disponibilidad, que además funcionan como filtro. */
+function renderResumenEmpleado() {
+  const contenedor = document.getElementById('emp-resumen');
+  contenedor.innerHTML = '';
+
+  const productos = DB.getAll('inventario');
+
+  RESUMEN_EMPLEADO.forEach(opcion => {
+    const cuantos = opcion.id === 'todos'
+      ? productos.length
+      : productos.filter(p => estadoEmpleado(p) === opcion.id).length;
+
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = `emp-resumen-card emp-resumen-${opcion.id}`;
+    const activo = filtrosEmpleado.estado === opcion.id;
+    if (activo) boton.classList.add('activo');
+    boton.setAttribute('aria-pressed', activo ? 'true' : 'false');
+
+    const numero = document.createElement('span');
+    numero.className = 'emp-resumen-num';
+    numero.textContent = cuantos;
+    boton.appendChild(numero);
+
+    const nombre = document.createElement('span');
+    nombre.className = 'emp-resumen-nombre';
+    nombre.textContent = opcion.nombre;
+    boton.appendChild(nombre);
+
+    boton.addEventListener('click', () => {
+      // Tocar el filtro activo lo apaga y vuelve a mostrar todo.
+      filtrosEmpleado.estado = activo ? 'todos' : opcion.id;
+      renderEmpleado();
+    });
+
+    contenedor.appendChild(boton);
+  });
+}
+
+function renderChipsEmpleado() {
+  const contenedor = document.getElementById('emp-chips');
+  contenedor.innerHTML = '';
+
+  const productos = DB.getAll('inventario');
+  const opciones = [{ valor: 'todas', nombre: 'Todas las secciones' }]
+    .concat(CATEGORIAS.map(categoria => ({ valor: categoria, nombre: categoria })));
+
+  opciones.forEach(opcion => {
+    const cuantos = opcion.valor === 'todas'
+      ? productos.length
+      : productos.filter(p => p.categoria === opcion.valor).length;
+
+    // Una sección sin productos no le sirve de nada al empleado.
+    if (cuantos === 0 && opcion.valor !== filtrosEmpleado.categoria) return;
+
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'inv-chip';
+    const activo = filtrosEmpleado.categoria === opcion.valor;
+    if (activo) chip.classList.add('activo');
+    chip.setAttribute('aria-pressed', activo ? 'true' : 'false');
+
+    const texto = document.createElement('span');
+    texto.textContent = opcion.nombre;
+    chip.appendChild(texto);
+
+    const numero = document.createElement('span');
+    numero.className = 'inv-chip-num';
+    numero.textContent = cuantos;
+    chip.appendChild(numero);
+
+    chip.addEventListener('click', () => {
+      filtrosEmpleado.categoria = opcion.valor;
+      renderEmpleado();
+    });
+
+    contenedor.appendChild(chip);
+  });
+}
+
+function renderSeccionesEmpleado() {
+  const contenedor = document.getElementById('emp-secciones');
+  const contador = document.getElementById('emp-contador');
+  contenedor.innerHTML = '';
+
+  const productos = productosParaEmpleado();
+  contador.textContent = productos.length === 0
+    ? 'Sin resultados'
+    : `${productos.length} ${productos.length === 1 ? 'producto' : 'productos'}`;
+
+  if (productos.length === 0) {
+    const vacio = document.createElement('p');
+    vacio.className = 'emp-vacio';
+    vacio.textContent = filtrosEmpleado.texto
+      ? `No encontramos "${filtrosEmpleado.texto.trim()}" en el inventario. Probá con otro nombre o preguntale al administrador.`
+      : 'No hay productos que coincidan con lo que elegiste.';
+    contenedor.appendChild(vacio);
+    return;
+  }
+
+  // Se recorre el catálogo para que las secciones salgan siempre en el mismo orden.
+  CATEGORIAS.forEach(categoria => {
+    const deLaSeccion = productos
+      .filter(producto => producto.categoria === categoria)
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+    if (deLaSeccion.length === 0) return;
+
+    const seccion = document.createElement('section');
+    seccion.className = 'emp-seccion';
+
+    const titulo = document.createElement('h2');
+    titulo.className = 'emp-seccion-titulo';
+    titulo.textContent = categoria;
+
+    const cuantos = document.createElement('span');
+    cuantos.className = 'emp-seccion-num';
+    cuantos.textContent = deLaSeccion.length;
+    titulo.appendChild(cuantos);
+
+    seccion.appendChild(titulo);
+
+    const grilla = document.createElement('div');
+    grilla.className = 'emp-grilla';
+    deLaSeccion.forEach(producto => grilla.appendChild(buildTarjetaEmpleado(producto)));
+    seccion.appendChild(grilla);
+
+    contenedor.appendChild(seccion);
+  });
+}
+
+function buildTarjetaEmpleado(producto) {
+  const estado = estadoEmpleado(producto);
+  const tarjeta = document.createElement('article');
+  tarjeta.className = `emp-card emp-card-${estado}`;
+
+  const nombre = document.createElement('p');
+  nombre.className = 'emp-card-nombre';
+  nombre.textContent = producto.nombre;
+  tarjeta.appendChild(nombre);
+
+  const cantidad = document.createElement('p');
+  cantidad.className = 'emp-card-cantidad';
+  if (estado === 'agotado') {
+    cantidad.textContent = 'No hay';
+    cantidad.classList.add('emp-card-sin');
+  } else {
+    cantidad.textContent = formatCantidad(producto.cantidad);
+    const unidad = document.createElement('span');
+    unidad.className = 'emp-card-unidad';
+    unidad.textContent = ` ${producto.unidad}`;
+    cantidad.appendChild(unidad);
+  }
+  tarjeta.appendChild(cantidad);
+
+  const etiqueta = document.createElement('p');
+  etiqueta.className = `emp-card-estado emp-estado-${estado}`;
+  etiqueta.textContent = ETIQUETAS_EMPLEADO[estadoStock(producto)];
+  tarjeta.appendChild(etiqueta);
+
+  if (producto.ubicacion) {
+    const lugar = document.createElement('p');
+    lugar.className = 'emp-card-lugar';
+    lugar.textContent = producto.ubicacion;
+    tarjeta.appendChild(lugar);
+  }
+
+  return tarjeta;
+}
+
+/* ============================================
    Arranque del módulo
    ============================================ */
 
 seedInventarioDePrueba();
-poblarSelectsProducto();
-setupModalProducto();
-setupModalMovimiento();
-setupModalEliminar();
 
-document.getElementById('btn-nuevo-producto').addEventListener('click', () => abrirModalProducto());
-document.getElementById('btn-nuevo-movimiento').addEventListener('click', () => abrirModalMovimiento());
-
-document.getElementById('inv-buscar').addEventListener('input', evento => {
-  filtros.texto = evento.target.value;
-  renderTabla();
-});
-
-document.getElementById('inv-estado').addEventListener('change', evento => {
-  filtros.estado = evento.target.value;
-  renderTabla();
-});
-
-document.getElementById('inv-orden').addEventListener('change', evento => {
-  filtros.orden = evento.target.value;
-  renderTabla();
-});
-
-document.getElementById('btn-limpiar-filtros').addEventListener('click', () => {
-  filtros.texto = '';
-  filtros.categoria = 'todas';
-  filtros.estado = 'todos';
-  filtros.orden = 'alerta';
-  document.getElementById('inv-buscar').value = '';
-  document.getElementById('inv-estado').value = 'todos';
-  document.getElementById('inv-orden').value = 'alerta';
-  renderChips();
-  renderTabla();
-});
-
-document.getElementById('mov-filtro').addEventListener('change', renderMovimientos);
-
-// Escape cierra cualquier modal abierto.
-document.addEventListener('keydown', evento => {
-  if (evento.key !== 'Escape') return;
-  ['modal-producto', 'modal-movimiento', 'modal-eliminar'].forEach(id => {
-    document.getElementById(id).hidden = true;
+if (sesion.rol === 'admin') {
+  document.getElementById('admin-view').hidden = false;
+  setupVistaAdmin();
+} else {
+  document.getElementById('empleado-view').hidden = false;
+  // El empleado solo consulta: la sección de gestión y sus modales ni siquiera
+  // quedan en la página, así no hay botón que tocar ni formulario que enviar.
+  ['admin-view', 'modal-producto', 'modal-movimiento', 'modal-eliminar'].forEach(id => {
+    document.getElementById(id).remove();
   });
-  productoAEliminar = null;
-});
+  setupVistaEmpleado();
+}
 
-renderTodo();
+function setupVistaAdmin() {
+  poblarSelectsProducto();
+  setupModalProducto();
+  setupModalMovimiento();
+  setupModalEliminar();
+
+  document.getElementById('btn-nuevo-producto').addEventListener('click', () => abrirModalProducto());
+  document.getElementById('btn-nuevo-movimiento').addEventListener('click', () => abrirModalMovimiento());
+
+  document.getElementById('inv-buscar').addEventListener('input', evento => {
+    filtros.texto = evento.target.value;
+    renderTabla();
+  });
+
+  document.getElementById('inv-estado').addEventListener('change', evento => {
+    filtros.estado = evento.target.value;
+    renderTabla();
+  });
+
+  document.getElementById('inv-orden').addEventListener('change', evento => {
+    filtros.orden = evento.target.value;
+    renderTabla();
+  });
+
+  document.getElementById('btn-limpiar-filtros').addEventListener('click', () => {
+    filtros.texto = '';
+    filtros.categoria = 'todas';
+    filtros.estado = 'todos';
+    filtros.orden = 'alerta';
+    document.getElementById('inv-buscar').value = '';
+    document.getElementById('inv-estado').value = 'todos';
+    document.getElementById('inv-orden').value = 'alerta';
+    renderChips();
+    renderTabla();
+  });
+
+  document.getElementById('mov-filtro').addEventListener('change', renderMovimientos);
+
+  // Escape cierra cualquier modal abierto.
+  document.addEventListener('keydown', evento => {
+    if (evento.key !== 'Escape') return;
+    ['modal-producto', 'modal-movimiento', 'modal-eliminar'].forEach(id => {
+      document.getElementById(id).hidden = true;
+    });
+    productoAEliminar = null;
+  });
+
+  renderTodo();
+}

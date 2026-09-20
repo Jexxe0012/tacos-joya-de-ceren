@@ -14,11 +14,11 @@
   <link rel="stylesheet" href="../css/inventario.css">
   <script src="../js/storage.js"></script>
   <script src="../js/guard.js"></script>
-  <!-- Por ahora el módulo es solo para administración. La vista de empleado
-       (consultar y buscar productos) se agrega en una etapa posterior. -->
-  <script>Guard.requireRole('admin');</script>
+  <!-- Entran los dos roles: inventario.js decide qué vista mostrar.
+       El administrador gestiona; el empleado solo consulta. -->
+  <script>Guard.requireLogin();</script>
 </head>
-<body class="app-page inventario-page" data-pagina="inventario" data-seccion="Operación" data-rol="Dueño / Admin">
+<body class="app-page inventario-page" data-pagina="inventario" data-seccion="Operación" data-rol="Equipo">
   <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
 
   <div class="app-layout d-lg-flex">
@@ -32,7 +32,7 @@
       <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1" aria-label="Inventario de la taquería">
 
       <!-- Vista Admin -->
-      <section id="admin-view">
+      <section id="admin-view" hidden>
         <div class="inv-header">
           <div>
             <h1>Inventario</h1>
@@ -158,6 +158,31 @@
             <!-- Se llena con JS -->
           </div>
         </section>
+      </section>
+
+      <!-- Vista Empleado: solo consultar. No registra ni modifica nada. -->
+      <section id="empleado-view" hidden>
+        <div class="emp-header">
+          <h1>¿Qué hay en bodega?</h1>
+          <p class="subtitle">Buscá un producto y mirá si todavía queda. El administrador es quien registra las entradas y salidas.</p>
+        </div>
+
+        <div class="emp-buscador">
+          <label class="visually-hidden" for="emp-buscar">Buscar producto</label>
+          <input type="search" id="emp-buscar" placeholder="Buscar un producto… por ejemplo: tomate" autocomplete="off">
+        </div>
+
+        <!-- Contadores por estado. Además de informar, filtran al tocarlos. -->
+        <div class="emp-resumen" id="emp-resumen" role="group" aria-label="Filtrar por disponibilidad"></div>
+
+        <!-- Secciones del inventario (Carnes, Verduras, …). Se generan con JS. -->
+        <div class="inv-chips emp-chips" id="emp-chips" role="group" aria-label="Filtrar por sección"></div>
+
+        <p class="emp-contador" id="emp-contador" aria-live="polite"></p>
+
+        <div class="emp-secciones" id="emp-secciones">
+          <!-- Se llena con JS -->
+        </div>
       </section>
 
       </main>
