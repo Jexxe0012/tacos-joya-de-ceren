@@ -15,6 +15,7 @@
   const catalogo = [
     { id: "dashboard", nombre: "Dashboard", ruta: "pages/dashboard.html", roles: ["admin"] },
     { id: "recetas", nombre: "Recetas", ruta: "pages/recetas.html", roles: ["admin", "empleado"] },
+    { id: "inventario", nombre: "Inventario", ruta: "pages/inventario.html", roles: ["admin"] },
     { id: "mermas", nombre: "Mermas", ruta: "pages/mermas.html", roles: ["admin", "empleado"] },
     { id: "turnos", nombre: "Turnos", ruta: "pages/turnos.html", roles: ["admin", "empleado"] },
     { id: "reportes", nombre: "Reportes", ruta: "pages/reportes.html", roles: ["admin"] },
