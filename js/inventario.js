@@ -2,10 +2,12 @@
  * inventario.js — Lógica del módulo Inventario (vista de administrador).
  * Requiere: storage.js (DB), guard.js (Guard) y main.js cargados antes.
  *
- * Guarda el inventario en la colección "inventario" de localStorage.
+ * Guarda dos colecciones en localStorage:
+ *   - "inventario": los productos con su existencia, mínimo y costo.
+ *   - "movimientos": el historial de entradas, salidas y ajustes.
  *
  * La vista de empleado (solo consultar y buscar) se agrega más adelante:
- * reutilizará esta misma colección sin tocar el modelo de datos.
+ * reutilizará estas mismas colecciones sin tocar el modelo de datos.
  */
 
 /* ============================================
@@ -41,6 +43,13 @@ const CATEGORIAS = [
 
 // Unidades de medida típicas de una cocina.
 const UNIDADES = ['kg', 'lb', 'g', 'L', 'ml', 'unidad', 'docena', 'caja', 'bolsa'];
+
+// Motivos posibles según el tipo de movimiento.
+const MOTIVOS = {
+  entrada: ['Compra a proveedor', 'Devolución de cocina', 'Traslado desde otra sucursal'],
+  salida: ['Consumo en cocina', 'Merma o desperdicio', 'Cortesía', 'Traslado a otra sucursal'],
+  ajuste: ['Conteo físico', 'Corrección de registro']
+};
 
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
@@ -118,6 +127,15 @@ function formatFechaCorta(iso) {
 }
 
 /**
+ * Fecha y hora de un movimiento. Ej: "24 sep · 15:40".
+ */
+function formatFechaHora(isoCompleto) {
+  const d = new Date(isoCompleto);
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${d.getDate()} ${MESES[d.getMonth()]} · ${d.getHours()}:${m}`;
+}
+
+/**
  * Días que faltan para la caducidad. Negativo si ya venció,
  * null si el producto no maneja fecha de caducidad.
  */
@@ -190,14 +208,16 @@ const filtros = {
 };
 
 /* ============================================
-   Resumen, filtros y tabla
+   Resumen, alertas, filtros y tabla
    ============================================ */
 
 /** Redibuja toda la pantalla. Se llama después de cada cambio en los datos. */
 function renderTodo() {
   renderResumen();
+  renderAlertas();
   renderChips();
   renderTabla();
+  renderMovimientos();
 }
 
 function renderResumen() {
@@ -214,6 +234,92 @@ function renderResumen() {
   document.getElementById('stat-valor').textContent = formatDinero(valorTotal);
   document.getElementById('stat-criticos').textContent = criticos.length;
   document.getElementById('stat-vencer').textContent = porVencer.length;
+}
+
+/**
+ * Tarjetas de aviso con lo que hay que atender: agotados, bajo mínimo,
+ * vencidos y por vencer. Cada una ofrece registrar la entrada de una vez.
+ */
+function renderAlertas() {
+  const lista = document.getElementById('alertas-lista');
+  const contador = document.getElementById('alertas-contador');
+  lista.innerHTML = '';
+
+  const conAlerta = DB.getAll('inventario')
+    .filter(p => estadoStock(p) !== 'ok' || estadoCaducidad(p) !== null)
+    .sort((a, b) => prioridad(a) - prioridad(b));
+
+  contador.textContent = conAlerta.length === 0
+    ? 'todo en orden'
+    : `${conAlerta.length} ${conAlerta.length === 1 ? 'producto' : 'productos'}`;
+
+  if (conAlerta.length === 0) {
+    const vacio = document.createElement('p');
+    vacio.className = 'inv-vacio';
+    vacio.textContent = 'No hay alertas: todos los productos están por encima de su mínimo y ninguno está por vencer.';
+    lista.appendChild(vacio);
+    return;
+  }
+
+  conAlerta.forEach(producto => lista.appendChild(buildAlertaCard(producto)));
+}
+
+function buildAlertaCard(producto) {
+  const stock = estadoStock(producto);
+  const caducidad = estadoCaducidad(producto);
+  // El color de la tarjeta lo manda lo más urgente entre stock y caducidad.
+  const nivel = (stock === 'agotado' || stock === 'critico' || caducidad === 'vencido') ? 'urgente' : 'aviso';
+
+  const card = document.createElement('article');
+  card.className = `alerta-card ${nivel}`;
+
+  const info = document.createElement('div');
+  info.className = 'alerta-info';
+
+  const nombre = document.createElement('p');
+  nombre.className = 'alerta-nombre';
+  nombre.textContent = producto.nombre;
+  info.appendChild(nombre);
+
+  const motivos = document.createElement('p');
+  motivos.className = 'alerta-motivo';
+  motivos.textContent = textoAlerta(producto, stock, caducidad);
+  info.appendChild(motivos);
+
+  card.appendChild(info);
+
+  const acciones = document.createElement('div');
+  acciones.className = 'alerta-acciones';
+
+  const btnEntrada = document.createElement('button');
+  btnEntrada.type = 'button';
+  btnEntrada.className = 'btn-mini btn-mini-entrada';
+  btnEntrada.textContent = 'Reabastecer';
+  btnEntrada.addEventListener('click', () => abrirModalMovimiento(producto.id, 'entrada'));
+  acciones.appendChild(btnEntrada);
+
+  card.appendChild(acciones);
+  return card;
+}
+
+/** Arma la frase de la alerta: "Quedan 6 kg, el mínimo es 8 · Vence en 3 días". */
+function textoAlerta(producto, stock, caducidad) {
+  const partes = [];
+
+  if (stock === 'agotado') {
+    partes.push(`Sin existencias. El mínimo es ${formatCantidad(producto.stockMinimo)} ${producto.unidad}`);
+  } else if (stock === 'critico' || stock === 'bajo') {
+    partes.push(`Quedan ${formatCantidad(producto.cantidad)} ${producto.unidad}, el mínimo es ${formatCantidad(producto.stockMinimo)}`);
+  }
+
+  const dias = diasParaVencer(producto);
+  if (caducidad === 'vencido') {
+    partes.push(`Venció hace ${Math.abs(dias)} ${Math.abs(dias) === 1 ? 'día' : 'días'}`);
+  } else if (caducidad === 'porVencer') {
+    partes.push(dias === 0 ? 'Vence hoy' : `Vence en ${dias} ${dias === 1 ? 'día' : 'días'}`);
+  }
+
+  return partes.join(' · ');
 }
 
 /** Chips de categoría: funcionan como las secciones del inventario. */
@@ -402,6 +508,10 @@ function buildFilaProducto(producto) {
   const acciones = document.createElement('div');
   acciones.className = 'celda-acciones';
 
+  acciones.appendChild(botonAccion('+', 'Registrar entrada', 'btn-mini-entrada',
+    () => abrirModalMovimiento(producto.id, 'entrada')));
+  acciones.appendChild(botonAccion('−', 'Registrar salida', 'btn-mini-salida',
+    () => abrirModalMovimiento(producto.id, 'salida')));
   acciones.appendChild(botonAccion('Editar', 'Editar producto', 'btn-mini-editar',
     () => abrirModalProducto(producto)));
   acciones.appendChild(botonAccion('Eliminar', 'Eliminar producto', 'btn-mini-eliminar',
@@ -528,13 +638,40 @@ function setupModalProducto() {
     const datos = { nombre, categoria, unidad, cantidad, stockMinimo, costoUnitario, caducidad, proveedor, ubicacion };
 
     if (id) {
+      const anterior = DB.getById('inventario', id);
       DB.update('inventario', id, { ...datos, actualizadoEn: new Date().toISOString() });
+      // Si la edición cambió la existencia, queda constancia en el historial.
+      if (anterior && Number(anterior.cantidad) !== cantidad) {
+        registrarMovimiento({
+          productoId: id,
+          producto: nombre,
+          tipo: 'ajuste',
+          cantidad: Math.abs(cantidad - Number(anterior.cantidad)),
+          existenciaAnterior: Number(anterior.cantidad),
+          existenciaNueva: cantidad,
+          motivo: 'Corrección de registro',
+          nota: 'Existencia modificada al editar el producto'
+        });
+      }
     } else {
-      DB.create('inventario', {
+      const creado = DB.create('inventario', {
         ...datos,
         creadoEn: new Date().toISOString(),
         actualizadoEn: new Date().toISOString()
       });
+      // El alta inicial se registra como entrada para que el historial cuadre.
+      if (cantidad > 0) {
+        registrarMovimiento({
+          productoId: creado.id,
+          producto: nombre,
+          tipo: 'entrada',
+          cantidad,
+          existenciaAnterior: 0,
+          existenciaNueva: cantidad,
+          motivo: 'Compra a proveedor',
+          nota: 'Existencia inicial al crear el producto'
+        });
+      }
     }
 
     modal.hidden = true;
@@ -590,11 +727,254 @@ function setupModalEliminar() {
 
   document.getElementById('btn-eliminar-confirmar').addEventListener('click', () => {
     if (!productoAEliminar) return;
-    DB.remove('inventario', productoAEliminar.id);
+    const id = productoAEliminar.id;
+
+    DB.remove('inventario', id);
+    // Los movimientos del producto se van con él para no dejar historial huérfano.
+    DB.getAll('movimientos')
+      .filter(m => String(m.productoId) === String(id))
+      .forEach(m => DB.remove('movimientos', m.id));
 
     cerrar();
     renderTodo();
   });
+}
+
+/* ============================================
+   Movimientos e historial
+   ============================================ */
+
+/** Guarda el movimiento con la fecha y el usuario que lo hizo. */
+function registrarMovimiento(datos) {
+  DB.create('movimientos', {
+    ...datos,
+    usuario: sesion.nombre,
+    fecha: new Date().toISOString()
+  });
+}
+
+function poblarSelectMovimiento(idSeleccionado = '') {
+  const select = document.getElementById('movimiento-producto');
+  select.innerHTML = '<option value="">— Seleccioná —</option>';
+
+  DB.getAll('inventario')
+    .slice()
+    .sort((a, b) => a.categoria.localeCompare(b.categoria) || a.nombre.localeCompare(b.nombre))
+    .forEach(producto => {
+      const opcion = document.createElement('option');
+      opcion.value = producto.id;
+      opcion.textContent = `${producto.categoria} · ${producto.nombre}`;
+      select.appendChild(opcion);
+    });
+
+  select.value = idSeleccionado;
+}
+
+/** Los motivos y la etiqueta de cantidad cambian según el tipo elegido. */
+function actualizarFormularioMovimiento() {
+  const tipo = document.querySelector('input[name="movimiento-tipo"]:checked').value;
+
+  const etiquetas = {
+    entrada: 'Cantidad que ingresa',
+    salida: 'Cantidad que sale',
+    ajuste: 'Existencia real contada'
+  };
+  document.getElementById('movimiento-cantidad-label').textContent = etiquetas[tipo];
+
+  const selectMotivo = document.getElementById('movimiento-motivo');
+  selectMotivo.innerHTML = '';
+  MOTIVOS[tipo].forEach(motivo => {
+    const opcion = document.createElement('option');
+    opcion.value = motivo;
+    opcion.textContent = motivo;
+    selectMotivo.appendChild(opcion);
+  });
+
+  mostrarExistenciaActual();
+}
+
+/** Recuerda al administrador cuánto hay antes de registrar el movimiento. */
+function mostrarExistenciaActual() {
+  const aviso = document.getElementById('movimiento-existencia');
+  const producto = DB.getById('inventario', document.getElementById('movimiento-producto').value);
+
+  if (!producto) {
+    aviso.textContent = '';
+    return;
+  }
+  aviso.textContent = `Existencia actual: ${formatCantidad(producto.cantidad)} ${producto.unidad} · mínimo ${formatCantidad(producto.stockMinimo)} ${producto.unidad}`;
+}
+
+function abrirModalMovimiento(productoId = '', tipo = 'entrada') {
+  const modal = document.getElementById('modal-movimiento');
+  const form = document.getElementById('form-movimiento');
+  const mensaje = document.getElementById('movimiento-msg');
+
+  form.reset();
+  mensaje.textContent = '';
+  mensaje.className = 'modal-msg';
+
+  poblarSelectMovimiento(productoId);
+  document.querySelector(`input[name="movimiento-tipo"][value="${tipo}"]`).checked = true;
+  actualizarFormularioMovimiento();
+
+  modal.hidden = false;
+  document.getElementById(productoId ? 'movimiento-cantidad' : 'movimiento-producto').focus();
+}
+
+function setupModalMovimiento() {
+  const modal = document.getElementById('modal-movimiento');
+  const form = document.getElementById('form-movimiento');
+  const mensaje = document.getElementById('movimiento-msg');
+
+  document.getElementById('btn-movimiento-cancel').addEventListener('click', () => { modal.hidden = true; });
+  modal.addEventListener('click', evento => {
+    if (evento.target === modal) modal.hidden = true;
+  });
+
+  document.getElementById('movimiento-producto').addEventListener('change', mostrarExistenciaActual);
+  document.querySelectorAll('input[name="movimiento-tipo"]').forEach(radio => {
+    radio.addEventListener('change', actualizarFormularioMovimiento);
+  });
+
+  form.addEventListener('submit', evento => {
+    evento.preventDefault();
+    mensaje.textContent = '';
+    mensaje.className = 'modal-msg';
+
+    const producto = DB.getById('inventario', document.getElementById('movimiento-producto').value);
+    const tipo = document.querySelector('input[name="movimiento-tipo"]:checked').value;
+    const cantidad = Number(document.getElementById('movimiento-cantidad').value);
+    const motivo = document.getElementById('movimiento-motivo').value;
+    const nota = document.getElementById('movimiento-nota').value.trim();
+
+    if (!producto) {
+      mensaje.textContent = 'Elegí el producto del movimiento.';
+      mensaje.className = 'modal-msg error';
+      return;
+    }
+    if (!Number.isFinite(cantidad) || cantidad < 0) {
+      mensaje.textContent = 'Escribí una cantidad válida.';
+      mensaje.className = 'modal-msg error';
+      return;
+    }
+    if (tipo !== 'ajuste' && cantidad <= 0) {
+      mensaje.textContent = 'La cantidad debe ser mayor que cero.';
+      mensaje.className = 'modal-msg error';
+      return;
+    }
+
+    const existenciaAnterior = Number(producto.cantidad);
+    let existenciaNueva;
+
+    if (tipo === 'entrada') {
+      existenciaNueva = existenciaAnterior + cantidad;
+    } else if (tipo === 'salida') {
+      if (cantidad > existenciaAnterior) {
+        mensaje.textContent = `No podés sacar ${formatCantidad(cantidad)} ${producto.unidad}: solo hay ${formatCantidad(existenciaAnterior)}.`;
+        mensaje.className = 'modal-msg error';
+        return;
+      }
+      existenciaNueva = existenciaAnterior - cantidad;
+    } else {
+      // En un ajuste la cantidad escrita es la existencia real contada.
+      existenciaNueva = cantidad;
+    }
+
+    // Se redondea a 2 decimales para que las sumas no arrastren colas binarias.
+    existenciaNueva = Number(existenciaNueva.toFixed(2));
+
+    DB.update('inventario', producto.id, {
+      cantidad: existenciaNueva,
+      actualizadoEn: new Date().toISOString()
+    });
+
+    registrarMovimiento({
+      productoId: producto.id,
+      producto: producto.nombre,
+      tipo,
+      cantidad: tipo === 'ajuste' ? Math.abs(existenciaNueva - existenciaAnterior) : cantidad,
+      existenciaAnterior,
+      existenciaNueva,
+      motivo,
+      nota
+    });
+
+    modal.hidden = true;
+    renderTodo();
+  });
+}
+
+/* ---------- Historial ---------- */
+
+const ETIQUETAS_MOVIMIENTO = { entrada: 'Entrada', salida: 'Salida', ajuste: 'Ajuste' };
+const SIGNOS_MOVIMIENTO = { entrada: '+', salida: '−', ajuste: '=' };
+
+function renderMovimientos() {
+  const lista = document.getElementById('mov-lista');
+  const filtro = document.getElementById('mov-filtro').value;
+  lista.innerHTML = '';
+
+  const movimientos = DB.getAll('movimientos')
+    .filter(m => filtro === 'todos' || m.tipo === filtro)
+    .sort((a, b) => b.fecha.localeCompare(a.fecha))
+    .slice(0, 25); // El historial completo crecería demasiado en pantalla.
+
+  if (movimientos.length === 0) {
+    const vacio = document.createElement('p');
+    vacio.className = 'inv-vacio';
+    vacio.textContent = 'Todavía no hay movimientos registrados con ese filtro.';
+    lista.appendChild(vacio);
+    return;
+  }
+
+  movimientos.forEach(movimiento => lista.appendChild(buildMovimientoFila(movimiento)));
+}
+
+function buildMovimientoFila(movimiento) {
+  const fila = document.createElement('article');
+  fila.className = `mov-fila mov-${movimiento.tipo}`;
+
+  const marca = document.createElement('span');
+  marca.className = `mov-marca mov-marca-${movimiento.tipo}`;
+  marca.textContent = SIGNOS_MOVIMIENTO[movimiento.tipo];
+  marca.title = ETIQUETAS_MOVIMIENTO[movimiento.tipo];
+  fila.appendChild(marca);
+
+  const info = document.createElement('div');
+  info.className = 'mov-info';
+
+  const titulo = document.createElement('p');
+  titulo.className = 'mov-titulo';
+  // El producto puede haber sido eliminado: se usa el nombre guardado.
+  const producto = DB.getById('inventario', movimiento.productoId);
+  titulo.textContent = producto ? producto.nombre : movimiento.producto;
+  info.appendChild(titulo);
+
+  const detalle = document.createElement('p');
+  detalle.className = 'mov-detalle';
+  const unidad = producto ? ` ${producto.unidad}` : '';
+  detalle.textContent = `${ETIQUETAS_MOVIMIENTO[movimiento.tipo]} de ${formatCantidad(movimiento.cantidad)}${unidad} · ${movimiento.motivo}` +
+    (movimiento.nota ? ` · ${movimiento.nota}` : '');
+  info.appendChild(detalle);
+
+  fila.appendChild(info);
+
+  const meta = document.createElement('div');
+  meta.className = 'mov-meta';
+
+  const saldo = document.createElement('p');
+  saldo.className = 'mov-saldo';
+  saldo.textContent = `${formatCantidad(movimiento.existenciaAnterior)} → ${formatCantidad(movimiento.existenciaNueva)}`;
+  meta.appendChild(saldo);
+
+  const fecha = document.createElement('p');
+  fecha.className = 'mov-fecha';
+  fecha.textContent = `${formatFechaHora(movimiento.fecha)} · ${movimiento.usuario}`;
+  meta.appendChild(fecha);
+
+  fila.appendChild(meta);
+  return fila;
 }
 
 /* ============================================
@@ -604,9 +984,11 @@ function setupModalEliminar() {
 seedInventarioDePrueba();
 poblarSelectsProducto();
 setupModalProducto();
+setupModalMovimiento();
 setupModalEliminar();
 
 document.getElementById('btn-nuevo-producto').addEventListener('click', () => abrirModalProducto());
+document.getElementById('btn-nuevo-movimiento').addEventListener('click', () => abrirModalMovimiento());
 
 document.getElementById('inv-buscar').addEventListener('input', evento => {
   filtros.texto = evento.target.value;
@@ -635,10 +1017,12 @@ document.getElementById('btn-limpiar-filtros').addEventListener('click', () => {
   renderTabla();
 });
 
+document.getElementById('mov-filtro').addEventListener('change', renderMovimientos);
+
 // Escape cierra cualquier modal abierto.
 document.addEventListener('keydown', evento => {
   if (evento.key !== 'Escape') return;
-  ['modal-producto', 'modal-eliminar'].forEach(id => {
+  ['modal-producto', 'modal-movimiento', 'modal-eliminar'].forEach(id => {
     document.getElementById(id).hidden = true;
   });
   productoAEliminar = null;

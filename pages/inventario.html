@@ -39,6 +39,7 @@
             <p class="subtitle">Controlá las existencias de la taquería: qué hay, qué falta y qué está por vencer.</p>
           </div>
           <div class="inv-header-acciones">
+            <button type="button" class="btn btn-app-secondary" id="btn-nuevo-movimiento">Registrar movimiento</button>
             <button type="button" class="btn btn-app-primary" id="btn-nuevo-producto">+ Nuevo producto</button>
           </div>
         </div>
@@ -66,6 +67,17 @@
             <div class="stat-sub">vencen en 7 días o menos</div>
           </div>
         </div>
+
+        <!-- Alertas: lo que el administrador debe atender hoy -->
+        <section class="inv-panel">
+          <div class="inv-panel-header">
+            <h2 class="section-title">Alertas de existencias</h2>
+            <span class="inv-contador" id="alertas-contador"></span>
+          </div>
+          <div class="alertas-lista" id="alertas-lista">
+            <!-- Se llena con JS -->
+          </div>
+        </section>
 
         <!-- Productos: buscador, secciones por categoría y tabla -->
         <section class="inv-panel">
@@ -128,6 +140,24 @@
           </div>
         </section>
 
+        <!-- Historial de movimientos (kardex sencillo) -->
+        <section class="inv-panel">
+          <div class="inv-panel-header">
+            <h2 class="section-title">Historial de movimientos</h2>
+            <div class="inv-filtro">
+              <label class="visually-hidden" for="mov-filtro">Filtrar movimientos</label>
+              <select id="mov-filtro">
+                <option value="todos">Todos los movimientos</option>
+                <option value="entrada">Solo entradas</option>
+                <option value="salida">Solo salidas</option>
+                <option value="ajuste">Solo ajustes</option>
+              </select>
+            </div>
+          </div>
+          <div class="mov-lista" id="mov-lista">
+            <!-- Se llena con JS -->
+          </div>
+        </section>
       </section>
 
       </main>
@@ -205,12 +235,61 @@
     </div>
   </div>
 
+  <!-- Modal: Registrar movimiento (entrada, salida o ajuste) -->
+  <div class="modal-overlay" id="modal-movimiento" hidden>
+    <div class="modal-card" role="dialog" aria-labelledby="modal-movimiento-title">
+      <h2 id="modal-movimiento-title">Registrar movimiento</h2>
+      <p class="modal-subtitle">Cada entrada, salida o conteo queda guardado en el historial.</p>
+
+      <form id="form-movimiento" novalidate>
+        <label for="movimiento-producto">Producto</label>
+        <select id="movimiento-producto" required>
+          <option value="">— Seleccioná —</option>
+        </select>
+
+        <label id="movimiento-tipo-label">Tipo de movimiento</label>
+        <div class="mov-tipos" role="radiogroup" aria-labelledby="movimiento-tipo-label">
+          <label class="mov-tipo">
+            <input type="radio" name="movimiento-tipo" value="entrada" checked>
+            <span>Entrada</span>
+          </label>
+          <label class="mov-tipo">
+            <input type="radio" name="movimiento-tipo" value="salida">
+            <span>Salida</span>
+          </label>
+          <label class="mov-tipo">
+            <input type="radio" name="movimiento-tipo" value="ajuste">
+            <span>Ajuste</span>
+          </label>
+        </div>
+
+        <p class="mov-existencia" id="movimiento-existencia"></p>
+
+        <label for="movimiento-cantidad" id="movimiento-cantidad-label">Cantidad que ingresa</label>
+        <input type="number" id="movimiento-cantidad" min="0" step="0.01" placeholder="0" required>
+
+        <label for="movimiento-motivo">Motivo</label>
+        <select id="movimiento-motivo" required></select>
+
+        <label for="movimiento-nota">Nota (opcional)</label>
+        <textarea id="movimiento-nota" placeholder="Ej: factura 1204 del proveedor"></textarea>
+
+        <div class="modal-msg" id="movimiento-msg" role="alert" aria-live="polite"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="btn-movimiento-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit" id="btn-movimiento-save">Registrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal: Confirmar eliminación -->
   <div class="modal-overlay" id="modal-eliminar" hidden>
     <div class="modal-card" role="dialog" aria-labelledby="modal-eliminar-title">
       <h2 id="modal-eliminar-title">Eliminar producto</h2>
       <p class="modal-subtitle" id="eliminar-detalle">¿Seguro que querés eliminar este producto del inventario?</p>
-      <p class="modal-aviso">Esta acción no se puede deshacer.</p>
+      <p class="modal-aviso">También se borran sus movimientos del historial. Esta acción no se puede deshacer.</p>
 
       <div class="modal-actions">
         <button type="button" class="btn-cancel" id="btn-eliminar-cancel">Cancelar</button>
