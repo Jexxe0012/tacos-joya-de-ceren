@@ -24,11 +24,11 @@ if (!sesion) {
 document.getElementById('rol-menu').textContent = `${sesion.nombre} · Dueño / Admin`;
 
 /* ============================================
-   Catálogos del inventario
+   Catálogos y datos de prueba
    ============================================ */
 
-// Secciones del inventario. Son la única fuente: más adelante alimentan
-// tanto el formulario como los filtros, así no se desincronizan.
+// Secciones del inventario. Son la única fuente: alimentan el select del
+// formulario y los chips de filtrado, así no se desincronizan.
 const CATEGORIAS = [
   'Carnes',
   'Verduras y frutas',
@@ -39,11 +39,17 @@ const CATEGORIAS = [
   'Desechables'
 ];
 
+// Unidades de medida típicas de una cocina.
+const UNIDADES = ['kg', 'lb', 'g', 'L', 'ml', 'unidad', 'docena', 'caja', 'bolsa'];
+
 const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 
-/* ============================================
-   Datos de prueba
-   ============================================ */
+// Margen sobre el mínimo para avisar "se va a acabar pronto" antes de
+// llegar al mínimo real. 1.25 = 25% por encima del mínimo.
+const MARGEN_AVISO = 1.25;
+
+// Días de anticipación con los que se avisa una caducidad próxima.
+const DIAS_AVISO_CADUCIDAD = 7;
 
 /**
  * Siembra productos de ejemplo la primera vez que se abre el módulo.
@@ -87,7 +93,7 @@ function formatDateISO(date) {
 }
 
 /* ============================================
-   Helpers de formato
+   Helpers de formato y de estado
    ============================================ */
 
 /**
@@ -111,76 +117,294 @@ function formatFechaCorta(iso) {
   return `${d.getDate()} ${MESES[d.getMonth()]}`;
 }
 
+/**
+ * Fecha y hora de un movimiento. Ej: "24 sep · 15:40".
+ */
+function formatFechaHora(isoCompleto) {
+  const d = new Date(isoCompleto);
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${d.getDate()} ${MESES[d.getMonth()]} · ${d.getHours()}:${m}`;
+}
+
+/**
+ * Días que faltan para la caducidad. Negativo si ya venció,
+ * null si el producto no maneja fecha de caducidad.
+ */
+function diasParaVencer(producto) {
+  if (!producto.caducidad) return null;
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const fecha = new Date(`${producto.caducidad}T00:00:00`);
+  return Math.round((fecha - hoy) / 86400000);
+}
+
+/**
+ * Estado de existencias del producto:
+ *   agotado  — no queda nada
+ *   critico  — igual o por debajo del mínimo: hay que comprar ya
+ *   bajo     — cerca del mínimo: conviene comprar pronto
+ *   ok       — existencia suficiente
+ */
+function estadoStock(producto) {
+  const cantidad = Number(producto.cantidad);
+  const minimo = Number(producto.stockMinimo);
+  if (cantidad <= 0) return 'agotado';
+  if (cantidad <= minimo) return 'critico';
+  if (cantidad <= minimo * MARGEN_AVISO) return 'bajo';
+  return 'ok';
+}
+
+/**
+ * Estado de caducidad: vencido, porVencer o null (sin fecha o lejana).
+ */
+function estadoCaducidad(producto) {
+  const dias = diasParaVencer(producto);
+  if (dias === null) return null;
+  if (dias < 0) return 'vencido';
+  if (dias <= DIAS_AVISO_CADUCIDAD) return 'porVencer';
+  return null;
+}
+
+const ETIQUETAS_ESTADO = {
+  agotado: 'Agotado',
+  critico: 'Bajo el mínimo',
+  bajo: 'Por reponer',
+  ok: 'Suficiente'
+};
+
+/**
+ * Número de urgencia para ordenar: mientras más bajo, más urgente.
+ * Combina existencias y caducidad para que lo vencido no quede al final.
+ */
+function prioridad(producto) {
+  const stock = { agotado: 0, critico: 1, bajo: 2, ok: 4 }[estadoStock(producto)];
+  const caducidad = { vencido: 0, porVencer: 3 }[estadoCaducidad(producto)] ?? 5;
+  return Math.min(stock, caducidad);
+}
+
 /** Valor en dinero de lo que hay de ese producto en bodega. */
 function valorProducto(producto) {
   return Number(producto.cantidad) * Number(producto.costoUnitario);
 }
 
 /* ============================================
-   Listado de productos
+   Estado de la interfaz (filtros del admin)
    ============================================ */
 
-function renderLista() {
-  const lista = document.getElementById('inv-lista');
-  const contador = document.getElementById('inv-contador');
-  lista.innerHTML = '';
+const filtros = {
+  texto: '',
+  categoria: 'todas',
+  estado: 'todos',
+  orden: 'alerta'
+};
 
-  // Se ordena por el orden del catálogo de categorías y luego por nombre.
-  const productos = DB.getAll('inventario')
-    .slice()
-    .sort((a, b) =>
-      CATEGORIAS.indexOf(a.categoria) - CATEGORIAS.indexOf(b.categoria) ||
-      a.nombre.localeCompare(b.nombre)
-    );
+/* ============================================
+   Resumen, filtros y tabla
+   ============================================ */
 
-  contador.textContent = `${productos.length} ${productos.length === 1 ? 'producto' : 'productos'}`;
+/** Redibuja toda la pantalla. Se llama después de cada cambio en los datos. */
+function renderTodo() {
+  renderResumen();
+  renderChips();
+  renderTabla();
+}
+
+function renderResumen() {
+  const productos = DB.getAll('inventario');
+
+  const valorTotal = productos.reduce((suma, p) => suma + valorProducto(p), 0);
+  const criticos = productos.filter(p => ['agotado', 'critico'].includes(estadoStock(p)));
+  const porVencer = productos.filter(p => estadoCaducidad(p) !== null);
+  const categoriasUsadas = new Set(productos.map(p => p.categoria)).size;
+
+  document.getElementById('stat-productos').textContent = productos.length;
+  document.getElementById('stat-productos-sub').textContent =
+    `en ${categoriasUsadas} ${categoriasUsadas === 1 ? 'categoría' : 'categorías'}`;
+  document.getElementById('stat-valor').textContent = formatDinero(valorTotal);
+  document.getElementById('stat-criticos').textContent = criticos.length;
+  document.getElementById('stat-vencer').textContent = porVencer.length;
+}
+
+/** Chips de categoría: funcionan como las secciones del inventario. */
+function renderChips() {
+  const contenedor = document.getElementById('inv-chips');
+  contenedor.innerHTML = '';
+
+  const productos = DB.getAll('inventario');
+  const opciones = [{ valor: 'todas', nombre: 'Todas' }]
+    .concat(CATEGORIAS.map(c => ({ valor: c, nombre: c })));
+
+  opciones.forEach(opcion => {
+    const cuantos = opcion.valor === 'todas'
+      ? productos.length
+      : productos.filter(p => p.categoria === opcion.valor).length;
+
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'inv-chip';
+    if (filtros.categoria === opcion.valor) {
+      chip.classList.add('activo');
+      chip.setAttribute('aria-pressed', 'true');
+    } else {
+      chip.setAttribute('aria-pressed', 'false');
+    }
+
+    const texto = document.createElement('span');
+    texto.textContent = opcion.nombre;
+    chip.appendChild(texto);
+
+    const numero = document.createElement('span');
+    numero.className = 'inv-chip-num';
+    numero.textContent = cuantos;
+    chip.appendChild(numero);
+
+    chip.addEventListener('click', () => {
+      filtros.categoria = opcion.valor;
+      renderChips();
+      renderTabla();
+    });
+
+    contenedor.appendChild(chip);
+  });
+}
+
+/** Aplica buscador, categoría, estado y orden sobre los productos. */
+function productosFiltrados() {
+  const texto = filtros.texto.trim().toLowerCase();
+
+  let lista = DB.getAll('inventario').filter(producto => {
+    if (filtros.categoria !== 'todas' && producto.categoria !== filtros.categoria) return false;
+
+    if (filtros.estado === 'caducidad') {
+      if (estadoCaducidad(producto) === null) return false;
+    } else if (filtros.estado !== 'todos') {
+      if (estadoStock(producto) !== filtros.estado) return false;
+    }
+
+    if (texto) {
+      const campos = [producto.nombre, producto.proveedor, producto.ubicacion, producto.categoria]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      if (!campos.includes(texto)) return false;
+    }
+
+    return true;
+  });
+
+  const ordenes = {
+    alerta: (a, b) => prioridad(a) - prioridad(b) || a.nombre.localeCompare(b.nombre),
+    nombre: (a, b) => a.nombre.localeCompare(b.nombre),
+    categoria: (a, b) => a.categoria.localeCompare(b.categoria) || a.nombre.localeCompare(b.nombre),
+    valor: (a, b) => valorProducto(b) - valorProducto(a),
+    // Los productos sin caducidad se van al final: se les da una fecha lejana.
+    caducidad: (a, b) => (a.caducidad || '9999-12-31').localeCompare(b.caducidad || '9999-12-31')
+  };
+
+  return lista.sort(ordenes[filtros.orden]);
+}
+
+function renderTabla() {
+  const cuerpo = document.getElementById('inv-tabla-body');
+  const contador = document.getElementById('tabla-contador');
+  cuerpo.innerHTML = '';
+
+  const productos = productosFiltrados();
+  const total = DB.getAll('inventario').length;
+  contador.textContent = productos.length === total
+    ? `${total} ${total === 1 ? 'producto' : 'productos'}`
+    : `${productos.length} de ${total}`;
 
   if (productos.length === 0) {
-    const vacio = document.createElement('p');
-    vacio.className = 'inv-vacio';
-    vacio.textContent = 'Todavía no hay productos registrados en el inventario.';
-    lista.appendChild(vacio);
+    const fila = document.createElement('tr');
+    const celda = document.createElement('td');
+    celda.colSpan = 8;
+    celda.className = 'inv-vacio';
+    celda.textContent = total === 0
+      ? 'Todavía no hay productos. Agregá el primero con "+ Nuevo producto".'
+      : 'Ningún producto coincide con la búsqueda o los filtros aplicados.';
+    fila.appendChild(celda);
+    cuerpo.appendChild(fila);
     return;
   }
 
-  productos.forEach(producto => lista.appendChild(buildProductoFila(producto)));
+  productos.forEach(producto => cuerpo.appendChild(buildFilaProducto(producto)));
 }
 
-function buildProductoFila(producto) {
-  const fila = document.createElement('article');
-  fila.className = 'inv-fila';
+function buildFilaProducto(producto) {
+  const stock = estadoStock(producto);
+  const caducidad = estadoCaducidad(producto);
 
-  const info = document.createElement('div');
-  info.className = 'inv-fila-info';
+  const fila = document.createElement('tr');
+  fila.className = `fila-${stock}`;
 
-  const nombre = document.createElement('p');
-  nombre.className = 'inv-fila-nombre';
+  // Producto (con proveedor y ubicación como detalle secundario)
+  const tdNombre = document.createElement('td');
+  const nombre = document.createElement('div');
+  nombre.className = 'celda-nombre';
   nombre.textContent = producto.nombre;
-  info.appendChild(nombre);
+  tdNombre.appendChild(nombre);
+  const detalle = [producto.proveedor, producto.ubicacion].filter(Boolean).join(' · ');
+  if (detalle) {
+    const sub = document.createElement('div');
+    sub.className = 'celda-sub';
+    sub.textContent = detalle;
+    tdNombre.appendChild(sub);
+  }
+  fila.appendChild(tdNombre);
 
-  const detalle = document.createElement('p');
-  detalle.className = 'inv-fila-detalle';
-  const partes = [producto.categoria, producto.proveedor, producto.ubicacion].filter(Boolean);
-  if (producto.caducidad) partes.push(`vence el ${formatFechaCorta(producto.caducidad)}`);
-  detalle.textContent = partes.join(' · ');
-  info.appendChild(detalle);
+  // Categoría
+  const tdCategoria = document.createElement('td');
+  tdCategoria.textContent = producto.categoria;
+  fila.appendChild(tdCategoria);
 
-  fila.appendChild(info);
+  // Existencia
+  const tdCantidad = document.createElement('td');
+  tdCantidad.className = 'col-num celda-cantidad';
+  tdCantidad.textContent = `${formatCantidad(producto.cantidad)} ${producto.unidad}`;
+  fila.appendChild(tdCantidad);
 
-  const meta = document.createElement('div');
-  meta.className = 'inv-fila-meta';
+  // Mínimo
+  const tdMinimo = document.createElement('td');
+  tdMinimo.className = 'col-num celda-suave';
+  tdMinimo.textContent = formatCantidad(producto.stockMinimo);
+  fila.appendChild(tdMinimo);
 
-  const cantidad = document.createElement('p');
-  cantidad.className = 'inv-fila-cantidad';
-  cantidad.textContent = `${formatCantidad(producto.cantidad)} ${producto.unidad}`;
-  meta.appendChild(cantidad);
+  // Estado
+  const tdEstado = document.createElement('td');
+  const badge = document.createElement('span');
+  badge.className = `inv-badge inv-badge-${stock}`;
+  badge.textContent = ETIQUETAS_ESTADO[stock];
+  tdEstado.appendChild(badge);
+  fila.appendChild(tdEstado);
 
-  const valor = document.createElement('p');
-  valor.className = 'inv-fila-valor';
-  valor.textContent = `${formatDinero(valorProducto(producto))} · mínimo ${formatCantidad(producto.stockMinimo)} ${producto.unidad}`;
-  meta.appendChild(valor);
+  // Costo unitario
+  const tdCosto = document.createElement('td');
+  tdCosto.className = 'col-num celda-suave';
+  tdCosto.textContent = formatDinero(producto.costoUnitario);
+  fila.appendChild(tdCosto);
 
-  fila.appendChild(meta);
+  // Valor de la existencia
+  const tdValor = document.createElement('td');
+  tdValor.className = 'col-num';
+  tdValor.textContent = formatDinero(valorProducto(producto));
+  fila.appendChild(tdValor);
+
+  // Caducidad
+  const tdCaducidad = document.createElement('td');
+  if (!producto.caducidad) {
+    tdCaducidad.className = 'celda-suave';
+    tdCaducidad.textContent = '—';
+  } else {
+    const fecha = document.createElement('span');
+    fecha.className = caducidad ? `inv-caducidad inv-caducidad-${caducidad}` : 'inv-caducidad';
+    fecha.textContent = formatFechaCorta(producto.caducidad);
+    const dias = diasParaVencer(producto);
+    fecha.title = dias < 0 ? `Venció hace ${Math.abs(dias)} días` : `Faltan ${dias} días`;
+    tdCaducidad.appendChild(fecha);
+  }
+  fila.appendChild(tdCaducidad);
+
   return fila;
 }
 
@@ -189,4 +413,32 @@ function buildProductoFila(producto) {
    ============================================ */
 
 seedInventarioDePrueba();
-renderLista();
+
+document.getElementById('inv-buscar').addEventListener('input', evento => {
+  filtros.texto = evento.target.value;
+  renderTabla();
+});
+
+document.getElementById('inv-estado').addEventListener('change', evento => {
+  filtros.estado = evento.target.value;
+  renderTabla();
+});
+
+document.getElementById('inv-orden').addEventListener('change', evento => {
+  filtros.orden = evento.target.value;
+  renderTabla();
+});
+
+document.getElementById('btn-limpiar-filtros').addEventListener('click', () => {
+  filtros.texto = '';
+  filtros.categoria = 'todas';
+  filtros.estado = 'todos';
+  filtros.orden = 'alerta';
+  document.getElementById('inv-buscar').value = '';
+  document.getElementById('inv-estado').value = 'todos';
+  document.getElementById('inv-orden').value = 'alerta';
+  renderChips();
+  renderTabla();
+});
+
+renderTodo();

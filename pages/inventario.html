@@ -40,15 +40,90 @@
           </div>
         </div>
 
+        <!-- Resumen general del inventario -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">PRODUCTOS REGISTRADOS</div>
+            <div class="stat-value" id="stat-productos">0</div>
+            <div class="stat-sub" id="stat-productos-sub">en todas las categorías</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">VALOR DEL INVENTARIO</div>
+            <div class="stat-value" id="stat-valor">$0.00</div>
+            <div class="stat-sub">costo de lo que hay en bodega</div>
+          </div>
+          <div class="stat-card stat-card-alerta">
+            <div class="stat-label">REQUIEREN COMPRA</div>
+            <div class="stat-value" id="stat-criticos">0</div>
+            <div class="stat-sub">bajo el mínimo o agotados</div>
+          </div>
+          <div class="stat-card stat-card-aviso">
+            <div class="stat-label">CADUCIDAD PRÓXIMA</div>
+            <div class="stat-value" id="stat-vencer">0</div>
+            <div class="stat-sub">vencen en 7 días o menos</div>
+          </div>
+        </div>
+
+        <!-- Productos: buscador, secciones por categoría y tabla -->
         <section class="inv-panel">
           <div class="inv-panel-header">
             <h2 class="section-title">Productos en inventario</h2>
-            <span class="inv-contador" id="inv-contador"></span>
+            <span class="inv-contador" id="tabla-contador"></span>
           </div>
-          <div class="inv-lista" id="inv-lista">
-            <!-- Se llena con JS -->
+
+          <div class="inv-toolbar">
+            <div class="inv-buscador">
+              <label class="visually-hidden" for="inv-buscar">Buscar producto</label>
+              <input type="search" id="inv-buscar" placeholder="Buscar por producto, proveedor o ubicación…" autocomplete="off">
+            </div>
+            <div class="inv-filtro">
+              <label class="visually-hidden" for="inv-estado">Filtrar por estado</label>
+              <select id="inv-estado">
+                <option value="todos">Todos los estados</option>
+                <option value="agotado">Agotados</option>
+                <option value="critico">Bajo el mínimo</option>
+                <option value="bajo">Por reponer pronto</option>
+                <option value="ok">Con existencia suficiente</option>
+                <option value="caducidad">Vencidos o por vencer</option>
+              </select>
+            </div>
+            <div class="inv-filtro">
+              <label class="visually-hidden" for="inv-orden">Ordenar</label>
+              <select id="inv-orden">
+                <option value="alerta">Ordenar: urgencia</option>
+                <option value="nombre">Ordenar: nombre</option>
+                <option value="categoria">Ordenar: categoría</option>
+                <option value="valor">Ordenar: mayor valor</option>
+                <option value="caducidad">Ordenar: caducidad</option>
+              </select>
+            </div>
+            <button type="button" class="inv-limpiar" id="btn-limpiar-filtros">Limpiar</button>
+          </div>
+
+          <!-- Secciones del inventario (Carnes, Verduras, …). Se generan con JS. -->
+          <div class="inv-chips" id="inv-chips" role="group" aria-label="Filtrar por categoría"></div>
+
+          <div class="inv-tabla-scroll">
+            <table class="inv-tabla" id="inv-tabla">
+              <thead>
+                <tr>
+                  <th scope="col">Producto</th>
+                  <th scope="col">Categoría</th>
+                  <th scope="col" class="col-num">Existencia</th>
+                  <th scope="col" class="col-num">Mínimo</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" class="col-num">Costo unit.</th>
+                  <th scope="col" class="col-num">Valor</th>
+                  <th scope="col">Caducidad</th>
+                </tr>
+              </thead>
+              <tbody id="inv-tabla-body">
+                <!-- Se llena con JS -->
+              </tbody>
+            </table>
           </div>
         </section>
+
       </section>
 
       </main>
