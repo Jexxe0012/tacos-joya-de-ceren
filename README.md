@@ -1,5 +1,18 @@
 # Tacos Joya de Cerén
 
+## Integrantes
+
+| Nombre completo | Carné |
+| --- | --- |
+| Alexander Josué Menjívar | MG202784 |
+| Carlos Alexander Rosales Ascencio | RA262936 |
+| Diego Armando Henríquez Fuentes | HF261938 |
+| José Ricardo Sandoval Hernández | SH262272 |
+| Josué Israel Sandoval Alfaro | SA260082 |
+| Nicolas Alejandro Trigueros Molina | TM253158 |
+
+## Descripción técnica del proyecto
+
 Aplicación web de gestión interna para Tacos Joya de Cerén, un restaurante mexicano de origen familiar. El proyecto busca apoyar la organización del trabajo, la estandarización de recetas y el seguimiento de ventas, consumo de ingredientes y desperdicios para tomar decisiones sobre la operación del negocio.
 
 Su identidad visual parte de la historia y los valores del restaurante: familia, tradición y responsabilidad. La interfaz utiliza una paleta de crema, azul, rojo, amarillo maíz y verde, compartida entre los módulos.
@@ -12,18 +25,18 @@ Este repositorio corresponde a un proyecto universitario. En la fase 2 se desarr
 
 1. El usuario abre la pantalla de inicio de sesión e ingresa su correo, contraseña y perfil. También puede registrar una cuenta; el registro de administrador solicita una clave adicional de demostración.
 2. La aplicación valida los datos y guarda la sesión en el navegador. El administrador ingresa al Dashboard y el empleado a Mis turnos. Abrir `index.html` también dirige a la pantalla correspondiente o al login si no hay sesión.
-3. Desde el menú lateral se accede a los módulos. Dashboard, Reportes y Abastecimiento requieren el rol de administrador; Recetas, Mermas y Turnos requieren una sesión activa.
-4. Las operaciones implementadas de recetas, turnos, solicitudes y registro de mermas se almacenan localmente. Los indicadores de Dashboard y Reportes todavía utilizan ejemplos independientes de esos registros.
+3. Desde el menú lateral se accede a los módulos. Dashboard, Reportes y Abastecimiento requieren el rol de administrador; Recetas, Inventario, Mermas y Turnos requieren una sesión activa, con funciones diferenciadas según el perfil.
+4. Las recetas, turnos, solicitudes, productos, movimientos de inventario y mermas se almacenan localmente. Registrar una merma desde el módulo Mermas descuenta la existencia del producto y genera un movimiento de salida. Dashboard utiliza las recetas para estimar el consumo; otros indicadores y Reportes todavía emplean datos de demostración.
 5. El botón **Cerrar sesión** elimina la sesión activa y vuelve al login, conservando los datos guardados de los módulos.
 
 ## Roles de usuario
 
 | Perfil | Funciones implementadas |
 | --- | --- |
-| Administrador | Consultar Dashboard y Reportes; crear, consultar, editar y eliminar recetas y turnos; revisar costos de recetas; aceptar o rechazar solicitudes de días libres. |
-| Empleado | Consultar recetas e instrucciones de preparación, ver sus turnos, enviar solicitudes de días libres y registrar mermas desde Turnos. |
+| Administrador | Consultar Dashboard, Reportes y Abastecimiento; gestionar recetas, turnos y productos de inventario; registrar movimientos y mermas; revisar costos y alertas; aceptar o rechazar solicitudes de días libres. |
+| Empleado | Consultar recetas, existencias y estados de inventario; ver sus turnos; enviar solicitudes de días libres y registrar mermas. |
 
-El administrador ve el menú completo. El empleado ve **Mis turnos, Recetas, Inventario y Mermas**, en ese orden. Inventario aparece deshabilitado mientras se desarrolla su vista para empleados; la vista actual sigue siendo exclusiva del administrador. La plantilla obtiene el rol desde la sesión y las páginas protegidas comprueban también el acceso por URL.
+El administrador ve el menú completo. El empleado ve **Mis turnos, Recetas, Inventario y Mermas**, en ese orden. Inventario ya dispone de una vista de consulta para empleados, sin las acciones administrativas de productos y movimientos. La plantilla obtiene el rol desde la sesión y las páginas protegidas comprueban también el acceso por URL.
 
 ## Módulos
 
@@ -33,7 +46,7 @@ Incluye inicio de sesión, registro, validación de campos y diferenciación ent
 
 ### Dashboard
 
-Presenta un resumen de operación: ventas previstas, consumo esperado, merma semanal, cobertura de insumos, gráfica de ventas, alertas, abastecimiento previsto y pedidos de clientes. Actualmente sus valores son datos de demostración.
+Presenta un resumen de operación: ventas previstas, consumo esperado, merma semanal, cobertura de insumos, gráfica de ventas, alertas, abastecimiento previsto y pedidos de clientes. El consumo esperado se calcula desde las recetas de tacos activas guardadas en el navegador: distribuye 162 ventas previstas entre ellas y estima las cantidades de res, pastor, pollo y queso según su rendimiento. Incluye un detalle por insumo y un estado sin datos cuando no hay recetas activas. Las 162 ventas previstas y los demás indicadores continúan siendo datos de demostración.
 
 ### Recetas y fichas técnicas
 
@@ -45,7 +58,7 @@ Las recetas se guardan en el navegador. El catálogo de insumos y sus costos de 
 
 El administrador dispone de un calendario semanal para crear, editar y eliminar turnos, asignar empleados y estaciones de trabajo, y configurar recurrencia semanal. También puede aceptar o rechazar solicitudes de días libres.
 
-El empleado consulta su calendario, envía solicitudes y revisa su estado. Desde esta pantalla puede registrar una merma indicando producto, cantidad, fecha y motivo. Los registros se guardan localmente.
+El empleado consulta su calendario, envía solicitudes y revisa su estado. Turnos conserva un formulario rápido de merma con producto, cantidad, fecha y motivo, guardado en la colección compartida de mermas. Ese formulario todavía no descuenta existencias; para registrar una pérdida vinculada al inventario se utiliza el módulo Mermas.
 
 ### Reportes de operación
 
@@ -62,9 +75,31 @@ El período afecta los indicadores y las gráficas. El filtro de insumo se aplic
 
 Reportes utiliza datos de demostración. Todavía no toma automáticamente las recetas ni las mermas registradas en los demás módulos.
 
-### Mermas y Abastecimiento
+### Inventario
 
-Sus páginas independientes muestran la plantilla y un aviso de funcionalidad pendiente; Abastecimiento es exclusivo del administrador. Por ahora, el registro de mermas está disponible en la vista del empleado en Turnos y el Dashboard muestra un ejemplo de abastecimiento previsto.
+Mantiene productos con categoría, unidad, existencia, mínimo, costo y datos de ubicación o caducidad. El administrador puede buscar y filtrar productos, crearlos, editarlos y eliminarlos, registrar entradas, salidas y ajustes, y consultar movimientos y alertas de existencias o vencimiento.
+
+El empleado dispone de una vista de consulta con búsqueda, filtros, cantidades disponibles y estados de los productos. Las acciones administrativas no se muestran en ese perfil. Los productos y su historial se guardan en las colecciones `inventario` y `movimientos` de localStorage.
+
+### Mermas
+
+Permite seleccionar un producto del inventario y registrar la cantidad perdida, el motivo, el responsable y observaciones. Valida los campos obligatorios, que la cantidad sea positiva y que no exceda las existencias disponibles.
+
+Al guardar, actualiza la cantidad del producto, crea un movimiento de salida con motivo «Merma o desperdicio» y conserva el registro en la colección `mermas`. La pantalla muestra indicadores semanales y un historial reciente. Comparte la colección con el registro rápido de Turnos, aunque solo el formulario de Mermas realiza el descuento de inventario.
+
+### Abastecimiento
+
+Disponible para administradores. Permite elegir un insumo, fecha de compra, cantidad comprada y consumo estándar por taco. Con esos valores calcula el consumo diario estimado, los días de cobertura, la fecha prevista de agotamiento y una fecha sugerida de recompra. Incluye una gráfica de demanda, alertas y una tabla de cobertura por insumo.
+
+La proyección utiliza una serie de ventas y un catálogo de insumos definidos como ejemplos en el código. Todavía no consulta automáticamente las existencias de Inventario ni los datos de Reportes, y no guarda pedidos de compra.
+
+## Arquitectura y almacenamiento
+
+La aplicación se ejecuta en el navegador. Cada página HTML carga los estilos compartidos y la lógica JavaScript de su módulo. `main.js` construye la navegación según el rol y `guard.js` comprueba la sesión antes de acceder a las páginas protegidas.
+
+`storage.js` expone el objeto `DB`, que permite consultar, crear, actualizar, eliminar y cargar datos iniciales en colecciones JSON dentro de localStorage. La información se organiza en `usuarios`, `recetas`, `turnos`, `solicitudes`, `inventario`, `movimientos` y `mermas`; la sesión activa utiliza la clave `sesion`.
+
+Las integraciones actuales son Recetas → consumo esperado del Dashboard e Inventario → registro de Mermas → actualización de existencias y movimientos. Reportes y las proyecciones de Abastecimiento mantienen fuentes de demostración independientes.
 
 ## Tecnologías
 
@@ -103,18 +138,20 @@ Estas cuentas se crean al cargar el login si la colección de usuarios está vac
 
 | Ruta | Contenido |
 | --- | --- |
-| `pages/` | Pantallas de login, dashboard, recetas, turnos, reportes y módulos pendientes. |
+| `pages/` | Pantallas de login, dashboard, recetas, turnos, inventario, mermas, reportes y abastecimiento. |
 | `css/main.css` | Paleta de colores y estilos compartidos. |
 | `css/` | Estilos específicos de cada módulo. |
 | `js/main.js` | Menú lateral, barra superior y cierre de sesión compartidos. |
 | `js/storage.js` | Operaciones de lectura, creación, actualización y eliminación de colecciones en localStorage. |
 | `js/guard.js` | Comprobaciones de sesión y rol. |
-| `js/login.js`, `js/recetas.js`, `js/turnos.js` | Lógica de autenticación y gestión. |
+| `js/login.js`, `js/recetas.js`, `js/turnos.js` | Lógica de autenticación, recetas, horarios y solicitudes. |
+| `js/inventario.js`, `js/mermas.js` | Productos, movimientos, consulta de existencias y registro de pérdidas. |
+| `js/abastecimientos.js` | Cálculos de cobertura y proyección de recompra. |
 | `js/dashboard.js`, `js/reportes.js`, `js/reportes-graficas.js` | Indicadores, cálculos y gráficas. |
 
 ## Estado y próximos pasos
 
-El avance incluye autenticación simulada, vistas por rol, gestión local de recetas y turnos, y visualización de indicadores y reportes. Queda pendiente completar Mermas y Abastecimiento e integrar los datos entre módulos para sustituir los ejemplos de Dashboard y Reportes.
+El avance incluye autenticación simulada, navegación por roles, gestión local de recetas, turnos e inventario, registro de mermas con descuento de existencias y consultas de indicadores, reportes y abastecimiento. Queda pendiente unificar el registro rápido de mermas de Turnos con el flujo de Inventario e integrar datos operativos en Reportes, Abastecimiento y los indicadores del Dashboard que aún utilizan ejemplos.
 
 Los datos pertenecen al navegador y al origen utilizado: cambiar de navegador, equipo, dominio o puerto no comparte automáticamente la información. Cerrar sesión conserva los registros; borrar el almacenamiento del sitio los elimina.
 
