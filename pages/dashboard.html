@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Tacos Joya de Cerén</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <script src="../js/guard.js"></script>
+  <script>Guard.requireRole('admin');</script>
+</head>
+<body class="app-page dashboard-page" data-pagina="dashboard" data-seccion="Resumen" data-rol="Dueño">
+  <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
+  <div class="app-layout d-lg-flex">
+    <aside class="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column" tabindex="-1" id="menu-lateral" aria-labelledby="titulo-menu"></aside>
+    <div class="app-area flex-grow-1">
+      <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
+      <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1">
+        <section class="mb-4" aria-labelledby="titulo-dashboard">
+          <h1 class="h3 fw-bold mb-2" id="titulo-dashboard">Resumen de operación</h1>
+          <p class="text-body-secondary mb-0">Indicadores de ventas, consumo, mermas y cobertura.</p>
+        </section>
+        <section aria-labelledby="titulo-indicadores">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <h2 class="h5 fw-semibold mb-0" id="titulo-indicadores">Indicadores de hoy</h2>
+            <span class="small text-body-secondary">Datos de demostración</span>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-ventas-previstas"><p class="dashboard-etiqueta mb-2" id="titulo-ventas-previstas">Ventas previstas</p><p class="dashboard-valor fw-bold mb-1">162</p><p class="small text-body-secondary mb-0">tacos para hoy</p></article></div>
+            <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-consumo-esperado"><p class="dashboard-etiqueta mb-2" id="titulo-consumo-esperado">Consumo esperado</p><p class="dashboard-valor fw-bold mb-1" id="valor-consumo-esperado">—</p><p class="small text-body-secondary mb-2" id="detalle-consumo-esperado">Calculando con recetas activas.</p><button class="dashboard-consumo-boton" type="button" data-bs-toggle="collapse" data-bs-target="#detalle-consumo-insumos" aria-expanded="false" aria-controls="detalle-consumo-insumos">Ver detalle por insumo</button><div class="collapse" id="detalle-consumo-insumos"><div class="dashboard-consumo-detalle"><p class="mb-2" id="nota-consumo-insumos"></p><ul class="list-unstyled mb-0" id="lista-consumo-insumos" aria-label="Consumo estimado por insumo"></ul></div></div></article></div>
+            <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-merma-semanal"><p class="dashboard-etiqueta mb-2" id="titulo-merma-semanal">Merma semanal</p><p class="dashboard-valor dashboard-valor-alerta fw-bold mb-1">3.8 kg</p><p class="small dashboard-texto-alerta mb-0">12% sobre lo esperado</p></article></div>
+            <div class="col-12 col-sm-6 col-xl-3"><article class="app-panel dashboard-indicador h-100 p-3 p-md-4" aria-labelledby="titulo-cobertura-menor"><p class="dashboard-etiqueta mb-2" id="titulo-cobertura-menor">Cobertura menor</p><p class="dashboard-valor dashboard-valor-alerta fw-bold mb-1">1.2 días</p><p class="small dashboard-texto-alerta mb-0">Carne al pastor · pedir hoy</p></article></div>
+          </div>
+        </section>
+
+        <div class="row g-3 mt-1">
+          <section class="col-12 col-xl-8" aria-labelledby="titulo-ventas-dia">
+            <article class="app-panel h-100 p-3 p-md-4">
+              <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+                <div>
+                  <h2 class="h5 fw-semibold mb-1" id="titulo-ventas-dia">Ventas por día</h2>
+                  <p class="small text-body-secondary mb-0" id="descripcion-ventas-dia">Histórico de tacos vendidos durante la semana.</p>
+                </div>
+                <span class="badge rounded-pill app-estado app-estado-ok">Tacos</span>
+              </div>
+              <div class="dashboard-grafica">
+                <canvas id="grafica-ventas-dashboard" role="img" aria-labelledby="titulo-ventas-dia" aria-describedby="descripcion-ventas-dia">
+                  Gráfica de ventas semanales. Consulta los valores en el resumen debajo.
+                </canvas>
+              </div>
+              <p class="small text-body-secondary mt-3 mb-0" id="resumen-ventas-dashboard">
+                Semana actual: 1,078 tacos vendidos en datos de demostración.
+              </p>
+            </article>
+          </section>
+
+          <section class="col-12 col-xl-4" aria-labelledby="titulo-alertas">
+            <article class="app-panel dashboard-alertas h-100 p-3 p-md-4">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <h2 class="h5 fw-semibold mb-0" id="titulo-alertas">Requiere atención</h2>
+                <span class="badge rounded-pill app-estado app-estado-atencion">3 alertas</span>
+              </div>
+              <ul class="list-unstyled mb-0" aria-label="Alertas operativas">
+                <li class="dashboard-alerta">
+                  <button class="dashboard-alerta-boton" type="button" data-bs-toggle="collapse" data-bs-target="#detalle-alerta-pastor" aria-expanded="false" aria-controls="detalle-alerta-pastor">
+                    <span><strong>Carne al pastor</strong><small>Abastecimiento · cobertura: 1.2 días</small></span>
+                    <span aria-hidden="true">Ver detalle</span>
+                  </button>
+                  <div class="collapse" id="detalle-alerta-pastor">
+                    <div class="dashboard-alerta-detalle">
+                      <p><strong>Origen:</strong> módulo de Abastecimiento; el inventario disponible se compara con la venta prevista.</p>
+                      <p><strong>Qué significa:</strong> la carne al pastor alcanzaría aproximadamente 1.2 días si se mantiene la demanda actual.</p>
+                      <p class="mb-0"><strong>Acción recomendada:</strong> registrar o confirmar un pedido de carne al pastor para evitar faltantes.</p>
+                    </div>
+                  </div>
+                </li>
+                <li class="dashboard-alerta">
+                  <button class="dashboard-alerta-boton" type="button" data-bs-toggle="collapse" data-bs-target="#detalle-alerta-merma" aria-expanded="false" aria-controls="detalle-alerta-merma">
+                    <span><strong>Merma de res</strong><small>Mermas · 0.9 kg sobre el límite</small></span>
+                    <span aria-hidden="true">Ver detalle</span>
+                  </button>
+                  <div class="collapse" id="detalle-alerta-merma">
+                    <div class="dashboard-alerta-detalle">
+                      <p><strong>Origen:</strong> módulo de Mermas; compara los desperdicios registrados con el límite semanal esperado.</p>
+                      <p><strong>Qué significa:</strong> se registraron 0.9 kg más de res que el límite de merma definido para la semana.</p>
+                      <p class="mb-0"><strong>Acción recomendada:</strong> revisar las capturas de merma y el porcionado de res antes de ajustar la producción.</p>
+                    </div>
+                  </div>
+                </li>
+                <li class="dashboard-alerta">
+                  <button class="dashboard-alerta-boton" type="button" data-bs-toggle="collapse" data-bs-target="#detalle-alerta-tortillas" aria-expanded="false" aria-controls="detalle-alerta-tortillas">
+                    <span><strong>Tortillas</strong><small>Abastecimiento · recompra prevista para mañana</small></span>
+                    <span aria-hidden="true">Ver detalle</span>
+                  </button>
+                  <div class="collapse" id="detalle-alerta-tortillas">
+                    <div class="dashboard-alerta-detalle">
+                      <p><strong>Origen:</strong> módulo de Abastecimiento; usa el stock de tortillas y el consumo estimado.</p>
+                      <p><strong>Qué significa:</strong> el inventario actual cubre la operación de hoy, pero debe reponerse antes del siguiente día de atención.</p>
+                      <p class="mb-0"><strong>Acción recomendada:</strong> incluir tortillas en la compra de mañana y confirmar la cantidad con el proveedor.</p>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </article>
+          </section>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <section class="col-12 col-xl-8" aria-labelledby="titulo-abastecimiento">
+          <article class="app-panel h-100 p-3 p-md-4">
+            <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-4">
+              <div>
+                <h2 class="h5 fw-semibold mb-1" id="titulo-abastecimiento">Abastecimiento previsto</h2>
+                <p class="small text-body-secondary mb-0">Duración del pedido basada en ventas promedio y porción estándar.</p>
+              </div>
+              <span class="small text-body-secondary">Datos de demostración</span>
+            </div>
+
+            <div class="dashboard-abastecimiento-lista">
+              <div class="dashboard-abastecimiento-item">
+                <div class="dashboard-abastecimiento-nombre"><strong>Carne al pastor</strong><span>18.5 kg</span></div>
+                <div class="progress dashboard-progreso" role="progressbar" aria-label="Cobertura de carne al pastor" aria-valuemin="0" aria-valuemax="7" aria-valuenow="1.2"><div class="progress-bar dashboard-progreso-critico" style="width: 17%"></div></div>
+                <strong class="dashboard-cobertura dashboard-cobertura-critica">1.2 días</strong>
+              </div>
+              <div class="dashboard-abastecimiento-item">
+                <div class="dashboard-abastecimiento-nombre"><strong>Tortillas</strong><span>420 unidades</span></div>
+                <div class="progress dashboard-progreso" role="progressbar" aria-label="Cobertura de tortillas" aria-valuemin="0" aria-valuemax="7" aria-valuenow="2.6"><div class="progress-bar dashboard-progreso-critico" style="width: 37%"></div></div>
+                <strong class="dashboard-cobertura dashboard-cobertura-critica">2.6 días</strong>
+              </div>
+              <div class="dashboard-abastecimiento-item">
+                <div class="dashboard-abastecimiento-nombre"><strong>Queso</strong><span>12 kg</span></div>
+                <div class="progress dashboard-progreso" role="progressbar" aria-label="Cobertura de queso" aria-valuemin="0" aria-valuemax="7" aria-valuenow="5.4"><div class="progress-bar dashboard-progreso-estable" style="width: 77%"></div></div>
+                <strong class="dashboard-cobertura">5.4 días</strong>
+              </div>
+            </div>
+          </article>
+          </section>
+
+          <section class="col-12 col-xl-4" aria-labelledby="titulo-pedidos">
+            <article class="app-panel dashboard-pedidos h-100 p-3 p-md-4">
+              <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <div>
+                  <h2 class="h5 fw-semibold mb-1" id="titulo-pedidos">Pedidos de clientes</h2>
+                  <p class="small text-body-secondary mb-0">Seguimiento activo de hoy.</p>
+                </div>
+                <span class="badge rounded-pill app-estado app-estado-atencion">3 activos</span>
+              </div>
+              <ul class="list-unstyled mb-0" aria-label="Pedidos activos">
+                <li class="dashboard-pedido">
+                  <div><strong>PED-1048</strong><span>María López</span></div>
+                  <span class="badge rounded-pill dashboard-estado-preparando">Preparando</span>
+                  <strong>$8.25</strong>
+                </li>
+                <li class="dashboard-pedido">
+                  <div><strong>PED-1047</strong><span>José Martínez</span></div>
+                  <span class="badge rounded-pill dashboard-estado-entregado">Listo</span>
+                  <strong>$11.50</strong>
+                </li>
+                <li class="dashboard-pedido">
+                  <div><strong>PED-1046</strong><span>Ana González</span></div>
+                  <span class="badge rounded-pill dashboard-estado-entregado">Listo</span>
+                  <strong>$6.80</strong>
+                </li>
+              </ul>
+              <p class="small text-body-secondary mt-3 mb-0">Datos de demostración.</p>
+            </article>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+  <noscript><p class="p-3">Activa JavaScript para utilizar la navegación.</p></noscript>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>

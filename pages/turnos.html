@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turnos — Tacos Joya de Cerén</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    crossorigin="anonymous"
+  >
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/turnos.css">
+  <script src="../js/storage.js"></script>
+  <script src="../js/guard.js"></script>
+  <script>Guard.requireLogin();</script>
+</head>
+<body class="app-page turnos-page" data-pagina="turnos" data-seccion="Programación" data-rol="Equipo">
+  <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
+
+  <div class="app-layout d-lg-flex">
+    <!-- La navegación y el cierre de sesión usan la plantilla compartida. -->
+    <aside class="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column"
+      tabindex="-1" id="menu-lateral" aria-labelledby="titulo-menu"></aside>
+
+    <div class="app-area flex-grow-1">
+      <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
+
+      <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1" aria-label="Gestión de turnos">
+
+      <!-- Vista Admin -->
+      <section id="admin-view" hidden>
+        <div class="admin-header">
+          <div>
+            <h1>Turnos y días libres</h1>
+            <p class="subtitle">Organizá los turnos de los empleados durante la semana.</p>
+          </div>
+          <button type="button" class="btn btn-app-primary" id="btn-crear-turno">+ Crear turno</button>
+        </div>
+
+        <div class="week-nav">
+          <button type="button" id="btn-admin-week-prev" aria-label="Semana anterior">←</button>
+          <span class="week-label" id="admin-week-label">…</span>
+          <button type="button" id="btn-admin-week-next" aria-label="Semana siguiente">→</button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">EN TURNO HOY</div>
+            <div class="stat-value" id="stat-en-turno">0</div>
+            <div class="stat-sub">empleados asignados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">DÍA LIBRE HOY</div>
+            <div class="stat-value" id="stat-dia-libre">0</div>
+            <div class="stat-sub">empleados descansan</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">HORAS SEMANALES</div>
+            <div class="stat-value" id="stat-horas">0 h</div>
+            <div class="stat-sub">total de la semana</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">TURNOS TOTALES</div>
+            <div class="stat-value" id="stat-turnos-total">0</div>
+            <div class="stat-sub">esta semana</div>
+          </div>
+        </div>
+
+        <div class="admin-calendar-container">
+          <h2 class="section-title">Calendario semanal</h2>
+          <div class="admin-calendar-scroll">
+            <table class="admin-calendar" id="admin-calendar">
+              <!-- Se llena con JS -->
+            </table>
+          </div>
+          <p class="calendar-hint">Hacé click en una celda para crear o editar el turno. Los turnos con ↻ se repiten cada semana.</p>
+        </div>
+
+        <div class="admin-solicitudes-container">
+          <h2 class="section-title">Solicitudes pendientes</h2>
+          <div class="solicitudes-list" id="admin-solicitudes-list">
+            <!-- Se llena con JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Vista Empleado -->
+      <section id="empleado-view" hidden>
+        <h1 class="emp-greeting">Mis turnos</h1>
+        <p class="emp-subtitle" id="emp-greeting">Tu semana de trabajo</p>
+
+        <div class="week-nav">
+          <button type="button" id="btn-week-prev" aria-label="Semana anterior">←</button>
+          <span class="week-label" id="week-label">…</span>
+          <button type="button" id="btn-week-next" aria-label="Semana siguiente">→</button>
+        </div>
+
+        <div class="emp-week" id="emp-week">
+          <!-- Se llena con JS -->
+        </div>
+
+        <h2 class="quick-actions-title">Acciones rápidas</h2>
+        <div class="quick-actions">
+          <a href="recetas.html" class="action-card">
+            <div class="action-title">Consultar receta</div>
+            <div class="action-desc">Ver porciones estándar</div>
+          </a>
+          <button type="button" class="action-card" id="btn-registrar-merma">
+            <div class="action-title">Registrar merma</div>
+            <div class="action-desc">Descontar inventario</div>
+          </button>
+          <div class="action-card alert">
+            <div class="action-title">Alerta merma</div>
+            <div class="action-desc">Sin alertas actualmente</div>
+          </div>
+        </div>
+
+        <div class="solicitud-actions-container">
+          <h2 class="quick-actions-title" style="margin: 0;">Mis solicitudes</h2>
+          <button type="button" class="btn btn-app-primary" id="btn-crear-solicitud">+ Nueva solicitud</button>
+        </div>
+        <div class="solicitudes-list" id="emp-solicitudes-list">
+          <!-- Se llena con JS -->
+        </div>
+      </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: Registrar merma -->
+  <div class="modal-overlay" id="modal-merma" hidden>
+    <div class="modal-card" role="dialog" aria-labelledby="modal-merma-title">
+      <h2 id="modal-merma-title">Registrar merma</h2>
+      <p class="modal-subtitle">Reportá qué producto se botó y por qué.</p>
+
+      <form id="form-merma" novalidate>
+        <label for="merma-producto">Producto</label>
+        <input type="text" id="merma-producto" name="producto" required>
+
+        <label for="merma-cantidad">Cantidad</label>
+        <input type="text" id="merma-cantidad" name="cantidad" placeholder="Ej: 5 kg, 2 unidades" required>
+
+        <label for="merma-fecha">Fecha</label>
+        <input type="date" id="merma-fecha" name="fecha" required>
+
+        <label for="merma-motivo">Motivo</label>
+        <textarea id="merma-motivo" name="motivo" required></textarea>
+
+        <div class="modal-msg" id="merma-msg" role="alert" aria-live="polite"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="btn-merma-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit">Registrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Crear / Editar / Borrar turno -->
+  <div class="modal-overlay" id="modal-turno" hidden>
+    <div class="modal-card modal-card-wide" role="dialog" aria-labelledby="modal-turno-title">
+      <h2 id="modal-turno-title">Crear turno</h2>
+      <p class="modal-subtitle">Asigná un turno a un empleado.</p>
+
+      <form id="form-turno" novalidate>
+        <input type="hidden" id="turno-id">
+
+        <label for="turno-empleado">Empleado</label>
+        <select id="turno-empleado" required>
+          <option value="">— Seleccioná —</option>
+        </select>
+
+        <label for="turno-fecha">Fecha</label>
+        <input type="date" id="turno-fecha" required>
+
+        <div class="modal-row">
+          <div>
+            <label for="turno-hora-inicio">Hora inicio</label>
+            <input type="time" id="turno-hora-inicio" required>
+          </div>
+          <div>
+            <label for="turno-hora-fin">Hora fin</label>
+            <input type="time" id="turno-hora-fin" required>
+          </div>
+        </div>
+
+        <label for="turno-estacion">Estación</label>
+        <select id="turno-estacion" required>
+          <option value="">— Seleccioná —</option>
+          <option value="Cocina">Cocina</option>
+          <option value="Plancha">Plancha</option>
+          <option value="Caja">Caja</option>
+          <option value="Apoyo">Apoyo</option>
+          <option value="Mesero">Mesero</option>
+          <option value="Domicilio">Domicilio</option>
+        </select>
+
+        <label for="turno-notas">Notas (opcional)</label>
+        <textarea id="turno-notas"></textarea>
+
+        <label class="checkbox-label">
+          <input type="checkbox" id="turno-recurrente">
+          Repetir este turno cada semana
+        </label>
+
+        <div class="modal-msg" id="turno-msg" role="alert" aria-live="polite"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-danger" id="btn-turno-delete" hidden>Borrar</button>
+          <button type="button" class="btn-cancel" id="btn-turno-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit" id="btn-turno-save">Crear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Crear solicitud -->
+  <div class="modal-overlay" id="modal-solicitud" hidden>
+    <div class="modal-card" role="dialog" aria-labelledby="modal-solicitud-title">
+      <h2 id="modal-solicitud-title">Nueva solicitud</h2>
+      <p class="modal-subtitle">Contale al administrador qué necesitás: día libre, cambio de turno, etc.</p>
+
+      <form id="form-solicitud" novalidate>
+        <label for="solicitud-mensaje">Mensaje</label>
+        <textarea id="solicitud-mensaje" required minlength="5" placeholder="Ej: Necesito el domingo 12 libre por un tema familiar…"></textarea>
+
+        <div class="modal-msg" id="solicitud-msg" role="alert" aria-live="polite"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="btn-solicitud-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit">Enviar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <noscript><p class="p-3">Activa JavaScript para utilizar el menú lateral y gestionar los turnos.</p></noscript>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+    crossorigin="anonymous"
+  ></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/turnos.js"></script>
+</body>
+</html>

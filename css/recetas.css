@@ -1,0 +1,96 @@
+.recetas-page .recetas-indicador-valor {
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.recetas-page .receta-tarjeta {
+  border-top: 4px solid var(--accent);
+}
+
+.recetas-page .receta-tarjeta[data-categoria="taco"] { border-top-color: var(--danger); }
+.recetas-page .receta-tarjeta[data-categoria="bebida"] { border-top-color: var(--color-azul); }
+.recetas-page .receta-tarjeta[data-categoria="complemento"] { border-top-color: var(--success); }
+.recetas-page .receta-tarjeta[data-categoria="base"] { border-top-color: var(--accent); }
+
+.recetas-page .receta-tarjeta .receta-nombre {
+  overflow-wrap: anywhere;
+}
+
+.recetas-page .receta-dato {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed var(--bs-border-color);
+  font-size: 0.875rem;
+}
+
+.recetas-page .receta-dato:last-child {
+  border-bottom: 0;
+}
+
+.recetas-page .receta-dato dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.recetas-page .receta-margen-bajo {
+  color: var(--danger);
+}
+
+.recetas-page .receta-margen-ok {
+  color: var(--success);
+}
+
+.recetas-page .receta-ingrediente {
+  padding: 0.75rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  background-color: color-mix(in srgb, var(--bg) 60%, var(--surface));
+}
+
+.recetas-page .receta-ingrediente + .receta-ingrediente {
+  margin-top: 0.75rem;
+}
+
+.recetas-page .receta-error {
+  display: block;
+  color: var(--danger);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.recetas-page .receta-error:empty {
+  display: none;
+}
+
+.recetas-page .receta-tabla td,
+.recetas-page .receta-tabla th {
+  vertical-align: middle;
+}
+
+.recetas-page .receta-preparacion {
+  white-space: pre-line;
+  border-left: 3px solid var(--accent);
+  padding-left: 0.875rem;
+}
+
+.recetas-page .receta-vacio {
+  border: 1px dashed var(--bs-border-color);
+  border-radius: 0.75rem;
+  background-color: var(--surface);
+}
+
+.recetas-page .modal-content {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+@media (max-width: 575.98px) {
+  .recetas-page .receta-acciones .btn {
+    width: 100%;
+  }
+}

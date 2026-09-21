@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario — Tacos Joya de Cerén</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    crossorigin="anonymous"
+  >
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/inventario.css">
+  <script src="../js/storage.js"></script>
+  <script src="../js/guard.js"></script>
+  <!-- Entran los dos roles: inventario.js decide qué vista mostrar.
+       El administrador gestiona; el empleado solo consulta. -->
+  <script>Guard.requireLogin();</script>
+</head>
+<body class="app-page inventario-page" data-pagina="inventario" data-seccion="Operación" data-rol="Equipo">
+  <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
+
+  <div class="app-layout d-lg-flex">
+    <!-- La navegación y el cierre de sesión usan la plantilla compartida. -->
+    <aside class="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column"
+      tabindex="-1" id="menu-lateral" aria-labelledby="titulo-menu"></aside>
+
+    <div class="app-area flex-grow-1">
+      <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
+
+      <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1" aria-label="Inventario de la taquería">
+
+      <!-- Vista Admin -->
+      <section id="admin-view" hidden>
+        <div class="inv-header">
+          <div>
+            <h1>Inventario</h1>
+            <p class="subtitle">Controlá las existencias de la taquería: qué hay, qué falta y qué está por vencer.</p>
+          </div>
+          <div class="inv-header-acciones">
+            <button type="button" class="btn btn-app-secondary" id="btn-nuevo-movimiento">Registrar movimiento</button>
+            <button type="button" class="btn btn-app-primary" id="btn-nuevo-producto">+ Nuevo producto</button>
+          </div>
+        </div>
+
+        <!-- Resumen general del inventario -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">PRODUCTOS REGISTRADOS</div>
+            <div class="stat-value" id="stat-productos">0</div>
+            <div class="stat-sub" id="stat-productos-sub">en todas las categorías</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">VALOR DEL INVENTARIO</div>
+            <div class="stat-value" id="stat-valor">$0.00</div>
+            <div class="stat-sub">costo de lo que hay en bodega</div>
+          </div>
+          <div class="stat-card stat-card-alerta">
+            <div class="stat-label">REQUIEREN COMPRA</div>
+            <div class="stat-value" id="stat-criticos">0</div>
+            <div class="stat-sub">bajo el mínimo o agotados</div>
+          </div>
+          <div class="stat-card stat-card-aviso">
+            <div class="stat-label">CADUCIDAD PRÓXIMA</div>
+            <div class="stat-value" id="stat-vencer">0</div>
+            <div class="stat-sub">vencen en 7 días o menos</div>
+          </div>
+        </div>
+
+        <!-- Alertas: lo que el administrador debe atender hoy -->
+        <section class="inv-panel">
+          <div class="inv-panel-header">
+            <h2 class="section-title">Alertas de existencias</h2>
+            <span class="inv-contador" id="alertas-contador"></span>
+          </div>
+          <div class="alertas-lista" id="alertas-lista">
+            <!-- Se llena con JS -->
+          </div>
+        </section>
+
+        <!-- Productos: buscador, secciones por categoría y tabla -->
+        <section class="inv-panel">
+          <div class="inv-panel-header">
+            <h2 class="section-title">Productos en inventario</h2>
+            <span class="inv-contador" id="tabla-contador"></span>
+          </div>
+
+          <div class="inv-toolbar">
+            <div class="inv-buscador">
+              <label class="visually-hidden" for="inv-buscar">Buscar producto</label>
+              <input type="search" id="inv-buscar" placeholder="Buscar por producto, proveedor o ubicación…" autocomplete="off">
+            </div>
+            <div class="inv-filtro">
+              <label class="visually-hidden" for="inv-estado">Filtrar por estado</label>
+              <select id="inv-estado">
+                <option value="todos">Todos los estados</option>
+                <option value="agotado">Agotados</option>
+                <option value="critico">Bajo el mínimo</option>
+                <option value="bajo">Por reponer pronto</option>
+                <option value="ok">Con existencia suficiente</option>
+                <option value="caducidad">Vencidos o por vencer</option>
+              </select>
+            </div>
+            <div class="inv-filtro">
+              <label class="visually-hidden" for="inv-orden">Ordenar</label>
+              <select id="inv-orden">
+                <option value="alerta">Ordenar: urgencia</option>
+                <option value="nombre">Ordenar: nombre</option>
+                <option value="categoria">Ordenar: categoría</option>
+                <option value="valor">Ordenar: mayor valor</option>
+                <option value="caducidad">Ordenar: caducidad</option>
+              </select>
+            </div>
+            <button type="button" class="inv-limpiar" id="btn-limpiar-filtros">Limpiar</button>
+          </div>
+
+          <!-- Secciones del inventario (Carnes, Verduras, …). Se generan con JS. -->
+          <div class="inv-chips" id="inv-chips" role="group" aria-label="Filtrar por categoría"></div>
+
+          <div class="inv-tabla-scroll">
+            <table class="inv-tabla" id="inv-tabla">
+              <thead>
+                <tr>
+                  <th scope="col">Producto</th>
+                  <th scope="col">Categoría</th>
+                  <th scope="col" class="col-num">Existencia</th>
+                  <th scope="col" class="col-num">Mínimo</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col" class="col-num">Costo unit.</th>
+                  <th scope="col" class="col-num">Valor</th>
+                  <th scope="col">Caducidad</th>
+                  <th scope="col" class="col-acciones">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="inv-tabla-body">
+                <!-- Se llena con JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Historial de movimientos (kardex sencillo) -->
+        <section class="inv-panel">
+          <div class="inv-panel-header">
+            <h2 class="section-title">Historial de movimientos</h2>
+            <div class="inv-filtro">
+              <label class="visually-hidden" for="mov-filtro">Filtrar movimientos</label>
+              <select id="mov-filtro">
+                <option value="todos">Todos los movimientos</option>
+                <option value="entrada">Solo entradas</option>
+                <option value="salida">Solo salidas</option>
+                <option value="ajuste">Solo ajustes</option>
+              </select>
+            </div>
+          </div>
+          <div class="mov-lista" id="mov-lista">
+            <!-- Se llena con JS -->
+          </div>
+        </section>
+      </section>
+
+      <!-- Vista Empleado: solo consultar. No registra ni modifica nada. -->
+      <section id="empleado-view" hidden>
+        <div class="emp-header">
+          <h1>¿Qué hay en bodega?</h1>
+          <p class="subtitle">Buscá un producto y mirá si todavía queda. El administrador es quien registra las entradas y salidas.</p>
+        </div>
+
+        <div class="emp-buscador">
+          <label class="visually-hidden" for="emp-buscar">Buscar producto</label>
+          <input type="search" id="emp-buscar" placeholder="Buscar un producto… por ejemplo: tomate" autocomplete="off">
+        </div>
+
+        <!-- Contadores por estado. Además de informar, filtran al tocarlos. -->
+        <div class="emp-resumen" id="emp-resumen" role="group" aria-label="Filtrar por disponibilidad"></div>
+
+        <!-- Secciones del inventario (Carnes, Verduras, …). Se generan con JS. -->
+        <div class="inv-chips emp-chips" id="emp-chips" role="group" aria-label="Filtrar por sección"></div>
+
+        <p class="emp-contador" id="emp-contador" aria-live="polite"></p>
+
+        <div class="emp-secciones" id="emp-secciones">
+          <!-- Se llena con JS -->
+        </div>
+      </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal: Crear / Editar / Eliminar producto -->
+  <div class="modal-overlay" id="modal-producto" hidden>
+    <div class="modal-card modal-card-wide" role="dialog" aria-labelledby="modal-producto-title">
+      <h2 id="modal-producto-title">Nuevo producto</h2>
+      <p class="modal-subtitle">Registrá un insumo del inventario con su unidad de medida y su mínimo de alerta.</p>
+
+      <form id="form-producto" novalidate>
+        <input type="hidden" id="producto-id">
+
+        <label for="producto-nombre">Producto</label>
+        <input type="text" id="producto-nombre" placeholder="Ej: Carne de res para asar" required>
+
+        <div class="modal-row">
+          <div>
+            <label for="producto-categoria">Categoría</label>
+            <select id="producto-categoria" required>
+              <option value="">— Seleccioná —</option>
+            </select>
+          </div>
+          <div>
+            <label for="producto-unidad">Unidad de medida</label>
+            <select id="producto-unidad" required>
+              <option value="">— Seleccioná —</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-row">
+          <div>
+            <label for="producto-cantidad">Existencia actual</label>
+            <input type="number" id="producto-cantidad" min="0" step="0.01" placeholder="0" required>
+          </div>
+          <div>
+            <label for="producto-minimo">Mínimo antes de alertar</label>
+            <input type="number" id="producto-minimo" min="0" step="0.01" placeholder="0" required>
+          </div>
+        </div>
+
+        <div class="modal-row">
+          <div>
+            <label for="producto-costo">Costo por unidad (US$)</label>
+            <input type="number" id="producto-costo" min="0" step="0.01" placeholder="0.00" required>
+          </div>
+          <div>
+            <label for="producto-caducidad">Caducidad (opcional)</label>
+            <input type="date" id="producto-caducidad">
+          </div>
+        </div>
+
+        <div class="modal-row">
+          <div>
+            <label for="producto-proveedor">Proveedor (opcional)</label>
+            <input type="text" id="producto-proveedor" placeholder="Ej: Carnicería El Novillo">
+          </div>
+          <div>
+            <label for="producto-ubicacion">Ubicación (opcional)</label>
+            <input type="text" id="producto-ubicacion" placeholder="Ej: Congelador 1">
+          </div>
+        </div>
+
+        <div class="modal-msg" id="producto-msg" role="alert" aria-live="polite"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-danger" id="btn-producto-delete" hidden>Eliminar</button>
+          <button type="button" class="btn-cancel" id="btn-producto-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit" id="btn-producto-save">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Registrar movimiento (entrada, salida o ajuste) -->
+  <div class="modal-overlay" id="modal-movimiento" hidden>
+    <div class="modal-card" role="dialog" aria-labelledby="modal-movimiento-title">
+      <h2 id="modal-movimiento-title">Registrar movimiento</h2>
+      <p class="modal-subtitle">Cada entrada, salida o conteo queda guardado en el historial.</p>
+
+      <form id="form-movimiento" novalidate>
+        <label for="movimiento-producto">Producto</label>
+        <select id="movimiento-producto" required>
+          <option value="">— Seleccioná —</option>
+        </select>
+
+        <label id="movimiento-tipo-label">Tipo de movimiento</label>
+        <div class="mov-tipos" role="radiogroup" aria-labelledby="movimiento-tipo-label">
+          <label class="mov-tipo">
+            <input type="radio" name="movimiento-tipo" value="entrada" checked>
+            <span>Entrada</span>
+          </label>
+          <label class="mov-tipo">
+            <input type="radio" name="movimiento-tipo" value="salida">
+            <span>Salida</span>
+          </label>
+          <label class="mov-tipo">
+            <input type="radio" name="movimiento-tipo" value="ajuste">
+            <span>Ajuste</span>
+          </label>
+        </div>
+
+        <p class="mov-existencia" id="movimiento-existencia"></p>
+
+        <label for="movimiento-cantidad" id="movimiento-cantidad-label">Cantidad que ingresa</label>
+        <input type="number" id="movimiento-cantidad" min="0" step="0.01" placeholder="0" required>
+
+        <label for="movimiento-motivo">Motivo</label>
+        <select id="movimiento-motivo" required></select>
+
+        <label for="movimiento-nota">Nota (opcional)</label>
+        <textarea id="movimiento-nota" placeholder="Ej: factura 1204 del proveedor"></textarea>
+
+        <div class="modal-msg" id="movimiento-msg" role="alert" aria-live="polite"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" id="btn-movimiento-cancel">Cancelar</button>
+          <button type="submit" class="btn-submit" id="btn-movimiento-save">Registrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Confirmar eliminación -->
+  <div class="modal-overlay" id="modal-eliminar" hidden>
+    <div class="modal-card" role="dialog" aria-labelledby="modal-eliminar-title">
+      <h2 id="modal-eliminar-title">Eliminar producto</h2>
+      <p class="modal-subtitle" id="eliminar-detalle">¿Seguro que querés eliminar este producto del inventario?</p>
+      <p class="modal-aviso">También se borran sus movimientos del historial. Esta acción no se puede deshacer.</p>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" id="btn-eliminar-cancel">Cancelar</button>
+        <button type="button" class="btn-danger btn-danger-full" id="btn-eliminar-confirmar">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <noscript><p class="p-3">Activa JavaScript para utilizar el menú lateral y gestionar el inventario.</p></noscript>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+    crossorigin="anonymous"
+  ></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/inventario.js"></script>
+</body>
+</html>

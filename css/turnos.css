@@ -1,0 +1,712 @@
+/* Estilos exclusivos del módulo. El layout, menú y botones principales
+   se comparten mediante main.css y main.js, como en index.html. */
+
+/* ============================================
+   VISTA EMPLEADO — Saludo, calendario, acciones
+   ============================================ */
+
+.turnos-page .emp-greeting {
+  font-size: 1.75rem;
+  color: var(--color-azul);
+  margin: 0 0 0.25rem;
+  font-weight: 700;
+}
+
+.turnos-page .emp-subtitle {
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0 0 1.5rem;
+}
+
+/* Navegación de semana */
+.turnos-page .week-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.turnos-page .week-nav button {
+  background: var(--surface);
+  border: 1.5px solid rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
+  color: var(--color-azul);
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.turnos-page .week-nav button:hover {
+  background: rgba(16, 27, 70, 0.05); /* var(--color-azul) al 5% */
+}
+
+.turnos-page .week-nav .week-label {
+  font-weight: 600;
+  color: var(--color-azul);
+}
+
+/* Calendario semanal empleado */
+.turnos-page .emp-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.turnos-page .day-card {
+  background: var(--surface);
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-radius: 0.75rem;
+  padding: 1rem;
+  min-height: 8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.turnos-page .day-header {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-bottom: 0.25rem;
+}
+
+.turnos-page .day-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-azul);
+  margin-bottom: 0.75rem;
+}
+
+.turnos-page .day-turno {
+  background: rgba(242, 182, 50, 0.15); /* var(--color-maiz) al 15% */
+  border-left: 3px solid var(--color-maiz);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.turnos-page .day-turno .turno-hours {
+  font-weight: 600;
+  color: var(--color-azul);
+}
+
+.turnos-page .day-turno .turno-station {
+  color: var(--text);
+  opacity: 0.75;
+  font-size: 0.8rem;
+  margin-top: 0.1rem;
+}
+
+.turnos-page .day-libre {
+  color: var(--text);
+  opacity: 0.4;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: auto;
+}
+
+.turnos-page .day-today {
+  border-color: var(--color-rojo);
+  box-shadow: 0 0 0 1px var(--color-rojo);
+}
+
+/* Acciones rápidas */
+.turnos-page .quick-actions-title {
+  font-size: 1.1rem;
+  color: var(--color-azul);
+  margin: 1.5rem 0 0.75rem;
+}
+
+.turnos-page .quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.turnos-page .action-card {
+  background: var(--surface);
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-radius: 0.75rem;
+  padding: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: left;
+  transition: border-color 0.15s ease, transform 0.05s ease;
+  display: block;
+  width: 100%;
+}
+
+.turnos-page .action-card:hover {
+  border-color: var(--color-maiz);
+}
+
+.turnos-page .action-card:active {
+  transform: translateY(1px);
+}
+
+.turnos-page .action-title {
+  font-weight: 600;
+  color: var(--color-azul);
+  margin-bottom: 0.25rem;
+}
+
+.turnos-page .action-desc {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.turnos-page .action-card.alert {
+  margin-bottom: 0;
+  border-color: rgba(182, 36, 36, 0.3); /* var(--color-rojo) al 30% */
+  cursor: default;
+}
+
+.turnos-page .action-card.alert .action-title {
+  color: var(--color-rojo);
+}
+
+/* ============================================
+   MODAL (usado por registrar merma y otros)
+   ============================================ */
+
+.turnos-page .modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 27, 70, 0.55); /* var(--color-azul) al 55% */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1060; /* Sobre la navegación offcanvas de Bootstrap. */
+}
+
+.turnos-page .modal-overlay[hidden] {
+  display: none;
+}
+
+.turnos-page .modal-card {
+  background: var(--surface);
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 28rem;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(16, 27, 70, 0.2); /* var(--color-azul) al 20% */
+}
+
+.turnos-page .modal-card h2 {
+  color: var(--color-azul);
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+}
+
+.turnos-page .modal-card .modal-subtitle {
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+}
+
+.turnos-page .modal-card label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-azul);
+  margin: 1rem 0 0.4rem;
+}
+
+.turnos-page .modal-card input,
+.turnos-page .modal-card textarea,
+.turnos-page .modal-card select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1.5px solid rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.turnos-page .modal-card input:focus,
+.turnos-page .modal-card textarea:focus,
+.turnos-page .modal-card select:focus {
+  outline: none;
+  border-color: var(--color-maiz);
+  box-shadow: 0 0 0 3px rgba(242, 182, 50, 0.2); /* var(--color-maiz) al 20% */
+}
+
+.turnos-page .modal-card textarea {
+  min-height: 5rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.turnos-page .modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.turnos-page .modal-actions button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.turnos-page .btn-cancel {
+  background: rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  color: var(--color-azul);
+}
+
+.turnos-page .btn-cancel:hover {
+  background: rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
+}
+
+.turnos-page .btn-submit {
+  background: var(--color-azul);
+  color: var(--color-crema);
+}
+
+.turnos-page .btn-submit:hover {
+  filter: brightness(1.15);
+}
+
+.turnos-page .modal-msg {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.turnos-page .modal-msg.error {
+  background: rgba(182, 36, 36, 0.1); /* var(--color-rojo) al 10% */
+  color: var(--color-rojo);
+}
+
+.turnos-page .modal-msg.success {
+  background: rgba(66, 107, 58, 0.12); /* var(--color-verde) al 12% */
+  color: var(--color-verde);
+}
+
+.turnos-page .modal-msg:empty {
+  display: none;
+}
+
+/* Responsive del calendario y acciones */
+@media (max-width: 1024px) {
+  .turnos-page .emp-week {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+  .turnos-page .quick-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   VISTA ADMIN — Header, stats, calendario tabla
+   ============================================ */
+
+.turnos-page .admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.turnos-page .admin-header h1 {
+  color: var(--color-azul);
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+}
+
+.turnos-page .admin-header .subtitle {
+  color: var(--text);
+  opacity: 0.7;
+  margin: 0;
+}
+
+/* Stats grid */
+.turnos-page .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.turnos-page .stat-card {
+  background: var(--surface);
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.turnos-page .stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.turnos-page .stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-azul);
+  line-height: 1;
+}
+
+.turnos-page .stat-sub {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 0.4rem;
+  color: var(--text);
+}
+
+/* Calendar container */
+.turnos-page .section-title {
+  font-size: 1.1rem;
+  color: var(--color-azul);
+  margin: 0 0 0.75rem;
+}
+
+.turnos-page .admin-calendar-container {
+  background: var(--surface);
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.turnos-page .calendar-hint {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin: 0.75rem 0 0;
+  color: var(--text);
+}
+
+.turnos-page .admin-calendar-scroll {
+  overflow-x: auto;
+}
+
+.turnos-page .admin-calendar {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 700px;
+}
+
+.turnos-page .admin-calendar th,
+.turnos-page .admin-calendar td {
+  padding: 0.5rem 0.4rem;
+  text-align: center;
+  font-size: 0.85rem;
+  border: 1px solid rgba(16, 27, 70, 0.06); /* var(--color-azul) al 6% */
+}
+
+.turnos-page .admin-calendar th {
+  color: var(--color-azul);
+  font-weight: 600;
+  font-size: 0.8rem;
+  background: rgba(16, 27, 70, 0.03); /* var(--color-azul) al 3% */
+}
+
+.turnos-page .admin-calendar th.col-employee,
+.turnos-page .admin-calendar td.col-employee {
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-azul);
+  min-width: 8rem;
+  background: rgba(16, 27, 70, 0.03); /* var(--color-azul) al 3% */
+}
+
+.turnos-page .admin-calendar td.cell {
+  cursor: pointer;
+  transition: background 0.1s ease;
+  min-width: 5rem;
+}
+
+.turnos-page .admin-calendar td.cell:hover {
+  background: rgba(242, 182, 50, 0.15); /* var(--color-maiz) al 15% */
+}
+
+.turnos-page .admin-calendar td.cell.has-turno {
+  background: rgba(242, 182, 50, 0.12); /* var(--color-maiz) al 12% */
+  border-left: 3px solid var(--color-maiz);
+}
+
+.turnos-page .admin-calendar td.cell.today {
+  outline: 2px solid var(--color-rojo);
+  outline-offset: -2px;
+}
+
+.turnos-page .cell-hours {
+  font-weight: 600;
+  color: var(--color-azul);
+  font-size: 0.8rem;
+}
+
+.turnos-page .cell-station {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.turnos-page .cell-empty {
+  opacity: 0.35;
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+.turnos-page .cell-recurrent-mark {
+  font-size: 0.7rem;
+  color: var(--color-maiz);
+  font-weight: 700;
+  margin-left: 0.15rem;
+}
+
+.turnos-page .no-empleados {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text);
+  opacity: 0.6;
+}
+
+/* Modal — ancho extra y layout de dos columnas */
+.turnos-page .modal-card-wide {
+  max-width: 32rem;
+}
+
+.turnos-page .modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+/* .modal-card delante para ganarle en especificidad a ".modal-card label" */
+.turnos-page .modal-card .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+  font-weight: 500;
+  color: var(--color-azul);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.turnos-page .checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.turnos-page .btn-danger {
+  background: rgba(182, 36, 36, 0.1); /* var(--color-rojo) al 10% */
+  color: var(--color-rojo);
+  border: none;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  flex: 1;
+}
+
+.turnos-page .btn-danger:hover {
+  background: rgba(182, 36, 36, 0.2); /* var(--color-rojo) al 20% */
+}
+
+/* Responsive stats */
+@media (max-width: 900px) {
+  .turnos-page .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ============================================
+   SOLICITUDES — Empleado y Admin
+   ============================================ */
+
+.turnos-page .solicitud-actions-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0 0.75rem;
+  flex-wrap: wrap;
+}
+
+.turnos-page .admin-solicitudes-container {
+  margin-bottom: 1.5rem;
+}
+
+.turnos-page .solicitudes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.turnos-page .solicitud-card {
+  background: var(--surface);
+  border: 1.5px solid rgba(16, 27, 70, 0.08); /* var(--color-azul) al 8% */
+  border-left-width: 4px;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.turnos-page .solicitud-card.pendiente {
+  border-left-color: var(--color-maiz);
+}
+
+.turnos-page .solicitud-card.aceptada {
+  border-left-color: var(--color-verde);
+}
+
+.turnos-page .solicitud-card.rechazada {
+  border-left-color: var(--color-rojo);
+}
+
+.turnos-page .solicitud-info {
+  flex: 1;
+  min-width: 220px;
+}
+
+.turnos-page .solicitud-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.turnos-page .solicitud-nombre {
+  font-weight: 600;
+  color: var(--color-azul);
+  font-size: 0.9rem;
+}
+
+.turnos-page .solicitud-fecha {
+  opacity: 0.6;
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.turnos-page .solicitud-mensaje {
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.turnos-page .solicitud-estado {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.turnos-page .solicitud-estado.pendiente {
+  background: rgba(242, 182, 50, 0.3); /* var(--color-maiz) al 30% */
+  color: var(--color-azul);
+}
+
+.turnos-page .solicitud-estado.aceptada {
+  background: rgba(66, 107, 58, 0.15); /* var(--color-verde) al 15% */
+  color: var(--color-verde);
+}
+
+.turnos-page .solicitud-estado.rechazada {
+  background: rgba(182, 36, 36, 0.15); /* var(--color-rojo) al 15% */
+  color: var(--color-rojo);
+}
+
+.turnos-page .solicitud-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.turnos-page .btn-accept {
+  background: var(--color-verde);
+  color: var(--color-crema);
+  border: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.turnos-page .btn-accept:hover {
+  filter: brightness(1.15);
+}
+
+.turnos-page .btn-reject {
+  background: rgba(182, 36, 36, 0.1); /* var(--color-rojo) al 10% */
+  color: var(--color-rojo);
+  border: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.turnos-page .btn-reject:hover {
+  background: rgba(182, 36, 36, 0.2); /* var(--color-rojo) al 20% */
+}
+
+.turnos-page .solicitudes-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text);
+  opacity: 0.5;
+  font-style: italic;
+  background: var(--surface);
+  border: 1.5px dashed rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Bloques individuales de turno dentro de una celda del admin */
+.turnos-page .cell-turno-block {
+  padding: 0.15rem 0.3rem;
+  margin: 0.15rem 0;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.turnos-page .cell-turno-block:hover {
+  background: rgba(242, 182, 50, 0.25); /* var(--color-maiz) al 25% */
+}
+
+.turnos-page .cell-turno-block + .cell-turno-block {
+  border-top: 1px dashed rgba(16, 27, 70, 0.15); /* var(--color-azul) al 15% */
+  padding-top: 0.35rem;
+  margin-top: 0.35rem;
+}

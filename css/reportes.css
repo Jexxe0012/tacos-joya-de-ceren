@@ -1,0 +1,61 @@
+/* Los colores y paneles se reutilizan desde main.css. */
+.reportes-page .reportes-indicador-valor {
+  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.reportes-page .reportes-valor-merma {
+  color: var(--danger);
+}
+
+/* Chart.js necesita un contenedor exclusivo con altura definida. */
+.reportes-page .reportes-grafica {
+  position: relative;
+  height: 17rem;
+  min-width: 0;
+}
+
+.reportes-page .reportes-datos summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+.reportes-page .reportes-datos summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 575.98px) {
+  .reportes-page .reportes-grafica { height: 15rem; }
+}
+
+/* El detalle se desplaza dentro de la tarjeta sin alargar toda la pantalla. */
+.reportes-page .reportes-datos .table-responsive {
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.reportes-page .reportes-datos thead th {
+  position: sticky;
+  top: 0;
+  background-color: var(--surface);
+}
+
+.reportes-page .reportes-grafica-desplazable {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.reportes-page .reportes-grafica-desplazable:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.reportes-page .reportes-hallazgo {
+  border-left: 3px solid var(--accent);
+}

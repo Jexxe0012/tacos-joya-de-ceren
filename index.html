@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tacos Joya de Cerén</title>
+  <script src="js/guard.js"></script>
+  <script>Guard.irAlInicio();</script>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+    crossorigin="anonymous"
+  >
+  <!-- Base compartida: colores, distribución, botones, paneles y formularios. -->
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body class="app-page" data-pagina="" data-seccion="General" data-rol="Dueño">
+  <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
+
+  <div class="app-layout d-lg-flex">
+    <!-- main.js genera la navegación común dentro de estos dos contenedores. -->
+    <aside class="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column"
+      tabindex="-1" id="menu-lateral" aria-labelledby="titulo-menu"></aside>
+
+    <div class="app-area flex-grow-1">
+      <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
+
+      <!-- Plantilla: cada compañero agrega aquí el título y el contenido de su módulo. -->
+      <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1" aria-label="Contenido del módulo">
+        <!-- Los botones, paneles y formularios reutilizan las clases de main.css. -->
+      </main>
+    </div>
+  </div>
+
+  <noscript><p class="p-3">Activa JavaScript para utilizar el menú lateral.</p></noscript>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+    crossorigin="anonymous"
+  ></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingresar — Tacos Joya de Cerén</title>
+ <link rel="stylesheet" href="../css/main.css">
+<link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
+
+  <main class="login-layout">
+
+    <!-- Panel izquierdo: marca -->
+    <section class="login-left">
+      <div class="login-logo">TJ</div>
+      <h1>Tacos Joya de Cerén</h1>
+      <p class="login-subtitle">Control de inventario y operación de la taquería</p>
+      <ul class="login-features">
+        <li>Porciones estandarizadas</li>
+        <li>Mermas con alertas</li>
+        <li>Proyección de demanda</li>
+        <li>Turnos rotativos</li>
+      </ul>
+    </section>
+
+    <!-- Panel derecho: formulario -->
+    <section class="login-right">
+      <div class="login-card">
+        <h2 id="card-title">Bienvenido</h2>
+        <p id="card-subtitle">Ingresa al sistema según tu rol</p>
+
+        <!-- ============ VISTA LOGIN ============ -->
+        <div id="login-view">
+          <form id="login-form" novalidate>
+
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" required minlength="6">
+
+            <fieldset class="role-picker">
+              <legend>Selecciona tu perfil</legend>
+
+              <div class="role-cards-wrapper">
+                <label class="role-card">
+                  <input type="radio" name="role" value="admin" required>
+                  <span class="role-title">Dueño / Admin</span>
+                  <span class="role-desc">Acceso completo</span>
+                </label>
+
+                <label class="role-card">
+                  <input type="radio" name="role" value="empleado">
+                  <span class="role-title">Empleado</span>
+                  <span class="role-desc">Operación</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <button type="submit">Ingresar al sistema</button>
+
+            <div id="login-error" role="alert" aria-live="polite"></div>
+          </form>
+
+          <p class="toggle-link">
+            ¿No tienes cuenta?
+            <button type="button" id="show-register">Regístrate</button>
+          </p>
+        </div>
+
+        <!-- ============ VISTA REGISTRO (oculta al inicio) ============ -->
+        <div id="register-view" hidden>
+          <form id="register-form" novalidate>
+
+            <label for="reg-nombre">Nombre completo</label>
+            <input type="text" id="reg-nombre" name="nombre" required minlength="2">
+
+            <label for="reg-email">Correo electrónico</label>
+            <input type="email" id="reg-email" name="email" required>
+
+            <label for="reg-password">Contraseña</label>
+            <input type="password" id="reg-password" name="password" required minlength="6">
+
+            <label for="reg-password2">Confirmar contraseña</label>
+            <input type="password" id="reg-password2" name="password2" required minlength="6">
+
+            <fieldset class="role-picker">
+              <legend>Selecciona tu perfil</legend>
+
+              <div class="role-cards-wrapper">
+                <label class="role-card">
+                  <input type="radio" name="reg-role" value="admin" required>
+                  <span class="role-title">Dueño / Admin</span>
+                  <span class="role-desc">Acceso completo</span>
+                </label>
+
+                <label class="role-card">
+                  <input type="radio" name="reg-role" value="empleado">
+                  <span class="role-title">Empleado</span>
+                  <span class="role-desc">Operación</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div id="admin-key-field" hidden>
+              <label for="reg-admin-key">Clave de administrador</label>
+              <input type="password" id="reg-admin-key" name="admin-key" autocomplete="off">
+            </div>
+
+            <button type="submit">Crear cuenta</button>
+
+            <div id="register-error" role="alert" aria-live="polite"></div>
+          </form>
+
+          <p class="toggle-link">
+            ¿Ya tienes cuenta?
+            <button type="button" id="show-login">Inicia sesión</button>
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+    <script src="../js/storage.js"></script>
+  <script src="../js/guard.js"></script>
+  <script src="../js/login.js"></script>
+</body>
+</html>
