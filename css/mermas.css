@@ -23,7 +23,9 @@ main {
     border: 1px solid black;
     border-radius: 0.375rem;
     padding: 1rem;
-    margin: 0.5rem;
+    /* Sin margen horizontal: las columnas de Bootstrap ya miden un
+       porcentaje del ancho y el margen extra las sacaba de la pantalla. */
+    margin-bottom: 1rem;
     background-color: #f8f9fa;
 }
 .indicadores-row {
@@ -52,6 +54,15 @@ main {
     display: flex;
 }
 .historial-card {
-    width: 700px;
-    height: 520px;
+    /* Ocupa la columna que le toca. Con un ancho fijo se desbordaba en
+       pantallas angostas y aparecia scroll horizontal en toda la pagina. */
+    width: 100%;
+}
+
+/* El historial crece con cada merma registrada: se limita la altura del
+   area de la tabla y el scroll queda adentro, para que la tarjeta no
+   estire la pagina cuando hay muchos registros. */
+.historial-card .table-responsive {
+    max-height: 420px;
+    overflow-y: auto;
 }
