@@ -27,21 +27,16 @@ function calcularRangoPeriodo(dias, fechaActual = new Date()) {
   return { inicio, fin };
 }
 
-function validarFiltros() {
-  filtroPeriodo.setCustomValidity(
-    periodosPermitidos.includes(filtroPeriodo.value)
-      ? ""
-      : "Selecciona un período de la lista."
-  );
-
-  filtroInsumo.setCustomValidity(
-    insumosPermitidos.includes(filtroInsumo.value)
-      ? ""
-      : "Selecciona un insumo de la lista."
-  );
-
-  return formularioFiltros.reportValidity();
-}
+// Reutiliza los mensajes junto al campo y el foco en el primer error del equipo.
+// La lista permitida también rechaza valores alterados fuera de las opciones.
+const validarFiltros = Valida.enVivo(formularioFiltros, {
+  "filtro-periodo": (valor) => periodosPermitidos.includes(valor)
+    ? ""
+    : "Selecciona un período de la lista.",
+  "filtro-insumo": (valor) => insumosPermitidos.includes(valor)
+    ? ""
+    : "Selecciona un insumo de la lista."
+});
 
 // Datos temporales: 30 días relativos a hoy, sin modificar el almacenamiento del equipo.
 // Al integrar los módulos reales se reemplazará esta fuente, manteniendo el cálculo.
@@ -203,11 +198,8 @@ formularioFiltros.addEventListener("submit", (evento) => {
 
   if (validarFiltros()) {
     mostrarSeleccionFiltros();
+    UI.aviso("Filtros aplicados. Reportes actualizados.");
   }
 });
-
-// Limpia el mensaje de error del campo cuando el usuario cambia su selección.
-filtroPeriodo.addEventListener("change", () => filtroPeriodo.setCustomValidity(""));
-filtroInsumo.addEventListener("change", () => filtroInsumo.setCustomValidity(""));
 
 mostrarSeleccionFiltros();
