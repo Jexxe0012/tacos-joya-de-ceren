@@ -1,7 +1,8 @@
 /**
  * login.js — Lógica del login y registro de Tacos Joya de Cerén.
  * 
- * Requiere que DB (de storage.js) esté cargado antes que este script.
+ * Requiere storage.js (DB), guard.js (Guard), ui.js (UI) y validacion.js
+ * (Valida) cargados antes que este script.
  */
 
 /* ============================================
@@ -39,8 +40,8 @@ const cardSubtitle = document.getElementById("card-subtitle");
 
 /**
  * Muestra una vista y oculta la otra usando el atributo hidden.
- * También cambia el título y subtítulo de la tarjeta, limpia los
- * mensajes de error y pone el foco en el primer campo de la vista
+ * También cambia el título y subtítulo de la tarjeta, quita las
+ * marcas de error y pone el foco en el primer campo de la vista
  * nueva (para quien navega con teclado).
  */
 function mostrarVista(vista) {
@@ -54,7 +55,7 @@ function mostrarVista(vista) {
     ? "Completa tus datos para registrarte"
     : "Ingresa al sistema según tu rol";
 
-  document.getElementById("login-error").textContent    = "";
+  document.querySelectorAll(".is-invalid").forEach(campo => Valida.limpiar(campo));
   document.getElementById("register-error").textContent = "";
 
   document.getElementById(esRegistro ? "reg-nombre" : "email").focus();
@@ -95,71 +96,132 @@ document.querySelectorAll('input[name="reg-role"]').forEach(radio => {
 const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ADMIN_KEY = 'TJC-ADMIN-2025';
 
+const loginForm   = document.getElementById('login-form');
+const loginBoton  = loginForm.querySelector('button[type="submit"]');
+const rolesLogin  = loginForm.querySelector('.role-picker');
+const campoCorreo = document.getElementById('email');
+const campoPass   = document.getElementById('password');
+
+/**
+ * Validación mientras se escribe: formato del correo y largo mínimo
+ * de la contraseña. Lo que depende de la DB (si el correo existe, si
+ * la contraseña es la correcta) se revisa al enviar.
+ * El mínimo es 6 y no 8 para que puedan entrar las cuentas creadas
+ * antes de la regla nueva del registro.
+ */
+const validarLogin = Valida.enVivo(loginForm, {
+  email: v => Valida.texto(v, { min: 1, patron: REGEX_EMAIL, mensaje: 'El correo no tiene un formato válido.' }),
+  password: v => Valida.texto(v, { min: 6 })
+});
+
+// Al elegir un perfil se quita el error del grupo de perfiles.
+loginForm.querySelectorAll('input[name="role"]').forEach(radio => {
+  radio.addEventListener('change', () => Valida.limpiar(rolesLogin));
+});
+
+/* ============================================
+   Bloqueo tras 5 intentos fallidos seguidos
+   ============================================ */
+
+/**
+ * Los fallos y la hora de desbloqueo se guardan en localStorage, no en
+ * una variable, para que recargar la página no salte el bloqueo.
+ * Solo cuentan los intentos que llegan a compararse con la DB: un campo
+ * vacío o mal escrito no es un intento de entrar.
+ */
+const MAX_INTENTOS = 5;
+const SEGUNDOS_BLOQUEO = 60;
+const TEXTO_BOTON_LOGIN = loginBoton.textContent;
+
+function estaBloqueado() {
+  return Number(localStorage.getItem('loginBloqueadoHasta')) > Date.now();
+}
+
+/**
+ * Mientras dure el bloqueo, el botón queda desactivado y muestra los
+ * segundos que faltan. Se actualiza cada segundo.
+ */
+function iniciarCuentaRegresiva() {
+  const reactivar = Valida.bloquearEnvio(loginBoton);
+
+  const actualizar = () => {
+    const faltan = Math.ceil((Number(localStorage.getItem('loginBloqueadoHasta')) - Date.now()) / 1000);
+    if (faltan > 0) {
+      loginBoton.textContent = `Espera ${faltan} s`;
+      return;
+    }
+    clearInterval(reloj);
+    localStorage.removeItem('loginBloqueadoHasta');
+    loginBoton.textContent = TEXTO_BOTON_LOGIN;
+    reactivar();
+  };
+
+  const reloj = setInterval(actualizar, 1000);
+  actualizar();
+}
+
+/**
+ * Marca el campo que causó el error, le pone el foco (en el grupo de
+ * perfiles, al primer perfil) y suma un fallo. Al quinto, bloquea.
+ */
+function marcarFallo(campo, mensaje) {
+  Valida.marcar(campo, mensaje);
+  (campo.querySelector('input') || campo).focus();
+
+  const fallos = Number(localStorage.getItem('loginFallos')) + 1;
+  if (fallos < MAX_INTENTOS) {
+    localStorage.setItem('loginFallos', fallos);
+    return;
+  }
+  localStorage.removeItem('loginFallos');
+  localStorage.setItem('loginBloqueadoHasta', Date.now() + SEGUNDOS_BLOQUEO * 1000);
+  UI.error('Demasiados intentos', `Espera ${SEGUNDOS_BLOQUEO} segundos antes de volver a intentarlo.`);
+  iniciarCuentaRegresiva();
+}
+
+// Si se recarga la página durante un bloqueo, la cuenta regresiva sigue.
+if (estaBloqueado()) iniciarCuentaRegresiva();
+
 /**
  * Al hacer submit en el formulario de login:
- * 1. Prevenir el submit HTML default (que recargaría la página).
- * 2. Leer los tres campos: correo, contraseña, rol elegido.
- * 3. Validar formato de cada uno; si falla, mostrar error y detener.
- * 4. Si todo pasa, por ahora solo log en consola.
- *    (El paso 5d-2 va a agregar la búsqueda en DB y la redirección.)
+ * 1. Revisar el formato de los campos y que haya un perfil elegido.
+ * 2. Comparar con la DB; cada error se marca en el campo que lo causó.
+ * 3. Si todo está bien, guardar la sesión, dar la bienvenida y redirigir.
  */
-document.getElementById('login-form').addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
+  // Enter dentro de un campo también envía el formulario: por eso se revisa aquí.
+  if (estaBloqueado()) return;
 
-  // Leer valores. .trim() quita espacios al inicio/final.
-  // .toLowerCase() normaliza el correo (Ana@X == ana@x).
-  const correo = document.getElementById('email').value.trim().toLowerCase();
-  const pass = document.getElementById('password').value;
-
-  // El radio marcado (si hay). ?. evita error si ninguno está marcado.
-  const rolElegido = document.querySelector('input[name="role"]:checked')?.value;
-
-  // Zona donde mostraremos errores. Limpiamos residuo de intentos anteriores.
-  const errorBox = document.getElementById('login-error');
-  errorBox.textContent = '';
-
-  // Guard clauses: validamos y salimos apenas una falla.
-  if (!correo) {
-    errorBox.textContent = 'Ingresa tu correo electrónico.';
-    return;
-  }
-  if (!REGEX_EMAIL.test(correo)) {
-    errorBox.textContent = 'El correo no tiene un formato válido.';
-    return;
-  }
-  if (!pass) {
-    errorBox.textContent = 'Ingresa tu contraseña.';
-    return;
-  }
-  if (pass.length < 6) {
-    errorBox.textContent = 'La contraseña debe tener al menos 6 caracteres.';
-    return;
-  }
+  // 1. Formato. ?. evita error si ningún perfil está marcado.
+  const formatoOk = validarLogin();
+  const rolElegido = loginForm.querySelector('input[name="role"]:checked')?.value;
   if (!rolElegido) {
-    errorBox.textContent = 'Selecciona tu perfil (Admin o Empleado).';
-    return;
+    Valida.marcar(rolesLogin, 'Selecciona tu perfil (Admin o Empleado).');
+    if (formatoOk) rolesLogin.querySelector('input').focus();
   }
+  if (!formatoOk || !rolElegido) return;
 
-  // Si llegamos acá, formato válido. La verificación contra DB viene en 5d-2.
-  // Buscar el usuario en la DB por correo.
+  // 2. DB. .toLowerCase() normaliza el correo (Ana@X == ana@x).
   // .find() devuelve el primer elemento que cumple, o undefined.
-  const usuarios = DB.getAll('usuarios');
-  const usuario = usuarios.find(u => u.correo.toLowerCase() === correo);
+  const correo = campoCorreo.value.trim().toLowerCase();
+  const usuario = DB.getAll('usuarios').find(u => u.correo.toLowerCase() === correo);
 
   if (!usuario) {
-    errorBox.textContent = 'No existe una cuenta con ese correo.';
+    marcarFallo(campoCorreo, 'No existe una cuenta con ese correo.');
     return;
   }
-  if (usuario.pass !== pass) {
-    errorBox.textContent = 'Contraseña incorrecta.';
+  if (usuario.pass !== campoPass.value) {
+    marcarFallo(campoPass, 'Contraseña incorrecta.');
     return;
   }
   if (usuario.rol !== rolElegido) {
-    errorBox.textContent = 'El rol seleccionado no coincide con tu cuenta.';
+    marcarFallo(rolesLogin, 'El perfil elegido no coincide con tu cuenta.');
     return;
   }
 
-  // Todo OK: guardamos la sesión activa (sin contraseña).
+  // 3. Todo OK: se reinicia el contador y se guarda la sesión (sin contraseña).
+  localStorage.removeItem('loginFallos');
   localStorage.setItem('sesion', JSON.stringify({
     id: usuario.id,
     correo: usuario.correo,
@@ -168,8 +230,11 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
     loginAt: Date.now()
   }));
 
-  // Redirigir según rol.
-  Guard.irAlInicio();
+  // El aviso necesita un momento en pantalla: si redirigimos de inmediato,
+  // desaparece junto con la página. Mientras tanto, el botón no responde.
+  Valida.bloquearEnvio(loginBoton);
+  UI.aviso(`Bienvenido, ${usuario.nombre}`);
+  setTimeout(() => Guard.irAlInicio(), 1500);
 });
 
 /* ============================================
