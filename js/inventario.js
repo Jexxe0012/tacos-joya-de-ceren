@@ -759,7 +759,7 @@ function registrarMovimiento(datos) {
 
 function poblarSelectMovimiento(idSeleccionado = '') {
   const select = document.getElementById('movimiento-producto');
-  select.innerHTML = '<option value="">— Seleccioná —</option>';
+  select.innerHTML = '<option value="">— Selecciona —</option>';
 
   DB.getAll('inventario')
     .slice()
@@ -812,11 +812,9 @@ function mostrarExistenciaActual() {
 function abrirModalMovimiento(productoId = '', tipo = 'entrada') {
   const modal = document.getElementById('modal-movimiento');
   const form = document.getElementById('form-movimiento');
-  const mensaje = document.getElementById('movimiento-msg');
 
+  // reset() también quita los errores de la vez anterior (lo hace Valida.enVivo).
   form.reset();
-  mensaje.textContent = '';
-  mensaje.className = 'modal-msg';
 
   poblarSelectMovimiento(productoId);
   document.querySelector(`input[name="movimiento-tipo"][value="${tipo}"]`).checked = true;
@@ -829,44 +827,104 @@ function abrirModalMovimiento(productoId = '', tipo = 'entrada') {
 function setupModalMovimiento() {
   const modal = document.getElementById('modal-movimiento');
   const form = document.getElementById('form-movimiento');
-  const mensaje = document.getElementById('movimiento-msg');
+  const selectProducto = document.getElementById('movimiento-producto');
+  const campoCantidad = document.getElementById('movimiento-cantidad');
+  const campoNota = document.getElementById('movimiento-nota');
+  const etiquetaNota = document.getElementById('movimiento-nota-label');
+
+  const productoElegido = () => DB.getById('inventario', selectProducto.value);
+  const tipoElegido = () => document.querySelector('input[name="movimiento-tipo"]:checked').value;
 
   document.getElementById('btn-movimiento-cancel').addEventListener('click', () => { modal.hidden = true; });
   modal.addEventListener('click', evento => {
     if (evento.target === modal) modal.hidden = true;
   });
 
-  document.getElementById('movimiento-producto').addEventListener('change', mostrarExistenciaActual);
-  document.querySelectorAll('input[name="movimiento-tipo"]').forEach(radio => {
-    radio.addEventListener('change', actualizarFormularioMovimiento);
+  /**
+   * Cantidad: en entrada y salida, mayor que 0; en un ajuste es la existencia
+   * contada, así que 0 también vale. Entera si la unidad se cuenta por pieza.
+   * Regla de negocio que cruza datos: una salida no puede pasar de lo que hay.
+   */
+  function reglaCantidad(v) {
+    const producto = productoElegido();
+    const tipo = tipoElegido();
+    const entero = producto ? UNIDADES_ENTERAS.includes(producto.unidad) : false;
+    const minimo = tipo === 'ajuste' ? 0 : (entero ? 1 : 0.01);
+    const error = Valida.numero(v, { min: minimo, entero });
+    if (error || !producto) return error;
+
+    if (tipo === 'salida' && Number(v) > Number(producto.cantidad)) {
+      return `Solo hay ${formatCantidad(producto.cantidad)} ${producto.unidad}: no puedes sacar más.`;
+    }
+    return '';
+  }
+
+  /**
+   * Un ajuste que cambia la existencia en más del 50 % necesita una nota.
+   * Si había 0, cualquier cambio cuenta como grande (no se puede dividir entre 0).
+   * Devuelve el cambio en texto ("de 18 a 5 kg"), o "" si no hace falta nota.
+   */
+  function cambioGrande() {
+    const producto = productoElegido();
+    const nueva = Number(campoCantidad.value);
+    if (tipoElegido() !== 'ajuste' || !producto || campoCantidad.value === '' || !Number.isFinite(nueva)) return '';
+
+    const anterior = Number(producto.cantidad);
+    if (nueva === anterior) return '';
+    const esGrande = anterior === 0 || Math.abs(nueva - anterior) / anterior > 0.5;
+    return esGrande ? `de ${formatCantidad(anterior)} a ${formatCantidad(nueva)} ${producto.unidad}` : '';
+  }
+
+  // Con un cambio grande, la nota pide al menos 5 caracteres: una explicación, no una letra.
+  function reglaNota(v) {
+    const cambio = cambioGrande();
+    if (!cambio) return Valida.texto(v, { max: 300 });
+    return Valida.texto(v, { min: 5, max: 300 })
+      ? `La existencia cambia mucho (${cambio}): explica el motivo en la nota.`
+      : '';
+  }
+
+  const validarMovimiento = Valida.enVivo(form, {
+    'movimiento-producto': v => v ? '' : 'Elige el producto.',
+    'movimiento-cantidad': reglaCantidad,
+    'movimiento-nota': reglaNota
   });
+
+  /**
+   * Producto, tipo y cantidad cambian las reglas de los demás campos:
+   * se revisa de nuevo lo que ya estaba en rojo y la etiqueta de la nota
+   * avisa desde antes cuándo se vuelve obligatoria.
+   */
+  function actualizarRevisiones() {
+    revisarSiTieneError(campoCantidad, reglaCantidad);
+    revisarSiTieneError(campoNota, reglaNota);
+    etiquetaNota.textContent = cambioGrande()
+      ? 'Nota (obligatoria: el ajuste cambia la existencia en más del 50 %)'
+      : 'Nota (opcional)';
+  }
+
+  selectProducto.addEventListener('change', () => {
+    mostrarExistenciaActual();
+    actualizarRevisiones();
+  });
+  document.querySelectorAll('input[name="movimiento-tipo"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      actualizarFormularioMovimiento();
+      actualizarRevisiones();
+    });
+  });
+  campoCantidad.addEventListener('input', actualizarRevisiones);
+  form.addEventListener('reset', () => { etiquetaNota.textContent = 'Nota (opcional)'; });
 
   form.addEventListener('submit', evento => {
     evento.preventDefault();
-    mensaje.textContent = '';
-    mensaje.className = 'modal-msg';
+    if (!validarMovimiento()) return;
 
-    const producto = DB.getById('inventario', document.getElementById('movimiento-producto').value);
-    const tipo = document.querySelector('input[name="movimiento-tipo"]:checked').value;
-    const cantidad = Number(document.getElementById('movimiento-cantidad').value);
+    const producto = productoElegido();
+    const tipo = tipoElegido();
+    const cantidad = Number(campoCantidad.value);
     const motivo = document.getElementById('movimiento-motivo').value;
-    const nota = document.getElementById('movimiento-nota').value.trim();
-
-    if (!producto) {
-      mensaje.textContent = 'Elegí el producto del movimiento.';
-      mensaje.className = 'modal-msg error';
-      return;
-    }
-    if (!Number.isFinite(cantidad) || cantidad < 0) {
-      mensaje.textContent = 'Escribí una cantidad válida.';
-      mensaje.className = 'modal-msg error';
-      return;
-    }
-    if (tipo !== 'ajuste' && cantidad <= 0) {
-      mensaje.textContent = 'La cantidad debe ser mayor que cero.';
-      mensaje.className = 'modal-msg error';
-      return;
-    }
+    const nota = campoNota.value.trim();
 
     const existenciaAnterior = Number(producto.cantidad);
     let existenciaNueva;
@@ -874,11 +932,6 @@ function setupModalMovimiento() {
     if (tipo === 'entrada') {
       existenciaNueva = existenciaAnterior + cantidad;
     } else if (tipo === 'salida') {
-      if (cantidad > existenciaAnterior) {
-        mensaje.textContent = `No podés sacar ${formatCantidad(cantidad)} ${producto.unidad}: solo hay ${formatCantidad(existenciaAnterior)}.`;
-        mensaje.className = 'modal-msg error';
-        return;
-      }
       existenciaNueva = existenciaAnterior - cantidad;
     } else {
       // En un ajuste la cantidad escrita es la existencia real contada.
@@ -904,8 +957,22 @@ function setupModalMovimiento() {
       nota
     });
 
+    // El modal se cierra en el mismo instante: un doble clic no registra dos veces.
     modal.hidden = true;
     renderTodo();
+
+    // SweetAlert muestra un aviso a la vez: si la salida dejó el producto en
+    // o bajo el mínimo, la advertencia reemplaza al aviso normal.
+    const minimo = Number(producto.stockMinimo);
+    const cuanto = `${formatCantidad(existenciaNueva)} ${producto.unidad}`;
+    if (tipo === 'salida' && existenciaNueva <= minimo) {
+      UI.aviso(`Queda poco de ${producto.nombre}: ${cuanto} (mínimo ${formatCantidad(minimo)})`, 'warning');
+    } else if (tipo === 'ajuste') {
+      UI.aviso(`Ajuste registrado: ${producto.nombre} queda en ${cuanto}`);
+    } else {
+      const accion = tipo === 'entrada' ? 'Entrada' : 'Salida';
+      UI.aviso(`${accion} registrada: ${formatCantidad(cantidad)} ${producto.unidad} de ${producto.nombre}`);
+    }
   });
 }
 

@@ -268,7 +268,7 @@
       <form id="form-movimiento" novalidate>
         <label for="movimiento-producto">Producto</label>
         <select id="movimiento-producto" required>
-          <option value="">— Seleccioná —</option>
+          <option value="">— Selecciona —</option>
         </select>
 
         <label id="movimiento-tipo-label">Tipo de movimiento</label>
@@ -295,10 +295,9 @@
         <label for="movimiento-motivo">Motivo</label>
         <select id="movimiento-motivo" required></select>
 
-        <label for="movimiento-nota">Nota (opcional)</label>
-        <textarea id="movimiento-nota" placeholder="Ej: factura 1204 del proveedor"></textarea>
-
-        <div class="modal-msg" id="movimiento-msg" role="alert" aria-live="polite"></div>
+        <!-- La etiqueta cambia a "obligatoria" cuando un ajuste mueve mucho la existencia. -->
+        <label for="movimiento-nota" id="movimiento-nota-label">Nota (opcional)</label>
+        <textarea id="movimiento-nota" placeholder="Ej: factura 1204 del proveedor" maxlength="300"></textarea>
 
         <div class="modal-actions">
           <button type="button" class="btn-cancel" id="btn-movimiento-cancel">Cancelar</button>
