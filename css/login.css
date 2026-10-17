@@ -304,6 +304,12 @@ body {
   box-shadow: 0 0 0 3px rgba(242, 182, 50, 0.35);
 }
 
+/* Error en el grupo de perfiles (sin elegir o que no coincide):
+   las tarjetas en rojo, igual que un campo con .is-invalid. */
+.role-picker.is-invalid .role-card {
+  border-color: var(--color-rojo);
+}
+
 /* Botón principal "Ingresar al sistema":
    ancho completo, azul de marca, hover más claro. */
 .login-card button[type="submit"] {
@@ -326,21 +332,13 @@ body {
   transform: translateY(1px);   /* efecto "presionado" */
 }
 
-/* Zona de error: oculta cuando está vacía,
-   visible con fondo rojo suave cuando tiene texto.
-   :empty es una pseudo-clase que aplica cuando
-   el elemento no tiene contenido. */
-#login-error {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background: rgba(182, 36, 36, 0.1);
-  color: var(--color-rojo);
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-#login-error:empty {
-  display: none;
+/* Desactivado (bloqueo por intentos o mientras redirige):
+   más claro y sin efecto hover, para que se note que no responde. */
+.login-card button[type="submit"]:disabled {
+  background: var(--color-azul);
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* ============================================

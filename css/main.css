@@ -255,3 +255,36 @@
   background-color: color-mix(in srgb, var(--danger) 10%, var(--surface));
   color: var(--danger);
 }
+
+/* Errores de formulario (js/validacion.js).
+   Bootstrap solo pinta el borde rojo en .form-control y .form-select, y login
+   no carga Bootstrap: estas reglas dan el mismo aspecto en todas las páginas. */
+.app-page {
+  --bs-form-invalid-color: var(--color-rojo);
+  --bs-form-invalid-border-color: var(--color-rojo);
+}
+
+.invalid-feedback {
+  display: none;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: var(--color-rojo);
+}
+
+.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+
+/* Una caja sin mensaje no ocupa espacio. */
+.invalid-feedback:empty {
+  display: none;
+}
+
+/* !important: los estilos propios de login, turnos e inventario (incluido el
+   borde amarillo del foco) son más específicos, y el error tiene que verse siempre. */
+input.is-invalid,
+select.is-invalid,
+textarea.is-invalid {
+  border-color: var(--color-rojo) !important;
+}

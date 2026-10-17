@@ -1,6 +1,7 @@
 /**
  * turnos.js — Lógica del módulo Turnos.
- * Requiere: storage.js (DB), guard.js (Guard) y main.js cargados antes.
+ * Requiere: storage.js (DB), guard.js (Guard), ui.js (UI), validacion.js
+ * (Valida) y main.js cargados antes.
  *
  * Personaliza la plantilla compartida y muestra la vista según la sesión.
  */
@@ -233,20 +234,83 @@ function renderEmpleadoWeek(monday) {
 
 /* ---------- Modal: Registrar merma ---------- */
 
+// Unidades que se cuentan por pieza: no aceptan decimales (igual que en Inventario).
+const UNIDADES_ENTERAS = ['unidad', 'docena', 'caja', 'bolsa'];
+// Mismo motivo que usa la pantalla de Mermas para la salida de inventario.
+const MOTIVO_SALIDA_MERMA = 'Merma o desperdicio';
+
 function setupModalMerma() {
   const btnOpen = document.getElementById('btn-registrar-merma');
   const modal = document.getElementById('modal-merma');
   const btnCancel = document.getElementById('btn-merma-cancel');
   const form = document.getElementById('form-merma');
-  const msgBox = document.getElementById('merma-msg');
+  const selectProducto = document.getElementById('merma-producto');
+  const campoCantidad = document.getElementById('merma-cantidad');
+  const textoUnidad = document.getElementById('merma-unidad');
   const fechaInput = document.getElementById('merma-fecha');
 
+  const productoElegido = () => DB.getById('inventario', selectProducto.value);
+
+  // Productos del inventario, ordenados igual que en la pantalla de Mermas.
+  function poblarProductos() {
+    const productos = DB.getAll('inventario')
+      .slice()
+      .sort((a, b) => a.categoria.localeCompare(b.categoria) || a.nombre.localeCompare(b.nombre));
+
+    selectProducto.innerHTML = productos.length
+      ? '<option value="">— Selecciona —</option>'
+      : '<option value="">No hay productos en el inventario</option>';
+
+    productos.forEach(p => {
+      const opcion = document.createElement('option');
+      opcion.value = p.id;
+      opcion.textContent = `${p.categoria} · ${p.nombre}`;
+      selectProducto.appendChild(opcion);
+    });
+  }
+
+  /**
+   * Cantidad: número mayor que 0; entero si la unidad se cuenta por pieza.
+   * Regla de negocio que cruza datos: no se puede dar de baja más de lo
+   * que hay en inventario.
+   */
+  function reglaCantidad(v) {
+    const producto = productoElegido();
+    const entero = producto ? UNIDADES_ENTERAS.includes(producto.unidad) : false;
+    const error = Valida.numero(v, { min: entero ? 1 : 0.01, entero });
+    if (error || !producto) return error;
+
+    const existencia = Number(producto.cantidad);
+    if (existencia <= 0) return 'No hay existencias de este producto en inventario.';
+    if (Number(v) > existencia) return `Solo hay ${existencia} ${producto.unidad} en inventario.`;
+    return '';
+  }
+
+  const validarMerma = Valida.enVivo(form, {
+    'merma-producto': v => v ? '' : 'Elige el producto.',
+    'merma-cantidad': reglaCantidad,
+    'merma-fecha': v => Valida.fecha(v, { noFutura: true }),
+    'merma-motivo': v => Valida.texto(v, { min: 3, max: 300 })
+  });
+
+  // La unidad sale del producto: se muestra junto a "Cantidad" y se guarda aparte.
+  // Si la cantidad ya tenía error, se revisa de nuevo con el producto nuevo.
+  selectProducto.addEventListener('change', () => {
+    const producto = productoElegido();
+    textoUnidad.textContent = producto ? `(en ${producto.unidad})` : '';
+    if (!campoCantidad.classList.contains('is-invalid')) return;
+    const mensaje = reglaCantidad(campoCantidad.value);
+    if (mensaje) Valida.marcar(campoCantidad, mensaje);
+    else Valida.limpiar(campoCantidad);
+  });
+
   btnOpen.addEventListener('click', () => {
+    // reset() también quita los errores de la vez anterior (lo hace Valida.enVivo).
     form.reset();
-    msgBox.textContent = '';
-    msgBox.className = 'modal-msg';
-    fechaInput.value = formatDateISO(new Date());
-    form.querySelector('.btn-submit').disabled = false;
+    poblarProductos(); // el inventario pudo cambiar desde la última vez
+    textoUnidad.textContent = '';
+    fechaInput.value = UI.fechaHoy();
+    fechaInput.max = UI.fechaHoy(); // el calendario no deja elegir días futuros
     modal.hidden = false;
   });
 
@@ -261,37 +325,53 @@ function setupModalMerma() {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    msgBox.textContent = '';
-    msgBox.className = 'modal-msg';
+    if (!validarMerma()) return;
 
-    const producto = document.getElementById('merma-producto').value.trim();
-    const cantidad = document.getElementById('merma-cantidad').value.trim();
-    const fecha = fechaInput.value;
+    const producto = productoElegido();
+    const cantidad = Number(campoCantidad.value);
     const motivo = document.getElementById('merma-motivo').value.trim();
+    const existenciaAnterior = Number(producto.cantidad);
+    // Se redondea a 2 decimales para que las restas no arrastren colas binarias.
+    const existenciaNueva = Number((existenciaAnterior - cantidad).toFixed(2));
+    // Hora exacta del registro (no es "la fecha de hoy"), igual que en Inventario.
+    const ahora = new Date().toISOString();
 
-    if (!producto || !cantidad || !fecha || !motivo) {
-      msgBox.textContent = 'Todos los campos son obligatorios.';
-      msgBox.className = 'modal-msg error';
-      return;
-    }
+    // Lo mismo que hace la pantalla de Mermas: descontar, anotar el movimiento
+    // y guardar la merma. Así el inventario no dice que hay más de lo que queda.
+    DB.update('inventario', producto.id, {
+      cantidad: existenciaNueva,
+      actualizadoEn: ahora
+    });
 
-    const btnSubmit = form.querySelector('.btn-submit');
-    btnSubmit.disabled = true;
-
-    DB.create('mermas', {
-      producto,
+    DB.create('movimientos', {
+      productoId: producto.id,
+      producto: producto.nombre,
+      tipo: 'salida',
       cantidad,
-      fecha,
+      existenciaAnterior,
+      existenciaNueva,
+      motivo: MOTIVO_SALIDA_MERMA,
+      nota: motivo,
+      usuario: sesion.nombre,
+      fecha: ahora
+    });
+
+    // Mismos campos que la pantalla de Mermas: cantidad como número y
+    // unidad aparte, para que sus totales no den "NaN kg".
+    DB.create('mermas', {
+      producto: producto.nombre,
+      productoId: producto.id,
+      unidad: producto.unidad,
+      cantidad,
+      fecha: fechaInput.value,
       motivo,
+      responsable: sesion.nombre,
       reportadoPor: sesion.id
     });
 
-    msgBox.textContent = 'Merma registrada correctamente.';
-    msgBox.className = 'modal-msg success';
-    setTimeout(() => {
-      modal.hidden = true;
-      btnSubmit.disabled = false;
-    }, 1200);
+    // El modal se cierra en el mismo instante: un doble clic no registra dos veces.
+    modal.hidden = true;
+    UI.aviso(`Merma registrada: ${cantidad} ${producto.unidad} de ${producto.nombre}`);
   });
 }
 
@@ -330,7 +410,7 @@ function setupVistaAdmin() {
 function populateEmpleadoSelect() {
   const select = document.getElementById('turno-empleado');
   const empleados = DB.getAll('usuarios').filter(u => u.rol === 'empleado');
-  select.innerHTML = '<option value="">— Seleccioná —</option>';
+  select.innerHTML = '<option value="">— Selecciona —</option>';
   empleados.forEach(emp => {
     const opt = document.createElement('option');
     opt.value = emp.id;
@@ -479,6 +559,36 @@ function horasEntre(inicio, fin) {
   return (h2 + m2 / 60) - (h1 + m1 / 60);
 }
 
+const MAX_HORAS_TURNO = 12;
+
+/**
+ * Busca un turno del mismo empleado que se cruce con el horario dado.
+ * - turnosForDate() trae los turnos que ya caen ese día, incluidos los
+ *   semanales que empezaron en semanas anteriores.
+ * - Si el turno nuevo se repite cada semana, también puede chocar con
+ *   turnos del mismo día de la semana en las semanas siguientes.
+ * Dos horarios se cruzan si cada uno empieza antes de que termine el otro.
+ * Las horas "HH:MM" se comparan como texto, igual que las fechas.
+ * Al editar, el turno no se compara consigo mismo (idPropio).
+ */
+function buscarCruce(turno, idPropio) {
+  const dia = new Date(turno.fecha + 'T00:00:00');
+  let candidatos = turnosForDate(dia, turno.empleadoId);
+
+  if (turno.esRecurrenteSemanal) {
+    const semanasSiguientes = DB.getAll('turnos').filter(t =>
+      t.empleadoId === turno.empleadoId &&
+      t.fecha > turno.fecha &&
+      new Date(t.fecha + 'T00:00:00').getDay() === dia.getDay()
+    );
+    candidatos = candidatos.concat(semanasSiguientes);
+  }
+
+  return candidatos.find(t =>
+    t.id !== idPropio && turno.horaInicio < t.horaFin && t.horaInicio < turno.horaFin
+  );
+}
+
 /* ---------- Modal: Crear / Editar / Borrar turno ---------- */
 
 function setupModalTurno(onSave) {
@@ -486,48 +596,92 @@ function setupModalTurno(onSave) {
   const form = document.getElementById('form-turno');
   const btnCancel = document.getElementById('btn-turno-cancel');
   const btnDelete = document.getElementById('btn-turno-delete');
-  const msgBox = document.getElementById('turno-msg');
+  const campoId = document.getElementById('turno-id');
+  const campoInicio = document.getElementById('turno-hora-inicio');
+  const campoFin = document.getElementById('turno-hora-fin');
 
   btnCancel.addEventListener('click', () => { modal.hidden = true; });
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.hidden = true;
   });
 
-  btnDelete.addEventListener('click', () => {
-    const id = document.getElementById('turno-id').value;
+  // Fin después del inicio y como máximo MAX_HORAS_TURNO horas.
+  function reglaHoraFin(v) {
+    if (!v) return 'Elige la hora de fin.';
+    if (!campoInicio.value) return '';
+    if (v <= campoInicio.value) return 'La hora de fin debe ser después de la hora de inicio.';
+    if (horasEntre(campoInicio.value, v) > MAX_HORAS_TURNO) {
+      return `Un turno no puede durar más de ${MAX_HORAS_TURNO} horas.`;
+    }
+    return '';
+  }
+
+  // Las fechas pasadas solo se rechazan al crear (turno-id vacío):
+  // un turno que ya pasó sí se puede corregir.
+  const validarTurno = Valida.enVivo(form, {
+    'turno-empleado': v => v ? '' : 'Elige un empleado.',
+    'turno-fecha': v => Valida.fecha(v, { noPasada: !campoId.value }),
+    'turno-hora-inicio': v => v ? '' : 'Elige la hora de inicio.',
+    'turno-hora-fin': reglaHoraFin,
+    'turno-estacion': v => v ? '' : 'Elige una estación.',
+    'turno-notas': v => Valida.texto(v, { max: 300 })
+  });
+
+  // Si cambia el inicio, la regla del fin puede cambiar: se revisa de nuevo
+  // cuando el fin ya estaba marcado con error.
+  campoInicio.addEventListener('input', () => {
+    if (!campoFin.classList.contains('is-invalid')) return;
+    const mensaje = reglaHoraFin(campoFin.value);
+    if (mensaje) Valida.marcar(campoFin, mensaje);
+    else Valida.limpiar(campoFin);
+  });
+
+  btnDelete.addEventListener('click', async () => {
+    const id = campoId.value;
     if (!id) return;
-    if (!confirm('¿Borrar este turno?')) return;
+    // Un turno semanal es un solo registro: al borrarlo se va de todas las semanas.
+    const turno = DB.getById('turnos', id);
+    const confirmado = await UI.confirmar({
+      titulo: '¿Borrar este turno?',
+      texto: turno && turno.esRecurrenteSemanal
+        ? 'Este turno se repite cada semana: se borrará de todas las semanas.'
+        : 'Esta acción no se puede deshacer.',
+      boton: 'Sí, borrar',
+      peligro: true
+    });
+    if (!confirmado) return;
     DB.remove('turnos', id);
     modal.hidden = true;
     onSave();
+    UI.aviso('Turno borrado');
   });
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    msgBox.textContent = '';
-    msgBox.className = 'modal-msg';
+    if (!validarTurno()) return;
 
-    const id = document.getElementById('turno-id').value;
-    const empleadoId = document.getElementById('turno-empleado').value;
-    const fecha = document.getElementById('turno-fecha').value;
-    const horaInicio = document.getElementById('turno-hora-inicio').value;
-    const horaFin = document.getElementById('turno-hora-fin').value;
-    const estacion = document.getElementById('turno-estacion').value;
-    const notas = document.getElementById('turno-notas').value.trim();
-    const esRecurrenteSemanal = document.getElementById('turno-recurrente').checked;
+    const id = campoId.value;
+    const data = {
+      empleadoId: document.getElementById('turno-empleado').value,
+      fecha: document.getElementById('turno-fecha').value,
+      horaInicio: campoInicio.value,
+      horaFin: campoFin.value,
+      estacion: document.getElementById('turno-estacion').value,
+      notas: document.getElementById('turno-notas').value.trim(),
+      esRecurrenteSemanal: document.getElementById('turno-recurrente').checked
+    };
 
-    if (!empleadoId || !fecha || !horaInicio || !horaFin || !estacion) {
-      msgBox.textContent = 'Empleado, fecha, horas y estación son obligatorios.';
-      msgBox.className = 'modal-msg error';
+    // Regla de negocio que cruza datos: un empleado no puede tener dos turnos a la vez.
+    const cruce = buscarCruce(data, id);
+    if (cruce) {
+      // Si el choque es en una semana siguiente, se dice qué día es.
+      const dia = new Date(cruce.fecha + 'T00:00:00');
+      const cuando = cruce.fecha > data.fecha ? ` del ${dia.getDate()} ${MESES[dia.getMonth()]}` : '';
+      Valida.marcar(campoInicio,
+        `Se cruza con el turno${cuando} de ${formatHora(cruce.horaInicio)}–${formatHora(cruce.horaFin)} (${cruce.estacion}).`);
+      campoInicio.focus();
       return;
     }
-    if (horaFin <= horaInicio) {
-      msgBox.textContent = 'La hora de fin debe ser después de la hora de inicio.';
-      msgBox.className = 'modal-msg error';
-      return;
-    }
-
-    const data = { empleadoId, fecha, horaInicio, horaFin, estacion, notas, esRecurrenteSemanal };
 
     if (id) {
       DB.update('turnos', id, data);
@@ -535,8 +689,11 @@ function setupModalTurno(onSave) {
       DB.create('turnos', data);
     }
 
+    // El modal se cierra en el mismo instante en que se guarda,
+    // así que un doble clic no alcanza a guardar dos veces.
     modal.hidden = true;
     onSave();
+    UI.aviso(id ? 'Turno actualizado' : 'Turno creado');
   });
 }
 
@@ -545,10 +702,9 @@ function openTurnoModal(turno, prefill = {}) {
   const title = document.getElementById('modal-turno-title');
   const btnDelete = document.getElementById('btn-turno-delete');
   const btnSave = document.getElementById('btn-turno-save');
-  const msgBox = document.getElementById('turno-msg');
 
-  msgBox.textContent = '';
-  msgBox.className = 'modal-msg';
+  // reset() también quita los errores de la vez anterior (lo hace Valida.enVivo).
+  document.getElementById('form-turno').reset();
 
   if (turno) {
     title.textContent = 'Editar turno';
@@ -568,7 +724,7 @@ function openTurnoModal(turno, prefill = {}) {
     btnDelete.hidden = true;
     document.getElementById('turno-id').value = '';
     document.getElementById('turno-empleado').value = prefill.empleadoId || '';
-    document.getElementById('turno-fecha').value = prefill.fecha || formatDateISO(new Date());
+    document.getElementById('turno-fecha').value = prefill.fecha || UI.fechaHoy();
     document.getElementById('turno-hora-inicio').value = '14:00';
     document.getElementById('turno-hora-fin').value = '21:00';
     document.getElementById('turno-estacion').value = '';
@@ -638,6 +794,7 @@ function buildSolicitudCard(solicitud, showActions, onAction) {
     btnAccept.addEventListener('click', () => {
       DB.update('solicitudes', solicitud.id, { estado: 'aceptada' });
       if (onAction) onAction();
+      UI.aviso(`Solicitud de ${nombre} aceptada`);
     });
 
     const btnReject = document.createElement('button');
@@ -647,6 +804,7 @@ function buildSolicitudCard(solicitud, showActions, onAction) {
     btnReject.addEventListener('click', () => {
       DB.update('solicitudes', solicitud.id, { estado: 'rechazada' });
       if (onAction) onAction();
+      UI.aviso(`Solicitud de ${nombre} rechazada`, 'info');
     });
 
     actions.appendChild(btnAccept);
@@ -659,10 +817,24 @@ function buildSolicitudCard(solicitud, showActions, onAction) {
 
 /* ---------- Empleado: crear + ver propias ---------- */
 
+// Regla de negocio: cada empleado tiene como máximo una solicitud pendiente.
+function tieneSolicitudPendiente() {
+  return DB.getAll('solicitudes').some(s => s.empleadoId === sesion.id && s.estado === 'pendiente');
+}
+
+function avisarSolicitudPendiente() {
+  UI.error('Ya tienes una solicitud pendiente', 'Espera a que el administrador la responda para enviar otra.');
+}
+
 function setupSolicitudesEmpleado() {
   renderMisSolicitudes();
 
+  // Con una pendiente, el modal ni se abre: se explica por qué.
   document.getElementById('btn-crear-solicitud').addEventListener('click', () => {
+    if (tieneSolicitudPendiente()) {
+      avisarSolicitudPendiente();
+      return;
+    }
     openSolicitudModal();
   });
 
@@ -692,59 +864,46 @@ function setupModalSolicitud(onSubmit) {
   const modal = document.getElementById('modal-solicitud');
   const form = document.getElementById('form-solicitud');
   const btnCancel = document.getElementById('btn-solicitud-cancel');
-  const msgBox = document.getElementById('solicitud-msg');
 
   btnCancel.addEventListener('click', () => { modal.hidden = true; });
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.hidden = true;
   });
 
+  // Valida.texto quita los espacios antes de medir: "     " cuenta como vacío.
+  const validarSolicitud = Valida.enVivo(form, {
+    'solicitud-mensaje': v => Valida.texto(v, { min: 5, max: 300 })
+  });
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    msgBox.textContent = '';
-    msgBox.className = 'modal-msg';
+    if (!validarSolicitud()) return;
 
-    const mensaje = document.getElementById('solicitud-mensaje').value.trim();
-
-    if (!mensaje) {
-      msgBox.textContent = 'Escribí el mensaje de tu solicitud.';
-      msgBox.className = 'modal-msg error';
+    // Se revisa otra vez al enviar, por si mandó otra desde una segunda pestaña.
+    if (tieneSolicitudPendiente()) {
+      modal.hidden = true;
+      avisarSolicitudPendiente();
       return;
     }
-    if (mensaje.length < 5) {
-      msgBox.textContent = 'El mensaje debe tener al menos 5 caracteres.';
-      msgBox.className = 'modal-msg error';
-      return;
-    }
-
-    const btnSubmit = form.querySelector('.btn-submit');
-    btnSubmit.disabled = true;
 
     DB.create('solicitudes', {
       empleadoId: sesion.id,
-      mensaje,
+      mensaje: document.getElementById('solicitud-mensaje').value.trim(),
       fecha: new Date().toISOString(),
       estado: 'pendiente'
     });
 
-    msgBox.textContent = 'Solicitud enviada correctamente.';
-    msgBox.className = 'modal-msg success';
-    setTimeout(() => {
-      modal.hidden = true;
-      btnSubmit.disabled = false;
-      onSubmit();
-    }, 1000);
+    // El modal se cierra en el mismo instante: un doble clic no envía dos veces.
+    modal.hidden = true;
+    onSubmit();
+    UI.aviso('Solicitud enviada');
   });
 }
 
 function openSolicitudModal() {
   const modal = document.getElementById('modal-solicitud');
-  const form = document.getElementById('form-solicitud');
-  const msgBox = document.getElementById('solicitud-msg');
-  form.reset();
-  msgBox.textContent = '';
-  msgBox.className = 'modal-msg';
-  form.querySelector('.btn-submit').disabled = false;
+  // reset() también quita los errores de la vez anterior (lo hace Valida.enVivo).
+  document.getElementById('form-solicitud').reset();
   modal.hidden = false;
 }
 

@@ -1,0 +1,26 @@
+/* Estilos exclusivos de abastecimiento; paleta y componentes en main.css. */
+.abastecimientos-page .abastecimientos-dias { font-size: clamp(3rem, 7vw, 4.5rem); line-height: .9; font-variant-numeric: tabular-nums; }
+.abastecimientos-page .abastecimientos-resumen { display: grid; gap: .9rem; }
+.abastecimientos-page .abastecimientos-resumen div { display: grid; grid-template-columns: minmax(10rem, 1fr) auto; gap: 1rem; align-items: baseline; }
+.abastecimientos-page .abastecimientos-resumen dt { color: var(--bs-secondary-color); font-size: .875rem; font-weight: 400; }
+.abastecimientos-page .abastecimientos-resumen dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+.abastecimientos-page .abastecimientos-alerta { min-height: 4rem; border-left: 4px solid var(--danger); border-radius: .5rem; padding: .75rem 1rem; background: color-mix(in srgb, var(--danger) 10%, var(--surface)); color: var(--danger); display: flex; flex-direction: column; justify-content: center; font-size: .875rem; }
+.abastecimientos-page .abastecimientos-alerta strong { display: block; margin-bottom: .2rem; }
+.abastecimientos-page .abastecimientos-alerta span { color: var(--bs-secondary-color); font-size: .75rem; }
+.abastecimientos-page .abastecimientos-mensaje { min-height: 1.25rem; color: var(--danger); }
+.abastecimientos-page .abastecimientos-grafica { display: grid; grid-template-columns: repeat(5, minmax(2.5rem, 1fr)); align-items: end; gap: clamp(1rem, 4vw, 2.6rem); min-height: 12rem; padding: 1rem 1.5rem 0; }
+.abastecimientos-page .demanda-barra { display: grid; grid-template-rows: auto 1fr auto; height: 11rem; gap: .4rem; text-align: center; font-size: .75rem; }
+.abastecimientos-page .demanda-valor { font-weight: 700; font-size: .7rem; }
+.abastecimientos-page .demanda-columna { align-self: end; min-height: 2rem; width: 100%; border-radius: .45rem .45rem .2rem .2rem; background: color-mix(in srgb, var(--text) 25%, var(--surface)); }
+.abastecimientos-page .demanda-barra.destacada .demanda-columna { background: var(--text); }
+.abastecimientos-page .demanda-dia { color: var(--bs-secondary-color); }
+.abastecimientos-page .abastecimientos-tabla { --bs-table-bg: transparent; --bs-table-color: var(--text); }
+.abastecimientos-page .abastecimientos-tabla th { padding: .5rem .25rem .75rem; color: var(--bs-secondary-color); font-size: .7rem; font-weight: 600; white-space: nowrap; }
+.abastecimientos-page .abastecimientos-tabla td { padding: .7rem .25rem; font-size: .8rem; vertical-align: middle; }
+.abastecimientos-page .abastecimientos-tabla th:last-child, .abastecimientos-page .abastecimientos-tabla td:last-child { width: 9.75rem; text-align: right; }
+.abastecimientos-page .abastecimientos-tabla td:first-child { font-weight: 600; }
+.abastecimientos-page .abastecimientos-tabla .fecha-compra { color: var(--bs-secondary-color); }
+.abastecimientos-page .cobertura-critica { color: var(--danger); font-weight: 700; }
+.abastecimientos-page .pedido-sugerido { display: inline-flex; align-items: center; justify-content: center; min-width: 8.75rem; min-height: 2rem; border-radius: 999px; padding: .42rem .75rem; background: color-mix(in srgb, var(--text) 10%, var(--surface)); font-weight: 600; text-align: center; white-space: nowrap; }
+.abastecimientos-page .pedido-sugerido.urgente { background: color-mix(in srgb, var(--danger) 12%, var(--surface)); color: var(--danger); }
+@media (max-width: 575.98px) { .abastecimientos-page .abastecimientos-grafica { gap: .6rem; padding-inline: 0; } .abastecimientos-page .demanda-valor { font-size: .6rem; } .abastecimientos-page .abastecimientos-tabla th:nth-child(2), .abastecimientos-page .abastecimientos-tabla td:nth-child(2) { display: none; } }
