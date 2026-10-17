@@ -1,7 +1,8 @@
 /**
  * login.js — Lógica del login y registro de Tacos Joya de Cerén.
  * 
- * Requiere que DB (de storage.js) esté cargado antes que este script.
+ * Requiere storage.js (DB), guard.js (Guard), ui.js (UI) y validacion.js
+ * (Valida) cargados antes que este script.
  */
 
 /* ============================================
@@ -39,8 +40,8 @@ const cardSubtitle = document.getElementById("card-subtitle");
 
 /**
  * Muestra una vista y oculta la otra usando el atributo hidden.
- * También cambia el título y subtítulo de la tarjeta, limpia los
- * mensajes de error y pone el foco en el primer campo de la vista
+ * También cambia el título y subtítulo de la tarjeta, quita las
+ * marcas de error y pone el foco en el primer campo de la vista
  * nueva (para quien navega con teclado).
  */
 function mostrarVista(vista) {
@@ -54,8 +55,7 @@ function mostrarVista(vista) {
     ? "Completa tus datos para registrarte"
     : "Ingresa al sistema según tu rol";
 
-  document.getElementById("login-error").textContent    = "";
-  document.getElementById("register-error").textContent = "";
+  document.querySelectorAll(".is-invalid").forEach(campo => Valida.limpiar(campo));
 
   document.getElementById(esRegistro ? "reg-nombre" : "email").focus();
 }
@@ -75,11 +75,15 @@ document.getElementById("show-login").addEventListener("click", () => mostrarVis
 document.querySelectorAll('input[name="reg-role"]').forEach(radio => {
   radio.addEventListener('change', (e) => {
     const adminKeyField = document.getElementById('admin-key-field');
+    const campoClave = document.getElementById('reg-admin-key');
     adminKeyField.hidden = e.target.value !== 'admin';
-    // Limpiar el input si se oculta, así no queda basura al enviar
+    // Limpiar el input (y su error) si se oculta, así no queda basura al enviar
     if (adminKeyField.hidden) {
-      document.getElementById('reg-admin-key').value = '';
+      campoClave.value = '';
+      Valida.limpiar(campoClave);
     }
+    // Al elegir un perfil se quita el error del grupo de perfiles.
+    Valida.limpiar(e.target.closest('.role-picker'));
   });
 });
 
@@ -95,71 +99,132 @@ document.querySelectorAll('input[name="reg-role"]').forEach(radio => {
 const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ADMIN_KEY = 'TJC-ADMIN-2025';
 
+const loginForm   = document.getElementById('login-form');
+const loginBoton  = loginForm.querySelector('button[type="submit"]');
+const rolesLogin  = loginForm.querySelector('.role-picker');
+const campoCorreo = document.getElementById('email');
+const campoPass   = document.getElementById('password');
+
+/**
+ * Validación mientras se escribe: formato del correo y largo mínimo
+ * de la contraseña. Lo que depende de la DB (si el correo existe, si
+ * la contraseña es la correcta) se revisa al enviar.
+ * El mínimo es 6 y no 8 para que puedan entrar las cuentas creadas
+ * antes de la regla nueva del registro.
+ */
+const validarLogin = Valida.enVivo(loginForm, {
+  email: v => Valida.texto(v, { min: 1, patron: REGEX_EMAIL, mensaje: 'El correo no tiene un formato válido.' }),
+  password: v => Valida.texto(v, { min: 6 })
+});
+
+// Al elegir un perfil se quita el error del grupo de perfiles.
+loginForm.querySelectorAll('input[name="role"]').forEach(radio => {
+  radio.addEventListener('change', () => Valida.limpiar(rolesLogin));
+});
+
+/* ============================================
+   Bloqueo tras 5 intentos fallidos seguidos
+   ============================================ */
+
+/**
+ * Los fallos y la hora de desbloqueo se guardan en localStorage, no en
+ * una variable, para que recargar la página no salte el bloqueo.
+ * Solo cuentan los intentos que llegan a compararse con la DB: un campo
+ * vacío o mal escrito no es un intento de entrar.
+ */
+const MAX_INTENTOS = 5;
+const SEGUNDOS_BLOQUEO = 60;
+const TEXTO_BOTON_LOGIN = loginBoton.textContent;
+
+function estaBloqueado() {
+  return Number(localStorage.getItem('loginBloqueadoHasta')) > Date.now();
+}
+
+/**
+ * Mientras dure el bloqueo, el botón queda desactivado y muestra los
+ * segundos que faltan. Se actualiza cada segundo.
+ */
+function iniciarCuentaRegresiva() {
+  const reactivar = Valida.bloquearEnvio(loginBoton);
+
+  const actualizar = () => {
+    const faltan = Math.ceil((Number(localStorage.getItem('loginBloqueadoHasta')) - Date.now()) / 1000);
+    if (faltan > 0) {
+      loginBoton.textContent = `Espera ${faltan} s`;
+      return;
+    }
+    clearInterval(reloj);
+    localStorage.removeItem('loginBloqueadoHasta');
+    loginBoton.textContent = TEXTO_BOTON_LOGIN;
+    reactivar();
+  };
+
+  const reloj = setInterval(actualizar, 1000);
+  actualizar();
+}
+
+/**
+ * Marca el campo que causó el error, le pone el foco (en el grupo de
+ * perfiles, al primer perfil) y suma un fallo. Al quinto, bloquea.
+ */
+function marcarFallo(campo, mensaje) {
+  Valida.marcar(campo, mensaje);
+  (campo.querySelector('input') || campo).focus();
+
+  const fallos = Number(localStorage.getItem('loginFallos')) + 1;
+  if (fallos < MAX_INTENTOS) {
+    localStorage.setItem('loginFallos', fallos);
+    return;
+  }
+  localStorage.removeItem('loginFallos');
+  localStorage.setItem('loginBloqueadoHasta', Date.now() + SEGUNDOS_BLOQUEO * 1000);
+  UI.error('Demasiados intentos', `Espera ${SEGUNDOS_BLOQUEO} segundos antes de volver a intentarlo.`);
+  iniciarCuentaRegresiva();
+}
+
+// Si se recarga la página durante un bloqueo, la cuenta regresiva sigue.
+if (estaBloqueado()) iniciarCuentaRegresiva();
+
 /**
  * Al hacer submit en el formulario de login:
- * 1. Prevenir el submit HTML default (que recargaría la página).
- * 2. Leer los tres campos: correo, contraseña, rol elegido.
- * 3. Validar formato de cada uno; si falla, mostrar error y detener.
- * 4. Si todo pasa, por ahora solo log en consola.
- *    (El paso 5d-2 va a agregar la búsqueda en DB y la redirección.)
+ * 1. Revisar el formato de los campos y que haya un perfil elegido.
+ * 2. Comparar con la DB; cada error se marca en el campo que lo causó.
+ * 3. Si todo está bien, guardar la sesión, dar la bienvenida y redirigir.
  */
-document.getElementById('login-form').addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
+  // Enter dentro de un campo también envía el formulario: por eso se revisa aquí.
+  if (estaBloqueado()) return;
 
-  // Leer valores. .trim() quita espacios al inicio/final.
-  // .toLowerCase() normaliza el correo (Ana@X == ana@x).
-  const correo = document.getElementById('email').value.trim().toLowerCase();
-  const pass = document.getElementById('password').value;
-
-  // El radio marcado (si hay). ?. evita error si ninguno está marcado.
-  const rolElegido = document.querySelector('input[name="role"]:checked')?.value;
-
-  // Zona donde mostraremos errores. Limpiamos residuo de intentos anteriores.
-  const errorBox = document.getElementById('login-error');
-  errorBox.textContent = '';
-
-  // Guard clauses: validamos y salimos apenas una falla.
-  if (!correo) {
-    errorBox.textContent = 'Ingresa tu correo electrónico.';
-    return;
-  }
-  if (!REGEX_EMAIL.test(correo)) {
-    errorBox.textContent = 'El correo no tiene un formato válido.';
-    return;
-  }
-  if (!pass) {
-    errorBox.textContent = 'Ingresa tu contraseña.';
-    return;
-  }
-  if (pass.length < 6) {
-    errorBox.textContent = 'La contraseña debe tener al menos 6 caracteres.';
-    return;
-  }
+  // 1. Formato. ?. evita error si ningún perfil está marcado.
+  const formatoOk = validarLogin();
+  const rolElegido = loginForm.querySelector('input[name="role"]:checked')?.value;
   if (!rolElegido) {
-    errorBox.textContent = 'Selecciona tu perfil (Admin o Empleado).';
-    return;
+    Valida.marcar(rolesLogin, 'Selecciona tu perfil (Admin o Empleado).');
+    if (formatoOk) rolesLogin.querySelector('input').focus();
   }
+  if (!formatoOk || !rolElegido) return;
 
-  // Si llegamos acá, formato válido. La verificación contra DB viene en 5d-2.
-  // Buscar el usuario en la DB por correo.
+  // 2. DB. .toLowerCase() normaliza el correo (Ana@X == ana@x).
   // .find() devuelve el primer elemento que cumple, o undefined.
-  const usuarios = DB.getAll('usuarios');
-  const usuario = usuarios.find(u => u.correo.toLowerCase() === correo);
+  const correo = campoCorreo.value.trim().toLowerCase();
+  const usuario = DB.getAll('usuarios').find(u => u.correo.toLowerCase() === correo);
 
   if (!usuario) {
-    errorBox.textContent = 'No existe una cuenta con ese correo.';
+    marcarFallo(campoCorreo, 'No existe una cuenta con ese correo.');
     return;
   }
-  if (usuario.pass !== pass) {
-    errorBox.textContent = 'Contraseña incorrecta.';
+  if (usuario.pass !== campoPass.value) {
+    marcarFallo(campoPass, 'Contraseña incorrecta.');
     return;
   }
   if (usuario.rol !== rolElegido) {
-    errorBox.textContent = 'El rol seleccionado no coincide con tu cuenta.';
+    marcarFallo(rolesLogin, 'El perfil elegido no coincide con tu cuenta.');
     return;
   }
 
-  // Todo OK: guardamos la sesión activa (sin contraseña).
+  // 3. Todo OK: se reinicia el contador y se guarda la sesión (sin contraseña).
+  localStorage.removeItem('loginFallos');
   localStorage.setItem('sesion', JSON.stringify({
     id: usuario.id,
     correo: usuario.correo,
@@ -168,101 +233,135 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
     loginAt: Date.now()
   }));
 
-  // Redirigir según rol.
-  Guard.irAlInicio();
+  // El aviso necesita un momento en pantalla: si redirigimos de inmediato,
+  // desaparece junto con la página. Mientras tanto, el botón no responde.
+  Valida.bloquearEnvio(loginBoton);
+  UI.aviso(`Bienvenido, ${usuario.nombre}`);
+  setTimeout(() => Guard.irAlInicio(), 1500);
 });
 
 /* ============================================
    Handler del registro
    ============================================ */
 
+const registerForm  = document.getElementById('register-form');
+const rolesRegistro = registerForm.querySelector('.role-picker');
+const regPass       = document.getElementById('reg-password');
+const regPass2      = document.getElementById('reg-password2');
+
+// Solo letras (con tildes, ñ y ü) y espacios.
+const REGEX_NOMBRE = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ ]+$/;
+
+const rolRegistro = () => registerForm.querySelector('input[name="reg-role"]:checked')?.value;
+
+/**
+ * Regla de negocio que cruza datos: el correo no puede estar ya en la DB.
+ * .some() devuelve true si al menos un usuario cumple.
+ */
+function correoRegistrado(correo) {
+  const buscado = correo.trim().toLowerCase();
+  return DB.getAll('usuarios').some(u => u.correo.toLowerCase() === buscado);
+}
+
+/**
+ * Contraseña: 8 o más caracteres, con al menos una letra y un número.
+ * Son revisiones separadas (y no una sola regex) para que cada mensaje
+ * diga exactamente qué falta. No se usa Valida.texto porque quita los
+ * espacios de los extremos, y en una contraseña cuentan.
+ */
+function reglaPassword(v) {
+  if (!v) return 'Este campo es obligatorio.';
+  if (v.length < 8) return 'Usa al menos 8 caracteres.';
+  if (!/[a-záéíóúüñ]/i.test(v)) return 'Incluye al menos una letra.';
+  if (!/[0-9]/.test(v)) return 'Incluye al menos un número.';
+  return '';
+}
+
+function reglaConfirmacion(v) {
+  if (!v) return 'Repite la contraseña.';
+  return v === regPass.value ? '' : 'Las contraseñas no coinciden.';
+}
+
+// La clave solo se pide si eligió el perfil de administrador.
+function reglaClaveAdmin(v) {
+  if (rolRegistro() !== 'admin') return '';
+  if (!v.trim()) return 'Escribe la clave de administrador.';
+  return v.trim() === ADMIN_KEY ? '' : 'La clave de administrador no es correcta.';
+}
+
+/**
+ * En el correo, primero el formato; si está bien (Valida.texto devuelve ""),
+ * el || pasa a revisar si ya existe. Así el error aparece al salir del
+ * campo, sin esperar al envío.
+ */
+const validarRegistro = Valida.enVivo(registerForm, {
+  'reg-nombre': v => Valida.texto(v, { min: 3, max: 60, patron: REGEX_NOMBRE, mensaje: 'Usa solo letras y espacios.' }),
+  'reg-email': v => Valida.texto(v, { min: 1, patron: REGEX_EMAIL, mensaje: 'El correo no tiene un formato válido.' })
+    || (correoRegistrado(v) ? 'Ya existe una cuenta con ese correo.' : ''),
+  'reg-password': reglaPassword,
+  'reg-password2': reglaConfirmacion,
+  'reg-admin-key': reglaClaveAdmin
+});
+
+/**
+ * La confirmación se revisa mientras se escribe, y también si cambia la
+ * contraseña de arriba. Mientras lo escrito todavía puede llegar a ser la
+ * contraseña (es su inicio), no se marca error: así no regaña desde la
+ * primera letra.
+ */
+function revisarConfirmacion() {
+  const v = regPass2.value;
+  const vaBien = regPass.value.startsWith(v) && v.length < regPass.value.length;
+  if (!v || vaBien) {
+    Valida.limpiar(regPass2);
+    return;
+  }
+  const mensaje = reglaConfirmacion(v);
+  if (mensaje) Valida.marcar(regPass2, mensaje);
+  else Valida.limpiar(regPass2);
+}
+regPass.addEventListener('input', revisarConfirmacion);
+regPass2.addEventListener('input', revisarConfirmacion);
+
 /**
  * Al hacer submit en el formulario de registro:
- * 1. Prevenir el submit HTML default.
- * 2. Leer todos los campos.
- * 3. Validar formato, coincidencia de contraseñas, correo único.
- * 4. Si el rol es admin, validar la clave de administrador.
- * 5. Si todo OK: crear el usuario en DB, guardar sesión (auto-login),
- *    y redirigir según su rol.
+ * 1. Revisar todos los campos y que haya un perfil elegido.
+ * 2. Crear el usuario en DB y avisar con UI.exito.
+ * 3. Volver al login con el correo y el perfil listos, para que entre
+ *    con la contraseña que acaba de crear.
  */
-document.getElementById('register-form').addEventListener('submit', (e) => {
+registerForm.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Leer valores
-  const nombre = document.getElementById('reg-nombre').value.trim();
-  const correo = document.getElementById('reg-email').value.trim().toLowerCase();
-  const pass = document.getElementById('reg-password').value;
-  const pass2 = document.getElementById('reg-password2').value;
-  const rolElegido = document.querySelector('input[name="reg-role"]:checked')?.value;
-  const claveAdmin = document.getElementById('reg-admin-key').value.trim();
-
-  const errorBox = document.getElementById('register-error');
-  errorBox.textContent = '';
-
-  // Validaciones de formato
-  if (!nombre) {
-    errorBox.textContent = 'Ingresa tu nombre completo.';
-    return;
-  }
-  if (nombre.length < 2) {
-    errorBox.textContent = 'El nombre debe tener al menos 2 caracteres.';
-    return;
-  }
-  if (!correo) {
-    errorBox.textContent = 'Ingresa tu correo electrónico.';
-    return;
-  }
-  if (!REGEX_EMAIL.test(correo)) {
-    errorBox.textContent = 'El correo no tiene un formato válido.';
-    return;
-  }
-  if (!pass) {
-    errorBox.textContent = 'Ingresa una contraseña.';
-    return;
-  }
-  if (pass.length < 6) {
-    errorBox.textContent = 'La contraseña debe tener al menos 6 caracteres.';
-    return;
-  }
-  if (pass !== pass2) {
-    errorBox.textContent = 'Las contraseñas no coinciden.';
-    return;
-  }
+  // 1. Validar.
+  const camposOk = validarRegistro();
+  const rolElegido = rolRegistro();
   if (!rolElegido) {
-    errorBox.textContent = 'Selecciona un perfil (Admin o Empleado).';
-    return;
+    Valida.marcar(rolesRegistro, 'Selecciona un perfil (Admin o Empleado).');
+    if (camposOk) rolesRegistro.querySelector('input').focus();
   }
+  if (!camposOk || !rolElegido) return;
 
-  // Verificar que el correo no exista ya
-  const existente = DB.getAll('usuarios').find(u => u.correo.toLowerCase() === correo);
-  if (existente) {
-    errorBox.textContent = 'Ya existe una cuenta con ese correo.';
-    return;
-  }
-
-  // Si eligió admin, verificar la clave
-  if (rolElegido === 'admin' && claveAdmin !== ADMIN_KEY) {
-    errorBox.textContent = 'La clave de administrador es incorrecta.';
-    return;
-  }
-
-  // Todo OK: crear el usuario
-  const nuevoUsuario = DB.create('usuarios', {
-    nombre: nombre,
+  // 2. Crear el usuario. El correo va en minúsculas (Ana@X == ana@x).
+  const reactivar = Valida.bloquearEnvio(registerForm.querySelector('button[type="submit"]'));
+  const correo = document.getElementById('reg-email').value.trim().toLowerCase();
+  DB.create('usuarios', {
+    nombre: document.getElementById('reg-nombre').value.trim(),
     correo: correo,
-    pass: pass,
+    pass: regPass.value,
     rol: rolElegido
   });
+  await UI.exito('Cuenta creada', 'Ya puedes iniciar sesión.');
 
-  // Auto-login: guardar sesión (sin contraseña)
-  localStorage.setItem('sesion', JSON.stringify({
-    id: nuevoUsuario.id,
-    correo: nuevoUsuario.correo,
-    nombre: nuevoUsuario.nombre,
-    rol: nuevoUsuario.rol,
-    loginAt: Date.now()
-  }));
+  // 3. reset() también borra las marcas (lo hace Valida.enVivo). Los radios
+  //    se desmarcan sin avisar, así que el campo de la clave se oculta a mano.
+  registerForm.reset();
+  document.getElementById('admin-key-field').hidden = true;
+  reactivar();
 
-  // Redirigir según rol
-  Guard.irAlInicio();
+  mostrarVista('login');
+  campoCorreo.value = correo;
+  campoPass.value = '';
+  loginForm.querySelector(`input[name="role"][value="${rolElegido}"]`).checked = true;
+  campoPass.focus();
 });

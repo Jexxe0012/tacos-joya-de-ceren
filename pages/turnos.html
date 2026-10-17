@@ -34,7 +34,7 @@
         <div class="admin-header">
           <div>
             <h1>Turnos y días libres</h1>
-            <p class="subtitle">Organizá los turnos de los empleados durante la semana.</p>
+            <p class="subtitle">Organiza los turnos de los empleados durante la semana.</p>
           </div>
           <button type="button" class="btn btn-app-primary" id="btn-crear-turno">+ Crear turno</button>
         </div>
@@ -75,7 +75,7 @@
               <!-- Se llena con JS -->
             </table>
           </div>
-          <p class="calendar-hint">Hacé click en una celda para crear o editar el turno. Los turnos con ↻ se repiten cada semana.</p>
+          <p class="calendar-hint">Haz clic en una celda para crear o editar el turno. Los turnos con ↻ se repiten cada semana.</p>
         </div>
 
         <div class="admin-solicitudes-container">
@@ -134,22 +134,23 @@
   <div class="modal-overlay" id="modal-merma" hidden>
     <div class="modal-card" role="dialog" aria-labelledby="modal-merma-title">
       <h2 id="modal-merma-title">Registrar merma</h2>
-      <p class="modal-subtitle">Reportá qué producto se botó y por qué.</p>
+      <p class="modal-subtitle">Reporta qué producto se botó y por qué.</p>
 
       <form id="form-merma" novalidate>
         <label for="merma-producto">Producto</label>
-        <input type="text" id="merma-producto" name="producto" required>
+        <select id="merma-producto" name="producto" required>
+          <option value="">— Selecciona —</option>
+        </select>
 
-        <label for="merma-cantidad">Cantidad</label>
-        <input type="text" id="merma-cantidad" name="cantidad" placeholder="Ej: 5 kg, 2 unidades" required>
+        <!-- La unidad (kg, docena…) la pone turnos.js según el producto elegido. -->
+        <label for="merma-cantidad">Cantidad <span id="merma-unidad"></span></label>
+        <input type="number" id="merma-cantidad" name="cantidad" min="0.01" step="0.01" required>
 
         <label for="merma-fecha">Fecha</label>
         <input type="date" id="merma-fecha" name="fecha" required>
 
         <label for="merma-motivo">Motivo</label>
-        <textarea id="merma-motivo" name="motivo" required></textarea>
-
-        <div class="modal-msg" id="merma-msg" role="alert" aria-live="polite"></div>
+        <textarea id="merma-motivo" name="motivo" required minlength="3" maxlength="300"></textarea>
 
         <div class="modal-actions">
           <button type="button" class="btn-cancel" id="btn-merma-cancel">Cancelar</button>
@@ -163,14 +164,14 @@
   <div class="modal-overlay" id="modal-turno" hidden>
     <div class="modal-card modal-card-wide" role="dialog" aria-labelledby="modal-turno-title">
       <h2 id="modal-turno-title">Crear turno</h2>
-      <p class="modal-subtitle">Asigná un turno a un empleado.</p>
+      <p class="modal-subtitle">Asigna un turno a un empleado.</p>
 
       <form id="form-turno" novalidate>
         <input type="hidden" id="turno-id">
 
         <label for="turno-empleado">Empleado</label>
         <select id="turno-empleado" required>
-          <option value="">— Seleccioná —</option>
+          <option value="">— Selecciona —</option>
         </select>
 
         <label for="turno-fecha">Fecha</label>
@@ -189,7 +190,7 @@
 
         <label for="turno-estacion">Estación</label>
         <select id="turno-estacion" required>
-          <option value="">— Seleccioná —</option>
+          <option value="">— Selecciona —</option>
           <option value="Cocina">Cocina</option>
           <option value="Plancha">Plancha</option>
           <option value="Caja">Caja</option>
@@ -199,14 +200,12 @@
         </select>
 
         <label for="turno-notas">Notas (opcional)</label>
-        <textarea id="turno-notas"></textarea>
+        <textarea id="turno-notas" maxlength="300"></textarea>
 
         <label class="checkbox-label">
           <input type="checkbox" id="turno-recurrente">
           Repetir este turno cada semana
         </label>
-
-        <div class="modal-msg" id="turno-msg" role="alert" aria-live="polite"></div>
 
         <div class="modal-actions">
           <button type="button" class="btn-danger" id="btn-turno-delete" hidden>Borrar</button>
@@ -221,13 +220,11 @@
   <div class="modal-overlay" id="modal-solicitud" hidden>
     <div class="modal-card" role="dialog" aria-labelledby="modal-solicitud-title">
       <h2 id="modal-solicitud-title">Nueva solicitud</h2>
-      <p class="modal-subtitle">Contale al administrador qué necesitás: día libre, cambio de turno, etc.</p>
+      <p class="modal-subtitle">Cuéntale al administrador qué necesitas: día libre, cambio de turno, etc.</p>
 
       <form id="form-solicitud" novalidate>
         <label for="solicitud-mensaje">Mensaje</label>
-        <textarea id="solicitud-mensaje" required minlength="5" placeholder="Ej: Necesito el domingo 12 libre por un tema familiar…"></textarea>
-
-        <div class="modal-msg" id="solicitud-msg" role="alert" aria-live="polite"></div>
+        <textarea id="solicitud-mensaje" required minlength="5" maxlength="300" placeholder="Ej: Necesito el domingo 12 libre por un tema familiar…"></textarea>
 
         <div class="modal-actions">
           <button type="button" class="btn-cancel" id="btn-solicitud-cancel">Cancelar</button>
