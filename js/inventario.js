@@ -1,6 +1,7 @@
 /**
  * inventario.js — Lógica del módulo Inventario.
- * Requiere: storage.js (DB), guard.js (Guard) y main.js cargados antes.
+ * Requiere: storage.js (DB), guard.js (Guard), ui.js (UI), validacion.js
+ * (Valida) y main.js cargados antes.
  *
  * Guarda dos colecciones en localStorage:
  *   - "inventario": los productos con su existencia, mínimo y costo.
@@ -43,6 +44,9 @@ const CATEGORIAS = [
 
 // Unidades de medida típicas de una cocina.
 const UNIDADES = ['kg', 'lb', 'g', 'L', 'ml', 'unidad', 'docena', 'caja', 'bolsa'];
+
+// Unidades que se cuentan por pieza: no aceptan decimales (misma lista que turnos.js).
+const UNIDADES_ENTERAS = ['unidad', 'docena', 'caja', 'bolsa'];
 
 // Motivos posibles según el tipo de movimiento.
 const MOTIVOS = {
@@ -418,7 +422,7 @@ function renderTabla() {
     celda.colSpan = 9;
     celda.className = 'inv-vacio';
     celda.textContent = total === 0
-      ? 'Todavía no hay productos. Agregá el primero con "+ Nuevo producto".'
+      ? 'Todavía no hay productos. Agrega el primero con "+ Nuevo producto".'
       : 'Ningún producto coincide con la búsqueda o los filtros aplicados.';
     fila.appendChild(celda);
     cuerpo.appendChild(fila);
@@ -515,7 +519,7 @@ function buildFilaProducto(producto) {
   acciones.appendChild(botonAccion('Editar', 'Editar producto', 'btn-mini-editar',
     () => abrirModalProducto(producto)));
   acciones.appendChild(botonAccion('Eliminar', 'Eliminar producto', 'btn-mini-eliminar',
-    () => abrirModalEliminar(producto)));
+    () => eliminarProducto(producto)));
 
   tdAcciones.appendChild(acciones);
   fila.appendChild(tdAcciones);
@@ -565,10 +569,17 @@ function abrirModalProducto(producto = null) {
   const modal = document.getElementById('modal-producto');
   const titulo = document.getElementById('modal-producto-title');
   const btnEliminar = document.getElementById('btn-producto-delete');
-  const mensaje = document.getElementById('producto-msg');
 
-  mensaje.textContent = '';
-  mensaje.className = 'modal-msg';
+  // reset() también quita los errores de la vez anterior (lo hace Valida.enVivo).
+  document.getElementById('form-producto').reset();
+
+  // La existencia solo se escribe al crear. Al editar queda de solo lectura:
+  // así todo cambio de existencia pasa por un movimiento y queda en el historial.
+  document.getElementById('producto-cantidad').readOnly = Boolean(producto);
+  document.getElementById('producto-cantidad-ayuda').hidden = !producto;
+
+  // Al crear, el calendario no deja elegir una caducidad que ya pasó.
+  document.getElementById('producto-caducidad').min = producto ? '' : UI.fechaHoy();
 
   if (producto) {
     titulo.textContent = 'Editar producto';
@@ -586,7 +597,6 @@ function abrirModalProducto(producto = null) {
   } else {
     titulo.textContent = 'Nuevo producto';
     btnEliminar.hidden = true;
-    document.getElementById('form-producto').reset();
     document.getElementById('producto-id').value = '';
   }
 
@@ -594,76 +604,102 @@ function abrirModalProducto(producto = null) {
   document.getElementById('producto-nombre').focus();
 }
 
+/** Vuelve a aplicar una regla a un campo que ya estaba marcado con error. */
+function revisarSiTieneError(campo, regla) {
+  if (!campo.classList.contains('is-invalid')) return;
+  const mensaje = regla(campo.value);
+  if (mensaje) Valida.marcar(campo, mensaje);
+  else Valida.limpiar(campo);
+}
+
+/**
+ * Regla de negocio que cruza datos: el nombre es único en todo el
+ * inventario (Mermas agrupa por nombre), sin distinguir mayúsculas ni
+ * tildes. localeCompare con 'es' y sensitivity 'base' compara como una
+ * persona: "Limón" = "LIMON", pero "Piña" ≠ "Pina" porque la ñ es otra letra.
+ * Devuelve el mensaje de error o "".
+ */
+function nombreRepetido(nombre, idPropio) {
+  const buscado = nombre.trim().replace(/\s+/g, ' ');
+  const otro = DB.getAll('inventario').find(p =>
+    String(p.id) !== String(idPropio) &&
+    p.nombre.localeCompare(buscado, 'es', { sensitivity: 'base' }) === 0
+  );
+  return otro ? `Ya existe «${otro.nombre}» en ${otro.categoria}.` : '';
+}
+
 function setupModalProducto() {
   const modal = document.getElementById('modal-producto');
   const form = document.getElementById('form-producto');
-  const mensaje = document.getElementById('producto-msg');
+  const campoId = document.getElementById('producto-id');
+  const selectUnidad = document.getElementById('producto-unidad');
+  const campoCantidad = document.getElementById('producto-cantidad');
+  const campoMinimo = document.getElementById('producto-minimo');
 
   document.getElementById('btn-producto-cancel').addEventListener('click', () => { modal.hidden = true; });
   modal.addEventListener('click', evento => {
     if (evento.target === modal) modal.hidden = true;
   });
 
-  document.getElementById('btn-producto-delete').addEventListener('click', () => {
-    const producto = DB.getById('inventario', document.getElementById('producto-id').value);
-    if (producto) {
-      modal.hidden = true;
-      abrirModalEliminar(producto);
-    }
+  // El modal de edición queda abierto detrás de la confirmación:
+  // si se cancela, se sigue editando.
+  document.getElementById('btn-producto-delete').addEventListener('click', async () => {
+    const producto = DB.getById('inventario', campoId.value);
+    if (producto && await eliminarProducto(producto)) modal.hidden = true;
+  });
+
+  // Existencia y mínimo: 0 o más; enteros si la unidad se cuenta por pieza.
+  const reglaCantidad = v => Valida.numero(v, { min: 0, entero: UNIDADES_ENTERAS.includes(selectUnidad.value) });
+
+  // Las reglas que dependen de "crear o editar" miran si producto-id está vacío.
+  const validarProducto = Valida.enVivo(form, {
+    'producto-nombre': v => Valida.texto(v, { min: 3, max: 60 }) || nombreRepetido(v, campoId.value),
+    'producto-categoria': v => v ? '' : 'Elige la categoría.',
+    'producto-unidad': v => v ? '' : 'Elige la unidad de medida.',
+    // Al editar es de solo lectura: no se valida lo que el usuario no puede cambiar.
+    'producto-cantidad': v => campoId.value ? '' : reglaCantidad(v),
+    'producto-minimo': reglaCantidad,
+    'producto-costo': v => Valida.numero(v, { min: 0.01 }) ? 'Escribe un costo mayor que 0.' : '',
+    // Opcional; al crear no puede estar vencida (al editar sí, para poder corregir otros datos).
+    'producto-caducidad': v => v ? Valida.fecha(v, { noPasada: !campoId.value }) : '',
+    'producto-proveedor': v => Valida.texto(v, { max: 60 }),
+    'producto-ubicacion': v => Valida.texto(v, { max: 60 })
+  });
+
+  // Si cambia la unidad, la regla de enteros cambia: se revisan de nuevo.
+  selectUnidad.addEventListener('change', () => {
+    revisarSiTieneError(campoCantidad, v => campoId.value ? '' : reglaCantidad(v));
+    revisarSiTieneError(campoMinimo, reglaCantidad);
   });
 
   form.addEventListener('submit', evento => {
     evento.preventDefault();
-    mensaje.textContent = '';
-    mensaje.className = 'modal-msg';
+    if (!validarProducto()) return;
 
-    const id = document.getElementById('producto-id').value;
-    const nombre = document.getElementById('producto-nombre').value.trim();
-    const categoria = document.getElementById('producto-categoria').value;
-    const unidad = document.getElementById('producto-unidad').value;
-    const cantidad = Number(document.getElementById('producto-cantidad').value);
-    const stockMinimo = Number(document.getElementById('producto-minimo').value);
-    const costoUnitario = Number(document.getElementById('producto-costo').value);
-    const caducidad = document.getElementById('producto-caducidad').value;
-    const proveedor = document.getElementById('producto-proveedor').value.trim();
-    const ubicacion = document.getElementById('producto-ubicacion').value.trim();
-
-    const error = validarProducto({ id, nombre, categoria, unidad, cantidad, stockMinimo, costoUnitario });
-    if (error) {
-      mensaje.textContent = error;
-      mensaje.className = 'modal-msg error';
-      return;
-    }
-
-    const datos = { nombre, categoria, unidad, cantidad, stockMinimo, costoUnitario, caducidad, proveedor, ubicacion };
+    const id = campoId.value;
+    const ahora = new Date().toISOString();
+    const datos = {
+      nombre: document.getElementById('producto-nombre').value.trim(),
+      categoria: document.getElementById('producto-categoria').value,
+      unidad: selectUnidad.value,
+      stockMinimo: Number(campoMinimo.value),
+      costoUnitario: Number(document.getElementById('producto-costo').value),
+      caducidad: document.getElementById('producto-caducidad').value,
+      proveedor: document.getElementById('producto-proveedor').value.trim(),
+      ubicacion: document.getElementById('producto-ubicacion').value.trim()
+    };
 
     if (id) {
-      const anterior = DB.getById('inventario', id);
-      DB.update('inventario', id, { ...datos, actualizadoEn: new Date().toISOString() });
-      // Si la edición cambió la existencia, queda constancia en el historial.
-      if (anterior && Number(anterior.cantidad) !== cantidad) {
-        registrarMovimiento({
-          productoId: id,
-          producto: nombre,
-          tipo: 'ajuste',
-          cantidad: Math.abs(cantidad - Number(anterior.cantidad)),
-          existenciaAnterior: Number(anterior.cantidad),
-          existenciaNueva: cantidad,
-          motivo: 'Corrección de registro',
-          nota: 'Existencia modificada al editar el producto'
-        });
-      }
+      // La existencia no se toca al editar: se cambia con un movimiento.
+      DB.update('inventario', id, { ...datos, actualizadoEn: ahora });
     } else {
-      const creado = DB.create('inventario', {
-        ...datos,
-        creadoEn: new Date().toISOString(),
-        actualizadoEn: new Date().toISOString()
-      });
+      const cantidad = Number(campoCantidad.value);
+      const creado = DB.create('inventario', { ...datos, cantidad, creadoEn: ahora, actualizadoEn: ahora });
       // El alta inicial se registra como entrada para que el historial cuadre.
       if (cantidad > 0) {
         registrarMovimiento({
           productoId: creado.id,
-          producto: nombre,
+          producto: datos.nombre,
           tipo: 'entrada',
           cantidad,
           existenciaAnterior: 0,
@@ -674,70 +710,38 @@ function setupModalProducto() {
       }
     }
 
+    // El modal se cierra en el mismo instante: un doble clic no guarda dos veces.
     modal.hidden = true;
     renderTodo();
+    UI.aviso(id ? 'Producto actualizado' : 'Producto creado');
   });
-}
-
-/** Devuelve el mensaje de error, o null si el producto es válido. */
-function validarProducto({ id, nombre, categoria, unidad, cantidad, stockMinimo, costoUnitario }) {
-  if (!nombre) return 'Escribí el nombre del producto.';
-  if (nombre.length < 3) return 'El nombre debe tener al menos 3 caracteres.';
-  if (!categoria) return 'Elegí la categoría del producto.';
-  if (!unidad) return 'Elegí la unidad de medida.';
-  if (!Number.isFinite(cantidad) || cantidad < 0) return 'La existencia debe ser un número de 0 o más.';
-  if (!Number.isFinite(stockMinimo) || stockMinimo < 0) return 'El mínimo debe ser un número de 0 o más.';
-  if (!Number.isFinite(costoUnitario) || costoUnitario < 0) return 'El costo por unidad debe ser un número de 0 o más.';
-
-  // Nombres repetidos dentro de la misma categoría confunden al buscar.
-  const repetido = DB.getAll('inventario').some(p =>
-    String(p.id) !== String(id) &&
-    p.nombre.toLowerCase() === nombre.toLowerCase() &&
-    p.categoria === categoria
-  );
-  if (repetido) return 'Ya existe un producto con ese nombre en esa categoría.';
-
-  return null;
 }
 
 /* ---------- Eliminar producto ---------- */
 
-// Producto pendiente de confirmación de borrado.
-let productoAEliminar = null;
-
-function abrirModalEliminar(producto) {
-  productoAEliminar = producto;
-  document.getElementById('eliminar-detalle').textContent =
-    `Vas a eliminar "${producto.nombre}" con ${formatCantidad(producto.cantidad)} ${producto.unidad} en existencia.`;
-  document.getElementById('modal-eliminar').hidden = false;
-}
-
-function setupModalEliminar() {
-  const modal = document.getElementById('modal-eliminar');
-
-  const cerrar = () => {
-    modal.hidden = true;
-    productoAEliminar = null;
-  };
-
-  document.getElementById('btn-eliminar-cancel').addEventListener('click', cerrar);
-  modal.addEventListener('click', evento => {
-    if (evento.target === modal) cerrar();
+/**
+ * Pide confirmación con UI.confirmar y, si se acepta, borra el producto
+ * y sus movimientos. Devuelve true si se eliminó.
+ */
+async function eliminarProducto(producto) {
+  const confirmado = await UI.confirmar({
+    titulo: `¿Eliminar "${producto.nombre}"?`,
+    texto: `Tiene ${formatCantidad(producto.cantidad)} ${producto.unidad} en existencia. ` +
+      'También se borran sus movimientos del historial. Esta acción no se puede deshacer.',
+    boton: 'Sí, eliminar',
+    peligro: true
   });
+  if (!confirmado) return false;
 
-  document.getElementById('btn-eliminar-confirmar').addEventListener('click', () => {
-    if (!productoAEliminar) return;
-    const id = productoAEliminar.id;
+  DB.remove('inventario', producto.id);
+  // Los movimientos del producto se van con él para no dejar historial huérfano.
+  DB.getAll('movimientos')
+    .filter(m => String(m.productoId) === String(producto.id))
+    .forEach(m => DB.remove('movimientos', m.id));
 
-    DB.remove('inventario', id);
-    // Los movimientos del producto se van con él para no dejar historial huérfano.
-    DB.getAll('movimientos')
-      .filter(m => String(m.productoId) === String(id))
-      .forEach(m => DB.remove('movimientos', m.id));
-
-    cerrar();
-    renderTodo();
-  });
+  renderTodo();
+  UI.aviso(`Producto eliminado: ${producto.nombre}`);
+  return true;
 }
 
 /* ============================================
@@ -1140,7 +1144,7 @@ function renderSeccionesEmpleado() {
     const vacio = document.createElement('p');
     vacio.className = 'emp-vacio';
     vacio.textContent = filtrosEmpleado.texto
-      ? `No encontramos "${filtrosEmpleado.texto.trim()}" en el inventario. Probá con otro nombre o preguntale al administrador.`
+      ? `No encontramos "${filtrosEmpleado.texto.trim()}" en el inventario. Prueba con otro nombre o pregúntale al administrador.`
       : 'No hay productos que coincidan con lo que elegiste.';
     contenedor.appendChild(vacio);
     return;
@@ -1229,7 +1233,7 @@ if (sesion.rol === 'admin') {
   document.getElementById('empleado-view').hidden = false;
   // El empleado solo consulta: la sección de gestión y sus modales ni siquiera
   // quedan en la página, así no hay botón que tocar ni formulario que enviar.
-  ['admin-view', 'modal-producto', 'modal-movimiento', 'modal-eliminar'].forEach(id => {
+  ['admin-view', 'modal-producto', 'modal-movimiento'].forEach(id => {
     document.getElementById(id).remove();
   });
   setupVistaEmpleado();
@@ -1239,7 +1243,6 @@ function setupVistaAdmin() {
   poblarSelectsProducto();
   setupModalProducto();
   setupModalMovimiento();
-  setupModalEliminar();
 
   document.getElementById('btn-nuevo-producto').addEventListener('click', () => abrirModalProducto());
   document.getElementById('btn-nuevo-movimiento').addEventListener('click', () => abrirModalMovimiento());
@@ -1276,10 +1279,9 @@ function setupVistaAdmin() {
   // Escape cierra cualquier modal abierto.
   document.addEventListener('keydown', evento => {
     if (evento.key !== 'Escape') return;
-    ['modal-producto', 'modal-movimiento', 'modal-eliminar'].forEach(id => {
+    ['modal-producto', 'modal-movimiento'].forEach(id => {
       document.getElementById(id).hidden = true;
     });
-    productoAEliminar = null;
   });
 
   renderTodo();
