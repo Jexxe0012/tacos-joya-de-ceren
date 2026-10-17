@@ -22,8 +22,13 @@ const UI = (() => {
   const colorAviso = { success: "--color-verde", info: "--color-azul", warning: "--color-maiz" };
 
   // Respaldo sin librería: una franja fija arriba de la página que se quita sola.
+  // Igual que SweetAlert2, se muestra una a la vez para que no se encimen.
+  let franjaActual = null;
+
   function respaldo(texto, esError = false) {
+    if (franjaActual) franjaActual.remove();
     const caja = document.createElement("div");
+    franjaActual = caja;
     caja.setAttribute("role", "alert");
     caja.textContent = texto;
     Object.assign(caja.style, {
