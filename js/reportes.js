@@ -4,6 +4,10 @@ const formularioFiltros = document.getElementById("formulario-filtros");
 const filtroPeriodo = document.getElementById("filtro-periodo");
 const filtroInsumo = document.getElementById("filtro-insumo");
 const resumenFiltros = document.getElementById("resumen-filtros");
+const camposRango = document.getElementById("rango-personalizado");
+const filtroFechaInicio = document.getElementById("filtro-fecha-inicio");
+const filtroFechaFin = document.getElementById("filtro-fecha-fin");
+const botonAplicarFiltros = document.getElementById("btn-aplicar-filtros");
 
 // Los insumos provienen de la maqueta, hasta integrar el catálogo del grupo.
 const periodosPermitidos = ["7", "30"];
@@ -27,16 +31,70 @@ function calcularRangoPeriodo(dias, fechaActual = new Date()) {
   return { inicio, fin };
 }
 
+// El rango personalizado incluye ambos extremos: del 1 al 1 cuenta como un día.
+const maxDiasRango = 90;
+
+function textoFechaReporte(fecha) {
+  const anio = String(fecha.getFullYear()).padStart(4, "0");
+  const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+  const dia = String(fecha.getDate()).padStart(2, "0");
+  return `${anio}-${mes}-${dia}`;
+}
+
+function fechaLocalReporte(valor) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return null;
+  const fecha = new Date(`${valor}T00:00:00`);
+  // Date puede normalizar días inexistentes, por ejemplo el 31 de febrero.
+  return Number.isFinite(fecha.getTime()) && textoFechaReporte(fecha) === valor ? fecha : null;
+}
+
+function diasEnRango(inicio, fin) {
+  // El redondeo mantiene el conteo de días aunque cambie el horario local.
+  return Math.round((fin - inicio) / 86400000) + 1;
+}
+
+function validarFechaRango(valor) {
+  const error = Valida.fecha(valor, { noFutura: true });
+  if (error) return error;
+  return fechaLocalReporte(valor) ? "" : "Selecciona una fecha válida.";
+}
+
+function validarFinRango(valor) {
+  if (filtroPeriodo.value !== "personalizado") return "";
+  const error = validarFechaRango(valor);
+  if (error) return error;
+  const inicio = fechaLocalReporte(filtroFechaInicio.value);
+  const fin = fechaLocalReporte(valor);
+  if (!inicio) return ""; // El error de inicio se muestra en su propio campo.
+  if (inicio > fin) return "Selecciona una fecha final igual o posterior a la inicial.";
+  if (diasEnRango(inicio, fin) > maxDiasRango) {
+    return `Selecciona un máximo de ${maxDiasRango} días, incluyendo ambas fechas.`;
+  }
+  return "";
+}
+
 // Reutiliza los mensajes junto al campo y el foco en el primer error del equipo.
-// La lista permitida también rechaza valores alterados fuera de las opciones.
 const validarFiltros = Valida.enVivo(formularioFiltros, {
-  "filtro-periodo": (valor) => periodosPermitidos.includes(valor)
+  "filtro-periodo": (valor) => periodosPermitidos.includes(valor) || valor === "personalizado"
     ? ""
     : "Selecciona un período de la lista.",
   "filtro-insumo": (valor) => insumosPermitidos.includes(valor)
     ? ""
-    : "Selecciona un insumo de la lista."
+    : "Selecciona un insumo de la lista.",
+  "filtro-fecha-inicio": (valor) => filtroPeriodo.value === "personalizado" ? validarFechaRango(valor) : "",
+  "filtro-fecha-fin": validarFinRango
 });
+
+function actualizarCamposRango() {
+  const personalizado = filtroPeriodo.value === "personalizado";
+  camposRango.hidden = !personalizado;
+  camposRango.disabled = !personalizado;
+  for (const campo of [filtroFechaInicio, filtroFechaFin]) {
+    campo.required = personalizado;
+    campo.max = UI.fechaHoy();
+    if (!personalizado) Valida.limpiar(campo);
+  }
+}
 
 // Datos temporales: 30 días relativos a hoy, sin modificar el almacenamiento del equipo.
 // Al integrar los módulos reales se reemplazará esta fuente, manteniendo el cálculo.
@@ -107,7 +165,7 @@ function mostrarIndicadores(indicadores, dias) {
   const decimales = new Intl.NumberFormat("es-SV", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const moneda = new Intl.NumberFormat("es-SV", { style: "currency", currency: "USD" });
   document.getElementById("valor-ventas").textContent = enteros.format(indicadores.ventas);
-  document.getElementById("detalle-ventas").textContent = `Tacos vendidos en los últimos ${dias} días · todos los insumos.`;
+  document.getElementById("detalle-ventas").textContent = `Tacos vendidos en ${dias} ${dias === 1 ? "día" : "días"} del período seleccionado · todos los insumos.`;
   document.getElementById("valor-mermas").textContent = `${decimales.format(indicadores.mermaKg)} kg`;
   document.getElementById("detalle-mermas").textContent = `Costo estimado: ${moneda.format(indicadores.costoMerma)}.`;
   document.getElementById("valor-eficiencia").textContent = indicadores.eficiencia === null
@@ -173,11 +231,13 @@ function mostrarHallazgoOperativo(hallazgo) {
 }
 
 function mostrarSeleccionFiltros() {
-  const fechaActual = new Date();
-  const rango = calcularRangoPeriodo(filtroPeriodo.value, fechaActual);
+  const fechaActual = fechaLocalReporte(UI.fechaHoy());
+  const rango = filtroPeriodo.value === "personalizado"
+    ? { inicio: fechaLocalReporte(filtroFechaInicio.value), fin: fechaLocalReporte(filtroFechaFin.value) }
+    : calcularRangoPeriodo(filtroPeriodo.value, fechaActual);
   const registros = crearDatosDemostracion(fechaActual);
   const indicadores = calcularIndicadores(registros, rango, filtroInsumo.value);
-  mostrarIndicadores(indicadores, filtroPeriodo.value);
+  mostrarIndicadores(indicadores, diasEnRango(rango.inicio, rango.fin));
   mostrarGraficasReportes(registros, rango, filtroInsumo.value);
   mostrarHallazgoOperativo(calcularHallazgoOperativo(registros, rango, filtroInsumo.value));
   const formatoFecha = new Intl.DateTimeFormat("es-SV", {
@@ -193,13 +253,38 @@ function mostrarSeleccionFiltros() {
     `${formatoFecha.format(rango.fin)} · ${nombreInsumo}. Indicadores, gráficas y hallazgo actualizados con datos de demostración.`;
 }
 
-formularioFiltros.addEventListener("submit", (evento) => {
+// El botón queda bloqueado hasta terminar el aviso para evitar envíos repetidos.
+let aplicandoFiltros = false;
+formularioFiltros.addEventListener("submit", async (evento) => {
   evento.preventDefault();
+  if (aplicandoFiltros || !validarFiltros()) return;
 
-  if (validarFiltros()) {
+  aplicandoFiltros = true;
+  const desbloquear = Valida.bloquearEnvio(botonAplicarFiltros);
+  try {
     mostrarSeleccionFiltros();
-    UI.aviso("Filtros aplicados. Reportes actualizados.");
+    await UI.aviso("Reporte actualizado");
+  } finally {
+    desbloquear();
+    aplicandoFiltros = false;
   }
 });
 
+filtroPeriodo.addEventListener("change", actualizarCamposRango);
+filtroFechaInicio.addEventListener("input", () => {
+  // Corregir el inicio también puede resolver un error de orden o duración en el fin.
+  if (filtroFechaFin.classList.contains("is-invalid")) {
+    const error = validarFinRango(filtroFechaFin.value);
+    if (error) Valida.marcar(filtroFechaFin, error);
+    else Valida.limpiar(filtroFechaFin);
+  }
+});
+for (const campo of [filtroFechaInicio, filtroFechaFin]) {
+  campo.addEventListener("focus", () => { campo.max = UI.fechaHoy(); });
+}
+
+const rangoInicial = calcularRangoPeriodo(7, fechaLocalReporte(UI.fechaHoy()));
+filtroFechaInicio.value = textoFechaReporte(rangoInicial.inicio);
+filtroFechaFin.value = textoFechaReporte(rangoInicial.fin);
+actualizarCamposRango();
 mostrarSeleccionFiltros();

@@ -134,7 +134,7 @@ function mostrarGraficasReportes(registros, rango, insumoSeleccionado) {
   document.getElementById("titulo-grafica-ventas").textContent = series.ventas.length === 7 ? "Ventas semanales" : "Ventas del período";
   document.getElementById("descripcion-ventas").textContent = series.ventas.length <= 7
     ? `Tacos vendidos por día · ${series.ventas.length} días · total del negocio.`
-    : "Tacos vendidos por día · últimos 30 días · total del negocio. Desliza horizontalmente para ver todos los días.";
+    : `Tacos vendidos por día · ${series.ventas.length} días del período seleccionado · total del negocio. Desliza horizontalmente para ver todos los días.`;
   document.getElementById("descripcion-demanda").textContent = `Próximos 7 días · promedio por día de la semana de los ${series.ventas.length} días seleccionados · total del negocio.`;
   const nombreInsumo = insumoSeleccionado === "todos" ? "todos los ingredientes" : series.mermas[0]?.nombre;
   document.getElementById("descripcion-mermas").textContent = `Kilogramos acumulados en ${series.ventas.length} días · ${nombreInsumo}.`;

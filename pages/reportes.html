@@ -50,6 +50,7 @@
                 <select class="form-select" id="filtro-periodo" name="periodo" required>
                   <option value="7" selected>Últimos 7 días</option>
                   <option value="30">Últimos 30 días</option>
+                  <option value="personalizado">Rango personalizado</option>
                 </select>
               </div>
               <div class="col-12 col-md-6 col-xl-4">
@@ -65,9 +66,25 @@
                 </select>
               </div>
               <div class="col-12 col-xl-4 d-grid">
-                <button class="btn btn-app-primary" type="submit">Aplicar filtros</button>
+                <button class="btn btn-app-primary" type="submit" id="btn-aplicar-filtros">Aplicar filtros</button>
               </div>
             </div>
+            <fieldset class="mt-3" id="rango-personalizado" aria-describedby="ayuda-rango" hidden disabled>
+              <legend class="h6">Fechas del reporte</legend>
+              <p class="small text-body-secondary" id="ayuda-rango">
+                Selecciona hasta 90 días, incluyendo ambas fechas. La fecha final no puede ser posterior a hoy.
+              </p>
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="filtro-fecha-inicio">Fecha inicial</label>
+                  <input class="form-control" type="date" id="filtro-fecha-inicio" name="fechaInicio">
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" for="filtro-fecha-fin">Fecha final</label>
+                  <input class="form-control" type="date" id="filtro-fecha-fin" name="fechaFin">
+                </div>
+              </div>
+            </fieldset>
           </form>
           <noscript>
             <p class="mt-3 mb-0">Activa JavaScript en tu navegador para utilizar los filtros.</p>
@@ -82,7 +99,7 @@
               <span class="badge rounded-pill app-estado app-estado-atencion">Datos de demostración</span>
             </div>
             <p class="small text-body-secondary mb-3">
-              Valores simulados para probar los filtros. Ventas muestra el total del negocio;
+              Valores simulados de los últimos 30 días para probar los filtros. Ventas muestra el total del negocio;
               el insumo seleccionado se aplica a mermas y eficiencia.
             </p>
             <div class="row g-3">
