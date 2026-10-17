@@ -59,3 +59,11 @@
 .reportes-page .reportes-hallazgo {
   border-left: 3px solid var(--accent);
 }
+
+/* Estados vacíos visibles sin dibujar ejes sobre registros inexistentes. */
+.reportes-page .reportes-vacio {
+  border: 1px dashed var(--bs-border-color);
+  border-radius: 0.75rem;
+  color: var(--text);
+  background-color: var(--surface);
+}

@@ -1,81 +1,94 @@
 "use strict";
 
-// Fechas locales para agrupar todos los registros del mismo día.
-function claveFechaReporte(fecha) {
-  return `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`;
-}
-
-function prepararSeriesReportes(registros, rango, insumoSeleccionado) {
-  const catalogo = { res: "Res", pastor: "Carne al pastor", pollo: "Pollo", queso: "Queso", otros: "Otros" };
+function prepararSeriesReportes(datos, rango, productoSeleccionado) {
   const ventasPorFecha = new Map();
-  const mermaPorInsumo = new Map(Object.keys(catalogo)
-    .filter(id => insumoSeleccionado === "todos" || id === insumoSeleccionado)
-    .map(id => [id, 0]));
-  const finExclusivo = new Date(rango.fin);
-  finExclusivo.setDate(finExclusivo.getDate() + 1);
-
-  for (const registro of registros) {
-    if (registro.fecha < rango.inicio || registro.fecha >= finExclusivo) continue;
-    const clave = claveFechaReporte(registro.fecha);
-    ventasPorFecha.set(clave, (ventasPorFecha.get(clave) ?? 0) + registro.tacosVendidos);
-    for (const insumo of registro.insumos) {
-      if (mermaPorInsumo.has(insumo.id)) {
-        mermaPorInsumo.set(insumo.id, mermaPorInsumo.get(insumo.id) + insumo.mermaKg);
-      }
-    }
+  const ingresosPorReceta = new Map();
+  for (const venta of datos.ventas) {
+    const fecha = textoFechaReporte(venta.fecha);
+    ventasPorFecha.set(fecha, (ventasPorFecha.get(fecha) || 0) + venta.cantidad);
+    const ingreso = ingresosPorReceta.get(venta.recetaId) || { nombre: venta.nombre, valor: 0 };
+    ingreso.valor += venta.total;
+    ingresosPorReceta.set(venta.recetaId, ingreso);
   }
-
   const ventas = [];
   const historialSemana = Array.from({ length: 7 }, () => []);
-  for (const fecha = new Date(rango.inicio); fecha < finExclusivo; fecha.setDate(fecha.getDate() + 1)) {
-    const valor = ventasPorFecha.get(claveFechaReporte(fecha)) ?? null;
+  for (const fecha = new Date(rango.inicio); fecha <= rango.fin; fecha.setDate(fecha.getDate() + 1)) {
+    const valor = ventasPorFecha.get(textoFechaReporte(fecha)) ?? null;
     ventas.push({ fecha: new Date(fecha), valor });
     if (valor !== null) historialSemana[fecha.getDay()].push(valor);
   }
-
   const demanda = Array.from({ length: 7 }, (_, indice) => {
     const fecha = new Date(rango.fin);
     fecha.setDate(fecha.getDate() + indice + 1);
     const historial = historialSemana[fecha.getDay()];
-    return {
-      fecha,
-      valor: historial.length ? Math.round(historial.reduce((suma, valor) => suma + valor, 0) / historial.length) : null
-    };
+    return { fecha, valor: historial.length ? Math.round(historial.reduce((suma, valor) => suma + valor, 0) / historial.length) : null };
   });
-
-  const mermas = Array.from(mermaPorInsumo, ([id, valor]) => ({ nombre: catalogo[id], valor }))
-    .sort((a, b) => b.valor - a.valor);
-  return { ventas, mermas, demanda };
+  const porProducto = new Map();
+  for (const merma of datos.mermas) {
+    if (productoSeleccionado !== "todos" && productoSeleccionado !== merma.productoId) continue;
+    const producto = porProducto.get(merma.productoId) || { nombre: merma.nombre, kg: null, costo: null, cantidades: new Map() };
+    if (merma.kg !== null) producto.kg = (producto.kg || 0) + merma.kg;
+    if (merma.costo !== null) producto.costo = (producto.costo || 0) + merma.costo;
+    const unidad = merma.unidad || "sin unidad";
+    producto.cantidades.set(unidad, (producto.cantidades.get(unidad) || 0) + merma.cantidad);
+    porProducto.set(merma.productoId, producto);
+  }
+  const mermas = [...porProducto.values()].sort((a, b) => (b.kg ?? -1) - (a.kg ?? -1));
+  return { ventas, demanda, mermas, ingresos: [...ingresosPorReceta.values()].sort((a, b) => b.valor - a.valor) };
 }
 
 const graficasReportes = new Map();
+let seriesMermasActuales = [];
+let medidaMermasReporte = "kg";
 
-function mostrarTablaReporte(tipo, etiquetas, valores, decimales) {
-  const tabla = document.getElementById(`tabla-${tipo}`);
-  const formato = new Intl.NumberFormat("es-SV", { maximumFractionDigits: decimales });
-  tabla.replaceChildren();
-  etiquetas.forEach((etiqueta, indice) => {
-    const fila = document.createElement("tr");
-    const nombre = document.createElement("th");
-    nombre.scope = "row";
-    nombre.textContent = etiqueta;
-    const valor = document.createElement("td");
-    valor.textContent = valores[indice] === null ? "Sin datos" : formato.format(valores[indice]);
-    fila.append(nombre, valor);
-    tabla.append(fila);
-  });
+function valorTablaReporte(valor, unidad) {
+  if (valor === null) return "Sin datos";
+  return new Intl.NumberFormat("es-SV", unidad === "USD"
+    ? { style: "currency", currency: "USD" } : { maximumFractionDigits: unidad === "kg" ? 3 : 0 }).format(valor);
 }
 
-function actualizarGraficaReporte(tipo, etiquetas, valores, color, unidad, horizontal = false) {
+function mostrarTablaReporte(tipo, filas) {
+  const tabla = document.getElementById(`tabla-${tipo}`);
+  tabla.replaceChildren();
+  if (!filas.length) {
+    const fila = document.createElement("tr");
+    const celda = document.createElement("td");
+    celda.colSpan = tipo === "mermas" ? 4 : 2;
+    celda.textContent = "Sin datos en este período";
+    fila.append(celda);
+    tabla.append(fila);
+    return;
+  }
+  for (const valores of filas) {
+    const fila = document.createElement("tr");
+    valores.forEach((texto, indice) => {
+      const celda = document.createElement(indice ? "td" : "th");
+      if (!indice) celda.scope = "row";
+      celda.textContent = texto;
+      fila.append(celda);
+    });
+    tabla.append(fila);
+  }
+}
+
+function actualizarGraficaReporte(tipo, etiquetas, valores, color, unidad, horizontal = false, tipoGrafica = "bar") {
   const canvas = document.getElementById(`grafica-${tipo}`);
+  const hayDatos = valores.some(valor => valor !== null);
+  const disponible = typeof Chart !== "undefined";
+  document.getElementById(`vacio-${tipo}`).hidden = hayDatos;
+  canvas.parentElement.hidden = !hayDatos || !disponible;
   const ventasExtendidas = tipo === "ventas" && etiquetas.length > 7;
   if (tipo === "ventas") {
-    // Se ensancha solo el lienzo interior, no la tarjeta ni la página.
     canvas.parentElement.style.minWidth = ventasExtendidas ? `${etiquetas.length * 80}px` : "0px";
     document.getElementById("desplazamiento-ventas").scrollLeft = 0;
   }
-  const disponible = typeof Chart !== "undefined";
-  canvas.parentElement.hidden = !disponible;
+  if (!hayDatos) {
+    if (graficasReportes.has(tipo)) {
+      graficasReportes.get(tipo).destroy();
+      graficasReportes.delete(tipo);
+    }
+    return;
+  }
   if (!disponible) {
     document.getElementById(`datos-${tipo}`).open = true;
     return;
@@ -83,73 +96,85 @@ function actualizarGraficaReporte(tipo, etiquetas, valores, color, unidad, horiz
   if (graficasReportes.has(tipo)) {
     const grafica = graficasReportes.get(tipo);
     grafica.data.labels = etiquetas;
-    grafica.data.datasets[0].data = valores;
+    Object.assign(grafica.data.datasets[0], { data: valores, label: unidad });
+    grafica.options.scales[horizontal ? "x" : "y"].title.text = unidad;
     if (tipo === "ventas") {
       grafica.options.scales.x.ticks.autoSkip = !ventasExtendidas;
       grafica.options.scales.x.ticks.maxTicksLimit = ventasExtendidas ? etiquetas.length : 7;
-      grafica.resize();
     }
+    grafica.resize();
     grafica.update("none");
     return;
   }
-
   const estilos = getComputedStyle(document.body);
   const texto = estilos.getPropertyValue("--text").trim();
-  const borde = estilos.getPropertyValue("--bs-border-color").trim();
   const ejeValores = { beginAtZero: true, title: { display: true, text: unidad, color: texto },
-    ticks: { color: texto, precision: horizontal ? 1 : 0 }, grid: { color: borde } };
-  const ejeEtiquetas = { ticks: { color: texto, maxRotation: 0, autoSkip: !horizontal && !ventasExtendidas, maxTicksLimit: ventasExtendidas ? etiquetas.length : 7 }, grid: { display: false } };
+    ticks: { color: texto, precision: horizontal ? 2 : 0 },
+    grid: { color: estilos.getPropertyValue("--bs-border-color").trim() } };
+  const ejeEtiquetas = { ticks: { color: texto, maxRotation: 0, autoSkip: !horizontal && !ventasExtendidas,
+    maxTicksLimit: ventasExtendidas ? etiquetas.length : 7 }, grid: { display: false } };
   graficasReportes.set(tipo, new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels: etiquetas,
-      datasets: [{ label: unidad, data: valores, backgroundColor: color, borderRadius: 5, maxBarThickness: horizontal ? 20 : 38 }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      locale: "es-SV",
+    type: tipoGrafica,
+    data: { labels: etiquetas, datasets: [{ label: unidad, data: valores, backgroundColor: color,
+      borderColor: color, borderRadius: 5, maxBarThickness: horizontal ? 20 : 38,
+      pointRadius: 3, tension: 0.2, spanGaps: false }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: false, locale: "es-SV",
       indexAxis: horizontal ? "y" : "x",
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: contexto => {
-          const valor = horizontal ? contexto.parsed.x : contexto.parsed.y;
-          return `${new Intl.NumberFormat("es-SV", { maximumFractionDigits: horizontal ? 2 : 0 }).format(valor)} ${unidad}`;
-        } } }
-      },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: contexto => {
+        const valor = contexto.chart.options.indexAxis === "y" ? contexto.parsed.x : contexto.parsed.y;
+        const unidadActual = contexto.dataset.label;
+        return unidadActual === "USD" ? valorTablaReporte(valor, unidadActual)
+          : `${valorTablaReporte(valor, unidadActual)} ${unidadActual}`;
+      } } } },
       scales: { x: horizontal ? ejeValores : ejeEtiquetas, y: horizontal ? ejeEtiquetas : ejeValores }
     }
   }));
 }
 
-function mostrarGraficasReportes(registros, rango, insumoSeleccionado) {
-  const series = prepararSeriesReportes(registros, rango, insumoSeleccionado);
+function mostrarGraficaMermas() {
+  const enDolares = medidaMermasReporte === "USD";
+  const datos = [...seriesMermasActuales].sort((a, b) => (b[enDolares ? "costo" : "kg"] ?? -1) - (a[enDolares ? "costo" : "kg"] ?? -1));
+  const color = getComputedStyle(document.body).getPropertyValue("--danger").trim();
+  actualizarGraficaReporte("mermas", datos.map(dato => dato.nombre), datos.map(dato => enDolares ? dato.costo : dato.kg), color, medidaMermasReporte, true);
+  for (const [id, medida] of [["mermas-en-kg", "kg"], ["mermas-en-usd", "USD"]]) {
+    document.getElementById(id).setAttribute("aria-pressed", String(medidaMermasReporte === medida));
+    document.getElementById(id).classList.toggle("active", medidaMermasReporte === medida);
+  }
+}
+
+function mostrarGraficasReportes(series, rango) {
   const fecha = new Intl.DateTimeFormat("es-SV", { weekday: "short", day: "numeric", month: "short" });
   const estilos = getComputedStyle(document.body);
-  const disponible = typeof Chart !== "undefined";
   const aviso = document.getElementById("aviso-graficas");
-  aviso.hidden = disponible;
-  aviso.textContent = disponible ? "" : "No se pudieron cargar las gráficas. Puedes consultar los valores en las tablas; revisa tu conexión y recarga la página.";
-  document.getElementById("titulo-grafica-ventas").textContent = series.ventas.length === 7 ? "Ventas semanales" : "Ventas del período";
-  document.getElementById("descripcion-ventas").textContent = series.ventas.length <= 7
-    ? `Tacos vendidos por día · ${series.ventas.length} días · total del negocio.`
-    : `Tacos vendidos por día · ${series.ventas.length} días del período seleccionado · total del negocio. Desliza horizontalmente para ver todos los días.`;
-  document.getElementById("descripcion-demanda").textContent = `Próximos 7 días · promedio por día de la semana de los ${series.ventas.length} días seleccionados · total del negocio.`;
-  const nombreInsumo = insumoSeleccionado === "todos" ? "todos los ingredientes" : series.mermas[0]?.nombre;
-  document.getElementById("descripcion-mermas").textContent = `Kilogramos acumulados en ${series.ventas.length} días · ${nombreInsumo}.`;
-
-  for (const [tipo, datos, variable, unidad, horizontal] of [
-    ["ventas", series.ventas, "--text", "tacos", false],
-    ["mermas", series.mermas, "--danger", "kg", true],
-    ["demanda", series.demanda, "--accent", "tacos estimados", false]
+  aviso.hidden = typeof Chart !== "undefined";
+  aviso.textContent = aviso.hidden ? "" : "No se pudieron cargar las gráficas. Puedes consultar los valores en las tablas; revisa tu conexión y recarga la página.";
+  const dias = diasEnRango(rango.inicio, rango.fin);
+  document.getElementById("titulo-grafica-ventas").textContent = dias === 7 ? "Ventas semanales" : "Ventas del período";
+  document.getElementById("descripcion-ventas").textContent = `Unidades vendidas por día · ${dias} ${dias === 1 ? "día" : "días"} del período seleccionado.`
+    + (dias > 7 ? " Desliza horizontalmente para ver todos los días." : "");
+  document.getElementById("descripcion-demanda").textContent = "7 días posteriores al período · promedio de ventas por día de la semana con registros.";
+  for (const [tipo, datos, variable, unidad, horizontal, tipoGrafica] of [
+    ["ventas", series.ventas, "--text", "unidades", false, "line"],
+    ["ingresos", series.ingresos, "--success", "USD", true, "bar"],
+    ["demanda", series.demanda, "--accent", "unidades estimadas", false, "bar"]
   ]) {
-    const etiquetas = datos.map(dato => {
-      if (horizontal) return dato.nombre;
-      return fecha.format(dato.fecha);
-    });
+    const etiquetas = datos.map(dato => horizontal ? dato.nombre : fecha.format(dato.fecha));
     const valores = datos.map(dato => dato.valor);
-    mostrarTablaReporte(tipo, etiquetas, valores, horizontal ? 2 : 0);
-    actualizarGraficaReporte(tipo, etiquetas, valores, estilos.getPropertyValue(variable).trim(), unidad, horizontal);
+    mostrarTablaReporte(tipo, valores.some(valor => valor !== null)
+      ? datos.map((dato, indice) => [etiquetas[indice], valorTablaReporte(dato.valor, unidad)]) : []);
+    actualizarGraficaReporte(tipo, etiquetas, valores, estilos.getPropertyValue(variable).trim(), unidad, horizontal, tipoGrafica);
   }
+  seriesMermasActuales = series.mermas;
+  const cantidad = new Intl.NumberFormat("es-SV", { maximumFractionDigits: 3 });
+  mostrarTablaReporte("mermas", series.mermas.map(dato => [dato.nombre,
+    [...dato.cantidades].map(([unidad, valor]) => `${cantidad.format(valor)} ${unidad}`).join(" + "),
+    dato.kg === null ? "Sin conversión a kg" : valorTablaReporte(dato.kg, "kg"), valorTablaReporte(dato.costo, "USD")]));
+  mostrarGraficaMermas();
+}
+
+for (const [id, medida] of [["mermas-en-kg", "kg"], ["mermas-en-usd", "USD"]]) {
+  document.getElementById(id).addEventListener("click", () => {
+    medidaMermasReporte = medida;
+    mostrarGraficaMermas();
+  });
 }
