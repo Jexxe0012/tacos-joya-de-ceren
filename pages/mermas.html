@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="../css/main.css">
     <link rel="stylesheet" href="../css/mermas.css">
 </head>
-<body class="app-page" data-pagina="mermas" data-seccion="Inventario" data-rol="Empleado">
+<body class="app-page pagina-mermas" data-pagina="mermas" data-seccion="Inventario" data-rol="Empleado">
     <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
 
     <div class="app-layout d-lg-flex">
@@ -65,37 +65,47 @@
                 <section class="py-2">
                     <div class="container-fluid py-4">
                         <div class="row align-items-center">
-                            <div class="col-12 col-md-6">
+                            <div class="col-12 col-lg-6">
                                 <div class="card p-4 mt-3">
                                     <h2 class="login-title mb-2">Registrar Mermas</h2>
                                     <div class="section-divider"></div>
-                                    <form action="" id="form-merma" class="mt-3">
+                                    <form id="form-merma" class="mt-3" novalidate>
                                         <div class="row">
-                                            <div class="col-md-5 mb-3">
-                                                <label class="login-title mb-1 item-name">Ingrediente</label>
-                                                <div class=""></div>
-                                                <select class="form-select" id="input-ingrediente"></select>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="input-ingrediente" class="login-title mb-1 item-name">Ingrediente</label>
+                                                <select class="form-select" id="input-ingrediente" name="ingrediente" required></select>
+                                                <div class="invalid-feedback"></div>
                                             </div>
-                                            <div class="col-md-5 mb-3">
-                                                <label class="login-title mb-1 item-name">Cantidad</label>
-                                                <div class=""></div>
-                                                <input placeholder="0.0" class="form-control" id="input-cantidad" type="number" min="0" step="0.1">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="input-cantidad" class="login-title mb-1 item-name">Cantidad</label>
+                                                <input placeholder="0.0" class="form-control" id="input-cantidad" name="cantidad" type="number" min="0.1" step="0.1" required>
+                                                <div class="invalid-feedback"></div>
                                             </div>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="login-title mb-1 item-name">Motivo</label>
-                                            <input placeholder="Preparacion excedente" class="form-control login-title" name="name" id="input-motivo">
+                                            <label for="input-motivo" class="login-title mb-1 item-name">Motivo</label>
+                                            <select class="form-select" id="input-motivo" name="motivo" required>
+                                                <option value="">— Seleccioná —</option>
+                                                <option value="Vencido">Vencido</option>
+                                                <option value="Mal preparado">Mal preparado</option>
+                                                <option value="Caída o contaminación">Caída o contaminación</option>
+                                                <option value="Sobrante del día">Sobrante del día</option>
+                                                <option value="Otro">Otro</option>
+                                            </select>
+                                            <div class="invalid-feedback"></div>
                                         </div>
                                         <div class="mb-3">
-                                            <label class="login-title mb-1 item-name">Responsable</label>
-                                            <input placeholder="Nombre del responsable" class="form-control login-title" name="name" id="input-responsable">
+                                            <label for="input-responsable" class="login-title mb-1 item-name">Responsable</label>
+                                            <input placeholder="Nombre del responsable" class="form-control login-title" id="input-responsable" name="responsable" type="text" minlength="3" maxlength="60" required>
+                                            <div class="invalid-feedback"></div>
                                         </div>
                                         <div>
-                                            <label class="login-title mb-1 item-name">Observaciones</label>
-                                            <input placeholder="Preparacion excedente" class="form-control login-title" name="name" id="input-observaciones">
+                                            <label for="input-observaciones" class="login-title mb-1 item-name">Observaciones</label>
+                                            <input placeholder="Detalle (obligatorio si el motivo es Otro)" class="form-control login-title" id="input-observaciones" name="observaciones" type="text" maxlength="200">
+                                            <div class="invalid-feedback"></div>
                                         </div>
                                         <div class="d-grid mt-3">
-                                            <button type="submit" class="btn btn-merma btn-lg">Guardar merma y actualizar inventario</button> 
+                                            <button type="submit" class="btn btn-merma btn-lg">Guardar merma y actualizar inventario</button>
                                         </div>
                                     </form>
                                 </div>
@@ -132,6 +142,9 @@
 
     <!-- JS de Bootstrap y Script principal del grupo -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js" integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2" crossorigin="anonymous"></script>
+    <script src="../js/ui.js"></script>
+    <script src="../js/validacion.js"></script>
     <script src="../js/main.js"></script>
 
      <script src="../js/mermas.js"></script>
