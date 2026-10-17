@@ -176,8 +176,12 @@
       ["Ingresos registrados", valor(indicador.ingresos, "USD")],
       ["Merma con peso conocido (kg)", valor(indicador.mermaKg, "kg")],
       [`Costo estimado de merma${indicador.sinCosto ? " (parcial)" : ""}`, valor(indicador.costoMerma, "USD")],
-      ["Eficiencia de porción", "Sin datos: catálogos sin vincular"]
+      ["Eficiencia de porción en peso", indicador.eficiencia === null ? "Sin datos"
+        : `${new Intl.NumberFormat("es-SV", { maximumFractionDigits: 1 }).format(indicador.eficiencia)}%`]
     ]);
+    texto(`Eficiencia: ${indicador.comparacion.detalle}`, false, 9);
+    if (indicador.comparacion.filas.length) tabla("Consumo de ingredientes vinculados (kg)", ["Producto", "Estándar", "Salidas de cocina"], [98, 40, 40],
+      indicador.comparacion.filas.map(fila => [fila.nombre, valor(fila.estandarKg, "kg"), valor(fila.realKg, "kg")]));
     texto("El costo de merma usa los precios actuales de Inventario. Los litros, cajas y unidades sin un peso conocido no se suman en kg.", false, 9);
     for (const aviso of reporte.avisos) texto(aviso, false, 9);
     titulo("Hallazgo operativo");

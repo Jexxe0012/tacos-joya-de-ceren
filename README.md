@@ -75,7 +75,11 @@ Disponible para administradores. Consulta las colecciones guardadas mediante `DB
 
 La receta seleccionada filtra ventas, ingresos y demanda. El producto seleccionado filtra las mermas y el hallazgo de forma independiente: las mermas todavía no se pueden atribuir a una receta. Los registros inválidos se omiten con aviso; los pesos o costos incompletos se indican como parciales y las ventas marcadas con `ejemplo: true` se identifican en pantalla y PDF.
 
-La eficiencia de porción muestra «Sin datos» hasta que el equipo defina la relación entre los insumos de Recetas y los productos de Inventario, y cómo distinguir el consumo real de cocina en Movimientos. No se infiere una relación por nombres ni se muestra un porcentaje ficticio.
+La eficiencia de porción en peso compara **kg estándar de las ventas ÷ kg de salidas por «Consumo en cocina» × 100**, con las fichas de recetas actuales. Usa únicamente los ingredientes de peso vinculados que intervienen en las ventas del período. No suma litros o unidades con kg, no utiliza las mermas como consumo de cocina y no interpreta una falta de registros como consumo de cero. Si falta una ficha, vínculo, equivalencia o salida necesaria, muestra «Sin datos» con la causa. Incluye una comparación por producto en pantalla y PDF.
+
+En **Conectar ingredientes de Recetas con Inventario**, el administrador elige la correspondencia entre IDs, sin cambiar recetas ni existencias. Las conversiones kg/g/lb, litros/ml y docenas/unidades se calculan automáticamente. Los empaques o densidades exigen indicar una equivalencia real; no se adivinan por nombre. Cada producto se vincula a un solo ingrediente. Guardar o quitar un vínculo requiere volver a aplicar los filtros para actualizar el reporte y el PDF.
+
+Las salidas de Inventario identifican el producto y el motivo, pero no la receta: la eficiencia requiere seleccionar **Todas las recetas**. El filtro de producto sí delimita la comparación. Los nuevos movimientos conservan su unidad; los antiguos usan la unidad actual de Inventario y generan un aviso. Si se cambia la unidad de un producto vinculado, se debe revisar y guardar de nuevo la equivalencia.
 
 Si Chart.js no carga, las tablas permiten consultar los valores. Si jsPDF no carga, se desactiva la descarga y se muestra un aviso. El lector de ventas ya sigue el contrato acordado a continuación; falta comprobarlo con el módulo de Ventas de Carlos cuando se integre.
 
@@ -101,9 +105,9 @@ La proyección utiliza una serie de ventas y un catálogo de insumos definidos c
 
 La aplicación se ejecuta en el navegador. Cada página HTML carga los estilos compartidos y la lógica JavaScript de su módulo. `main.js` construye la navegación según el rol y `guard.js` comprueba la sesión antes de acceder a las páginas protegidas.
 
-`storage.js` expone el objeto `DB`, que permite consultar, crear, actualizar, eliminar y cargar datos iniciales en colecciones JSON dentro de localStorage. La información se organiza en `usuarios`, `recetas`, `turnos`, `solicitudes`, `inventario`, `movimientos`, `ventas` y `mermas`; la sesión activa utiliza la clave `sesion`.
+`storage.js` expone el objeto `DB`, que permite consultar, crear, actualizar, eliminar y cargar datos iniciales en colecciones JSON dentro de localStorage. La información se organiza en `usuarios`, `recetas`, `turnos`, `solicitudes`, `inventario`, `movimientos`, `ventas`, `mermas` y `vinculosInsumos`; la sesión activa utiliza la clave `sesion`.
 
-Las integraciones actuales son Recetas → consumo esperado del Dashboard; Inventario → registro de Mermas → actualización de existencias y movimientos; y Ventas + Mermas + catálogos de Recetas e Inventario → Reportes. Abastecimiento y parte del Dashboard mantienen fuentes de demostración. El módulo de Ventas y su enlace en el menú se incorporarán cuando el responsable lo entregue y solicite la integración.
+Las integraciones actuales son Recetas → consumo esperado del Dashboard; Inventario → registro de Mermas → actualización de existencias y movimientos; y Ventas + Mermas + Recetas + Inventario + Movimientos → Reportes. `catalogo-insumos.js` comparte los ingredientes y unidades de las fichas; `vinculosInsumos` relaciona cada ingrediente con un producto de Inventario y su equivalencia. Abastecimiento y parte del Dashboard mantienen fuentes de demostración. El módulo de Ventas y su enlace en el menú se incorporarán cuando el responsable lo entregue y solicite la integración.
 
 ### Contrato de ventas para la integración
 
@@ -177,11 +181,13 @@ Estas cuentas se crean al cargar el login si la colección de usuarios está vac
 | `js/inventario.js`, `js/mermas.js` | Productos, movimientos, consulta de existencias y registro de pérdidas. |
 | `js/abastecimientos.js` | Cálculos de cobertura y proyección de recompra. |
 | `js/dashboard.js`, `js/reportes.js`, `js/reportes-graficas.js` | Indicadores, filtros, lectura de registros, cálculos y gráficas. |
+| `js/catalogo-insumos.js` | Catálogo compartido de ingredientes de las fichas técnicas. |
+| `js/reportes-vinculos.js`, `js/reportes-eficiencia.js` | Correspondencias con Inventario, equivalencias y comparación del consumo estándar y real en peso. |
 | `js/reportes-pdf.js` | Exportación del reporte aplicado a PDF. |
 
 ## Estado y próximos pasos
 
-El avance incluye autenticación simulada, navegación por roles, gestión local de recetas, turnos e inventario, registro de mermas con descuento de existencias y consultas de indicadores, reportes y abastecimiento. Queda pendiente comprobar Reportes con el módulo de Ventas integrado, definir la relación Recetas–Inventario y el consumo real de cocina para calcular eficiencia, unificar la merma rápida de Turnos con Inventario y conectar Abastecimiento y los indicadores del Dashboard que aún utilizan ejemplos.
+El avance incluye autenticación simulada, navegación por roles, gestión local de recetas, turnos e inventario, registro de mermas con descuento de existencias y consultas de indicadores, reportes y abastecimiento. Queda pendiente comprobar Reportes con el módulo de Ventas integrado, unificar la merma rápida de Turnos con Inventario y conectar Abastecimiento y los indicadores del Dashboard que aún utilizan ejemplos.
 
 Los datos pertenecen al navegador y al origen utilizado: cambiar de navegador, equipo, dominio o puerto no comparte automáticamente la información. Cerrar sesión conserva los registros; borrar el almacenamiento del sitio los elimina.
 

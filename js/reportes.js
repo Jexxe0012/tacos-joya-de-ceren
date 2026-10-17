@@ -206,7 +206,8 @@ function obtenerDatos(rango) {
       kg: Object.hasOwn(pesoEnKgReporte, medida.unidad) ? medida.cantidad * pesoEnKgReporte[medida.unidad] : null,
       costo: costoMermaReporte(medida.cantidad, medida.unidad, producto) });
   }
-  return { ventas, mermas, catalogo, catalogoRecetas, descartados };
+  return { ventas, mermas, catalogo, catalogoRecetas, descartados,
+    productos, recetas, movimientos: DB.getAll("movimientos"), vinculos: DB.getAll("vinculosInsumos") };
 }
 
 function actualizarProductosReporte(catalogo) {
@@ -252,7 +253,7 @@ function calcularIndicadores(datos, productoSeleccionado) {
     sinCosto: mermas.length - conCosto.length,
     cantidadMermas: mermas.length,
     ejemplos: datos.ventas.filter(venta => venta.ejemplo).length,
-    eficiencia: null // Requiere una relación explícita entre los insumos de Recetas e Inventario.
+    eficiencia: null // Se completa con las fichas, vínculos y salidas de cocina del mismo reporte.
   };
 }
 
@@ -268,8 +269,23 @@ function mostrarIndicadores(indicadores, dias) {
   document.getElementById("detalle-mermas").textContent = !indicadores.cantidadMermas ? "No hay mermas registradas en el período."
     : indicadores.costoMerma === null ? "No hay costos disponibles para estas mermas."
     : `Costo estimado${indicadores.sinCosto ? " parcial" : ""}: ${moneda.format(indicadores.costoMerma)}.`;
-  document.getElementById("valor-eficiencia").textContent = "Sin datos";
-  document.getElementById("detalle-eficiencia").textContent = "Falta relacionar los insumos de Recetas con los productos de Inventario para comparar los consumos.";
+  document.getElementById("valor-eficiencia").textContent = indicadores.eficiencia === null ? "Sin datos"
+    : `${new Intl.NumberFormat("es-SV", { maximumFractionDigits: 1 }).format(indicadores.eficiencia)}%`;
+  document.getElementById("detalle-eficiencia").textContent = indicadores.comparacion.detalle;
+  const tabla = document.getElementById("tabla-eficiencia");
+  tabla.replaceChildren();
+  for (const fila of indicadores.comparacion.filas) {
+    const elemento = document.createElement("tr");
+    for (const [indice, texto] of [fila.nombre, `${decimales.format(fila.estandarKg)} kg`,
+      fila.realKg === null ? "Sin salidas" : `${decimales.format(fila.realKg)} kg`].entries()) {
+      const celda = document.createElement(indice ? "td" : "th");
+      if (!indice) celda.scope = "row";
+      celda.textContent = texto;
+      elemento.append(celda);
+    }
+    tabla.append(elemento);
+  }
+  document.getElementById("datos-eficiencia").hidden = !indicadores.comparacion.filas.length;
   document.getElementById("estado-datos").textContent = indicadores.ejemplos ? "Incluye ventas de ejemplo" : "Registros del sistema";
 }
 
@@ -307,6 +323,8 @@ function mostrarSeleccionFiltros() {
   const datosFiltrados = { ...datos,
     ventas: datos.ventas.filter(venta => filtroReceta.value === "todas" || venta.recetaId === filtroReceta.value) };
   const indicadores = calcularIndicadores(datosFiltrados, filtroInsumo.value);
+  indicadores.comparacion = calcularEficienciaReporte(datosFiltrados, rango, filtroInsumo.value, filtroReceta.value);
+  indicadores.eficiencia = indicadores.comparacion.valor;
   const series = prepararSeriesReportes(datosFiltrados, rango, filtroInsumo.value);
   mostrarIndicadores(indicadores, diasEnRango(rango.inicio, rango.fin));
   mostrarGraficasReportes(series, rango);
@@ -318,7 +336,7 @@ function mostrarSeleccionFiltros() {
   resumenFiltros.textContent = `Período seleccionado: ${formatoFecha.format(rango.inicio)} al ${formatoFecha.format(rango.fin)} · Receta: ${nombreReceta} · Merma: ${nombreProducto}.`;
   const alcance = `Ventas, ingresos y demanda: ${nombreReceta}. Las mermas se filtran por producto de forma independiente; no se atribuyen a la receta.`;
   document.getElementById("alcance-reportes").textContent = `Datos guardados en este navegador. ${alcance}`;
-  const avisos = [];
+  const avisos = [...indicadores.comparacion.avisos];
   if (datos.descartados) avisos.push(`Se omitieron ${datos.descartados} registros con fechas, cantidades o importes inválidos.`);
   if (indicadores.sinPeso) avisos.push(`${indicadores.sinPeso} ${indicadores.sinPeso === 1 ? "merma no se suma" : "mermas no se suman"} en kg por tener otras unidades o no indicar su unidad.`);
   if (indicadores.sinCosto) avisos.push(`${indicadores.sinCosto} ${indicadores.sinCosto === 1 ? "merma no tiene" : "mermas no tienen"} un costo comparable en Inventario; el total disponible es parcial.`);
