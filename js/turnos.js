@@ -715,6 +715,7 @@ function buildSolicitudCard(solicitud, showActions, onAction) {
     btnAccept.addEventListener('click', () => {
       DB.update('solicitudes', solicitud.id, { estado: 'aceptada' });
       if (onAction) onAction();
+      UI.aviso(`Solicitud de ${nombre} aceptada`);
     });
 
     const btnReject = document.createElement('button');
@@ -724,6 +725,7 @@ function buildSolicitudCard(solicitud, showActions, onAction) {
     btnReject.addEventListener('click', () => {
       DB.update('solicitudes', solicitud.id, { estado: 'rechazada' });
       if (onAction) onAction();
+      UI.aviso(`Solicitud de ${nombre} rechazada`, 'info');
     });
 
     actions.appendChild(btnAccept);
@@ -736,10 +738,24 @@ function buildSolicitudCard(solicitud, showActions, onAction) {
 
 /* ---------- Empleado: crear + ver propias ---------- */
 
+// Regla de negocio: cada empleado tiene como máximo una solicitud pendiente.
+function tieneSolicitudPendiente() {
+  return DB.getAll('solicitudes').some(s => s.empleadoId === sesion.id && s.estado === 'pendiente');
+}
+
+function avisarSolicitudPendiente() {
+  UI.error('Ya tienes una solicitud pendiente', 'Espera a que el administrador la responda para enviar otra.');
+}
+
 function setupSolicitudesEmpleado() {
   renderMisSolicitudes();
 
+  // Con una pendiente, el modal ni se abre: se explica por qué.
   document.getElementById('btn-crear-solicitud').addEventListener('click', () => {
+    if (tieneSolicitudPendiente()) {
+      avisarSolicitudPendiente();
+      return;
+    }
     openSolicitudModal();
   });
 
@@ -769,59 +785,46 @@ function setupModalSolicitud(onSubmit) {
   const modal = document.getElementById('modal-solicitud');
   const form = document.getElementById('form-solicitud');
   const btnCancel = document.getElementById('btn-solicitud-cancel');
-  const msgBox = document.getElementById('solicitud-msg');
 
   btnCancel.addEventListener('click', () => { modal.hidden = true; });
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.hidden = true;
   });
 
+  // Valida.texto quita los espacios antes de medir: "     " cuenta como vacío.
+  const validarSolicitud = Valida.enVivo(form, {
+    'solicitud-mensaje': v => Valida.texto(v, { min: 5, max: 300 })
+  });
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    msgBox.textContent = '';
-    msgBox.className = 'modal-msg';
+    if (!validarSolicitud()) return;
 
-    const mensaje = document.getElementById('solicitud-mensaje').value.trim();
-
-    if (!mensaje) {
-      msgBox.textContent = 'Escribí el mensaje de tu solicitud.';
-      msgBox.className = 'modal-msg error';
+    // Se revisa otra vez al enviar, por si mandó otra desde una segunda pestaña.
+    if (tieneSolicitudPendiente()) {
+      modal.hidden = true;
+      avisarSolicitudPendiente();
       return;
     }
-    if (mensaje.length < 5) {
-      msgBox.textContent = 'El mensaje debe tener al menos 5 caracteres.';
-      msgBox.className = 'modal-msg error';
-      return;
-    }
-
-    const btnSubmit = form.querySelector('.btn-submit');
-    btnSubmit.disabled = true;
 
     DB.create('solicitudes', {
       empleadoId: sesion.id,
-      mensaje,
+      mensaje: document.getElementById('solicitud-mensaje').value.trim(),
       fecha: new Date().toISOString(),
       estado: 'pendiente'
     });
 
-    msgBox.textContent = 'Solicitud enviada correctamente.';
-    msgBox.className = 'modal-msg success';
-    setTimeout(() => {
-      modal.hidden = true;
-      btnSubmit.disabled = false;
-      onSubmit();
-    }, 1000);
+    // El modal se cierra en el mismo instante: un doble clic no envía dos veces.
+    modal.hidden = true;
+    onSubmit();
+    UI.aviso('Solicitud enviada');
   });
 }
 
 function openSolicitudModal() {
   const modal = document.getElementById('modal-solicitud');
-  const form = document.getElementById('form-solicitud');
-  const msgBox = document.getElementById('solicitud-msg');
-  form.reset();
-  msgBox.textContent = '';
-  msgBox.className = 'modal-msg';
-  form.querySelector('.btn-submit').disabled = false;
+  // reset() también quita los errores de la vez anterior (lo hace Valida.enVivo).
+  document.getElementById('form-solicitud').reset();
   modal.hidden = false;
 }
 

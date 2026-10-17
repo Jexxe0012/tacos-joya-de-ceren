@@ -34,7 +34,7 @@
         <div class="admin-header">
           <div>
             <h1>Turnos y días libres</h1>
-            <p class="subtitle">Organizá los turnos de los empleados durante la semana.</p>
+            <p class="subtitle">Organiza los turnos de los empleados durante la semana.</p>
           </div>
           <button type="button" class="btn btn-app-primary" id="btn-crear-turno">+ Crear turno</button>
         </div>
@@ -219,13 +219,11 @@
   <div class="modal-overlay" id="modal-solicitud" hidden>
     <div class="modal-card" role="dialog" aria-labelledby="modal-solicitud-title">
       <h2 id="modal-solicitud-title">Nueva solicitud</h2>
-      <p class="modal-subtitle">Contale al administrador qué necesitás: día libre, cambio de turno, etc.</p>
+      <p class="modal-subtitle">Cuéntale al administrador qué necesitas: día libre, cambio de turno, etc.</p>
 
       <form id="form-solicitud" novalidate>
         <label for="solicitud-mensaje">Mensaje</label>
-        <textarea id="solicitud-mensaje" required minlength="5" placeholder="Ej: Necesito el domingo 12 libre por un tema familiar…"></textarea>
-
-        <div class="modal-msg" id="solicitud-msg" role="alert" aria-live="polite"></div>
+        <textarea id="solicitud-mensaje" required minlength="5" maxlength="300" placeholder="Ej: Necesito el domingo 12 libre por un tema familiar…"></textarea>
 
         <div class="modal-actions">
           <button type="button" class="btn-cancel" id="btn-solicitud-cancel">Cancelar</button>
