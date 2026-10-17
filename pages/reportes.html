@@ -32,10 +32,19 @@
 
       <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1">
         <div class="row mb-4">
+          <div class="col-12 d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3">
+            <div>
+              <h1 class="h3 fw-bold mb-2">Reportes de operación</h1>
+              <p class="text-body-secondary mb-0">
+                Ventas, consumo, mermas y proyecciones para tomar decisiones.
+              </p>
+            </div>
+            <button class="btn btn-app-secondary flex-shrink-0" type="button" id="btn-descargar-pdf"
+              aria-describedby="estado-exportacion" disabled>Descargar reporte PDF</button>
+          </div>
           <div class="col-12">
-            <h1 class="h3 fw-bold mb-2">Reportes de operación</h1>
-            <p class="text-body-secondary mb-0">
-              Ventas, consumo, mermas y proyecciones para tomar decisiones.
+            <p class="small text-body-secondary mt-2 mb-0" id="estado-exportacion" role="status">
+              El PDF incluye los últimos filtros aplicados. Activa JavaScript para descargarlo.
             </p>
           </div>
         </div>
@@ -271,5 +280,11 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
   <script src="../js/reportes-graficas.js"></script>
   <script src="../js/reportes.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"
+    integrity="sha384-qovJwSBbRDPP5cEjCp8S0UP66wrvnjaa60XMOGzTNanrThcrGfXfnZkvgY8N1KT3"
+    crossorigin="anonymous"
+  ></script>
+  <script src="../js/reportes-pdf.js"></script>
 </body>
 </html>

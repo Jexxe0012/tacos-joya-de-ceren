@@ -11,6 +11,7 @@ const botonAplicarFiltros = document.getElementById("btn-aplicar-filtros");
 
 const periodosPermitidos = ["7", "30"];
 const productosPermitidosReporte = new Map();
+let reporteActual = null;
 
 // Incluye el día actual. Por ejemplo, 7 días del 10 al 16, ambos incluidos.
 // Se usan fechas locales para evitar cambios de día por conversiones a UTC.
@@ -276,19 +277,22 @@ function mostrarSeleccionFiltros() {
   const series = prepararSeriesReportes(datos, rango, filtroInsumo.value);
   mostrarIndicadores(indicadores, diasEnRango(rango.inicio, rango.fin));
   mostrarGraficasReportes(series, rango);
-  mostrarHallazgoOperativo(calcularHallazgoOperativo(series));
+  const hallazgo = calcularHallazgoOperativo(series);
+  mostrarHallazgoOperativo(hallazgo);
   const formatoFecha = new Intl.DateTimeFormat("es-SV", { day: "2-digit", month: "2-digit", year: "numeric" });
   const nombreProducto = filtroInsumo.options[filtroInsumo.selectedIndex].textContent;
   resumenFiltros.textContent = `Período seleccionado: ${formatoFecha.format(rango.inicio)} al ${formatoFecha.format(rango.fin)} · ${nombreProducto}.`;
   const avisos = [];
   if (datos.descartados) avisos.push(`Se omitieron ${datos.descartados} registros con fechas, cantidades o importes inválidos.`);
-  if (indicadores.sinPeso) avisos.push(`${indicadores.sinPeso} mermas no se suman en kg porque usan otras unidades o no indican su unidad.`);
-  if (indicadores.sinCosto) avisos.push(`${indicadores.sinCosto} mermas no tienen un costo comparable en Inventario; el total disponible es parcial.`);
-  if (indicadores.ejemplos) avisos.push(`El período incluye ${indicadores.ejemplos} ventas marcadas como ejemplo.`);
+  if (indicadores.sinPeso) avisos.push(`${indicadores.sinPeso} ${indicadores.sinPeso === 1 ? "merma no se suma" : "mermas no se suman"} en kg por tener otras unidades o no indicar su unidad.`);
+  if (indicadores.sinCosto) avisos.push(`${indicadores.sinCosto} ${indicadores.sinCosto === 1 ? "merma no tiene" : "mermas no tienen"} un costo comparable en Inventario; el total disponible es parcial.`);
+  if (indicadores.ejemplos) avisos.push(`El período incluye ${indicadores.ejemplos} ${indicadores.ejemplos === 1 ? "venta marcada" : "ventas marcadas"} como ejemplo.`);
   const aviso = document.getElementById("aviso-datos");
   aviso.hidden = avisos.length === 0;
   aviso.textContent = avisos.join(" ");
   document.getElementById("vacio-reportes").hidden = datos.ventas.length > 0 || indicadores.cantidadMermas > 0;
+  // El PDF conserva el período y el producto aplicados, aunque se editen luego los filtros.
+  reporteActual = { rango, producto: nombreProducto, indicadores, series, hallazgo, avisos };
 }
 
 // El botón queda bloqueado hasta terminar el aviso para evitar envíos repetidos.
