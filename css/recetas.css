@@ -94,3 +94,16 @@
     width: 100%;
   }
 }
+
+/* Modal con desplazamiento (modal-dialog-scrollable) y formulario adentro.
+   Bootstrap hace que .modal-body se desplace solo si es hijo directo de
+   .modal-content. Aquí el <form> va en medio, así que el formulario crecía,
+   el pie del modal quedaba fuera de la pantalla y el botón Guardar no se veía.
+   Con esto el <form> se comporta como .modal-content: el cuerpo se desplaza
+   y el pie con los botones queda siempre visible. */
+.recetas-page #modal-receta form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}

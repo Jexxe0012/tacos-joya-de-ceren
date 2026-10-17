@@ -27,10 +27,17 @@
     precioMax: 100,
     cantidadMin: 0.001,
     cantidadMax: 1000,
-    preparacionMin: 10,
+    preparacionMin: 20,
     preparacionMax: 1000,
-    ingredientesMax: 15
+    ingredientesMax: 15,
+    busquedaMax: 60
   };
+
+  // Nombre de receta: letras (con tildes y ñ), números, espacios y signos
+  // que se usan en nombres de platos, como "Horchata de 12 onzas".
+  const PATRON_NOMBRE = /^[\p{L}\p{N} .,'()&-]+$/u;
+  // Búsqueda: lo mismo pero más corto; sin símbolos raros que no están en ningún nombre.
+  const PATRON_BUSQUEDA = /^[\p{L}\p{N}\s.,'-]*$/u;
 
   const moneda = new Intl.NumberFormat("es-SV", { style: "currency", currency: "USD" });
   const enteros = new Intl.NumberFormat("es-SV", { maximumFractionDigits: 0 });
@@ -72,11 +79,14 @@
     return base;
   }
 
+  // Deja un texto listo para comparar: minúsculas, sin tildes y con un solo
+  // espacio entre palabras. Así "Taco  al PASTÓR " y "taco al pastor" son iguales.
   function normalizar(texto) {
     return String(texto ?? "")
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\s+/g, " ")
       .trim();
   }
 
@@ -265,12 +275,16 @@
     return;
   }
 
-  const modalReceta = new bootstrap.Modal($("modal-receta"));
+  // focus: false apaga la "trampa de foco" de Bootstrap en este modal. Sin esto,
+  // cuando SweetAlert2 abre la confirmación de margen negativo encima del
+  // formulario, Bootstrap le roba el foco y el teclado deja de funcionar en el
+  // diálogo. El foco inicial lo ponemos nosotros en el nombre (más abajo).
+  const modalReceta = new bootstrap.Modal($("modal-receta"), { focus: false });
   const modalDetalle = new bootstrap.Modal($("modal-detalle"));
-  const modalEliminar = new bootstrap.Modal($("modal-eliminar"));
+  const botonGuardar = $("btn-guardar-receta");
+  const botonAgregarIngrediente = $("btn-agregar-ingrediente");
 
   let idEnDetalle = null;
-  let idAEliminar = null;
 
   function aplicarRol() {
     if (!esAdmin) {
@@ -282,24 +296,6 @@
       $("titulo-cuarto-indicador").textContent = "Tiempo promedio";
       $("detalle-margen").textContent = "Minutos de preparación por receta.";
     }
-  }
-
-  let temporizadorMensaje = null;
-
-  function avisar(texto, tipo = "success") {
-    mensajeGlobal.textContent = texto;
-    mensajeGlobal.className = `alert alert-${tipo === "success" ? "success" : "danger"}`;
-    clearTimeout(temporizadorMensaje);
-    temporizadorMensaje = setTimeout(() => {
-      mensajeGlobal.className = "alert d-none";
-      mensajeGlobal.textContent = "";
-    }, 4000);
-  }
-
-  function marcarError(campo, cajaError, mensaje) {
-    campo.classList.toggle("is-invalid", Boolean(mensaje));
-    cajaError.textContent = mensaje || "";
-    return !mensaje;
   }
 
   function obtenerRecetas() {
@@ -472,7 +468,7 @@
   function mostrarDetalle(id) {
     const receta = DB.getById("recetas", id);
     if (!receta) {
-      avisar("Esa receta ya no está en el catálogo.", "error");
+      UI.error("Receta no encontrada", "Esa receta ya no está en el catálogo.");
       mostrarListado();
       return;
     }
@@ -566,13 +562,24 @@
     ).join("");
   }
 
+  // Con 15 ingredientes el botón se desactiva y dice por qué.
+  function actualizarBotonAgregar() {
+    const lleno = listaIngredientes.children.length >= LIMITES.ingredientesMax;
+    botonAgregarIngrediente.disabled = lleno;
+    botonAgregarIngrediente.title = lleno ? `Máximo ${LIMITES.ingredientesMax} ingredientes por receta.` : "";
+  }
+
   function agregarFilaIngrediente(linea = null) {
     if (listaIngredientes.children.length >= LIMITES.ingredientesMax) {
-      avisar(`Una receta admite hasta ${LIMITES.ingredientesMax} ingredientes.`, "error");
+      UI.aviso(`Una receta admite hasta ${LIMITES.ingredientesMax} ingredientes.`, "warning");
       return;
     }
 
-    const insumoId = linea ? linea.insumoId : CATALOGO_INSUMOS[0].id;
+    // Una fila nueva arranca con el primer insumo que todavía no está en la
+    // receta, para no crear un repetido sin querer.
+    const usados = leerIngredientes().map(fila => fila.insumoId);
+    const libre = CATALOGO_INSUMOS.find(insumo => !usados.includes(insumo.id)) || CATALOGO_INSUMOS[0];
+    const insumoId = linea ? linea.insumoId : libre.id;
     const insumo = buscarInsumo(insumoId) || CATALOGO_INSUMOS[0];
     const fila = document.createElement("div");
     fila.className = "row g-2 align-items-end receta-ingrediente";
@@ -587,7 +594,7 @@
           <div class="input-group">
             <input class="form-control" type="number" data-campo="cantidad" aria-label="Cantidad"
               min="0" max="${LIMITES.cantidadMax}" step="${insumo.unidad === "unidad" ? "1" : "0.001"}"
-              value="${linea ? linea.cantidad : ""}">
+              value="${linea ? linea.cantidad : ""}" required>
             <span class="input-group-text" data-campo="unidad">${esc(insumo.unidad)}</span>
           </div>
         </label>
@@ -597,6 +604,7 @@
       </div>
     `;
     listaIngredientes.append(fila);
+    actualizarBotonAgregar();
     actualizarCalculos();
   }
 
@@ -604,6 +612,8 @@
     return Array.from(listaIngredientes.children).map(fila => ({
       insumoId: fila.querySelector('[data-campo="insumo"]').value,
       cantidad: Number(fila.querySelector('[data-campo="cantidad"]').value),
+      fila,
+      elementoInsumo: fila.querySelector('[data-campo="insumo"]'),
       elementoCantidad: fila.querySelector('[data-campo="cantidad"]')
     }));
   }
@@ -626,10 +636,113 @@
     $("calculo-margen").className = margen === null || margen > 0 ? "" : "receta-margen-bajo";
   }
 
-  function limpiarErroresFormulario() {
-    formularioReceta.querySelectorAll(".is-invalid").forEach(campo => campo.classList.remove("is-invalid"));
-    formularioReceta.querySelectorAll(".receta-error").forEach(caja => { caja.textContent = ""; });
+  // ---------- Validación del formulario de receta ----------
+
+  // Regla que cruza datos: el nombre no puede repetirse en el catálogo,
+  // sin importar mayúsculas, tildes ni espacios de más. Al editar, la
+  // receta no choca consigo misma.
+  function nombreRepetido(nombre) {
+    const buscado = normalizar(nombre);
+    const otra = obtenerRecetas().find(receta =>
+      String(receta.id) !== String(campoId.value) && normalizar(receta.nombre) === buscado
+    );
+    return otra ? `Ya existe la receta «${otra.nombre}».` : "";
   }
+
+  // El precio solo se pide si la categoría se vende (las preparaciones base no).
+  function seVendeLaCategoria() {
+    return campoCategoria.value !== "" && categoriaSeVende(campoCategoria.value);
+  }
+
+  // Comparar precio * 100 con su redondeo falla con decimales:
+  // 1.15 * 100 da 114.99999999999999. Por eso se compara con un margen mínimo.
+  function tieneMaximoDosDecimales(numero) {
+    return Math.abs(Math.round(numero * 100) - numero * 100) < 1e-9;
+  }
+
+  function reglaPrecio(valor) {
+    if (!seVendeLaCategoria()) return "";
+    if (String(valor).trim() === "") return "Escribe el precio de venta.";
+    if (Valida.numero(valor, { min: LIMITES.precioMin, max: LIMITES.precioMax })) {
+      return `El precio va de ${moneda.format(LIMITES.precioMin)} a ${moneda.format(LIMITES.precioMax)}.`;
+    }
+    if (!tieneMaximoDosDecimales(Number(valor))) return "Usa como máximo dos decimales.";
+    return "";
+  }
+
+  // Cantidad de un ingrediente. Los insumos que se cuentan por unidad
+  // (tortillas, limones, vasos) solo aceptan números enteros.
+  function reglaCantidad(valor, insumo) {
+    const limpio = String(valor ?? "").trim();
+    const numero = Number(limpio);
+    if (limpio === "") return "Escribe la cantidad.";
+    if (!Number.isFinite(numero) || numero <= 0) return "La cantidad debe ser mayor que cero.";
+    if (numero < LIMITES.cantidadMin) return `La cantidad mínima es ${LIMITES.cantidadMin}.`;
+    if (numero > LIMITES.cantidadMax) return `La cantidad máxima es ${LIMITES.cantidadMax}.`;
+    if (insumo && insumo.unidad === "unidad" && !Number.isInteger(numero)) {
+      return `${insumo.nombre} se cuenta por unidades: usa un número entero.`;
+    }
+    return "";
+  }
+
+  // Filas en las que el usuario ya escribió o eligió algo. Igual que en
+  // Valida.enVivo, una fila que nadie ha tocado no se marca en rojo antes de guardar.
+  const filasTocadas = new WeakSet();
+
+  // Revisa las filas de ingredientes y marca cada campo con su error.
+  // Con soloTocadas = true (mientras se llena el formulario) revisa solo las
+  // filas tocadas; al guardar se llama sin argumento y revisa todas.
+  // Devuelve true si todo está bien.
+  function validarIngredientes(soloTocadas = false) {
+    const lineas = leerIngredientes();
+    const cajaGrupo = $("error-ingredientes");
+    cajaGrupo.textContent = "";
+    let valido = true;
+
+    if (lineas.length === 0) {
+      if (!soloTocadas) cajaGrupo.textContent = "Agrega al menos un ingrediente.";
+      return soloTocadas;
+    }
+
+    // Los repetidos se buscan en todas las filas, tocadas o no.
+    const vistos = new Set();
+    for (const linea of lineas) {
+      const repetido = vistos.has(linea.insumoId);
+      vistos.add(linea.insumoId);
+      if (soloTocadas && !filasTocadas.has(linea.fila)) continue;
+
+      const insumo = buscarInsumo(linea.insumoId);
+
+      // Insumo: que exista, que tenga costo y que no esté repetido.
+      let errorInsumo = "";
+      if (!insumo) {
+        errorInsumo = "Elige un insumo de la lista.";
+      } else if (!(insumo.costoUnitario > 0)) {
+        errorInsumo = "Este insumo no tiene un costo de referencia mayor que cero.";
+      } else if (repetido) {
+        errorInsumo = "Insumo repetido. Suma la cantidad en una sola línea.";
+      }
+
+      if (errorInsumo) Valida.marcar(linea.elementoInsumo, errorInsumo);
+      else Valida.limpiar(linea.elementoInsumo);
+
+      const errorCantidad = reglaCantidad(linea.elementoCantidad.value, insumo);
+      if (errorCantidad) Valida.marcar(linea.elementoCantidad, errorCantidad);
+      else Valida.limpiar(linea.elementoCantidad);
+
+      if (errorInsumo || errorCantidad) valido = false;
+    }
+
+    if (!valido) cajaGrupo.textContent = "Revisa los ingredientes marcados en rojo.";
+    return valido;
+  }
+
+  function hayErroresEnIngredientes() {
+    return $("error-ingredientes").textContent !== "" || listaIngredientes.querySelector(".is-invalid") !== null;
+  }
+
+  // Se asigna al final, dentro de "if (esAdmin)", con Valida.enVivo.
+  let validarCampos = () => true;
 
   function llenarCategorias() {
     campoCategoria.innerHTML = '<option value="">Selecciona una categoría</option>' +
@@ -640,9 +753,12 @@
   }
 
   function ajustarCampoPrecio() {
-    const seVende = categoriaSeVende(campoCategoria.value) && campoCategoria.value !== "";
+    const seVende = seVendeLaCategoria();
     campoPrecio.disabled = !seVende;
-    if (!seVende) campoPrecio.value = "";
+    if (!seVende) {
+      campoPrecio.value = "";
+      Valida.limpiar(campoPrecio); // un campo desactivado no puede quedar en rojo
+    }
     $("ayuda-receta-precio").textContent = seVende
       ? "Precio de una porción."
       : "Las preparaciones base no se venden por separado.";
@@ -652,15 +768,16 @@
   function abrirFormulario(id = null) {
     if (!esAdmin) return;
 
+    // reset() también quita los errores de la vez anterior (lo hace Valida.enVivo).
     formularioReceta.reset();
-    limpiarErroresFormulario();
+    $("error-ingredientes").textContent = "";
     listaIngredientes.innerHTML = "";
     campoId.value = "";
 
     if (id) {
       const receta = DB.getById("recetas", id);
       if (!receta) {
-        avisar("Esa receta ya no está en el catálogo.", "error");
+        UI.error("Receta no encontrada", "Esa receta ya no está en el catálogo.");
         mostrarListado();
         return;
       }
@@ -684,174 +801,141 @@
 
     ajustarCampoPrecio();
     $("contador-preparacion").textContent = campoPreparacion.value.length;
+    actualizarBotonAgregar();
     actualizarCalculos();
     modalReceta.show();
   }
 
-  function validarFormulario() {
-    let valido = true;
-
-    const nombre = campoNombre.value.trim().replace(/\s+/g, " ");
-    let errorNombre = "";
-    if (!nombre) {
-      errorNombre = "Escribe el nombre de la receta.";
-    } else if (nombre.length < LIMITES.nombreMin) {
-      errorNombre = `El nombre debe tener al menos ${LIMITES.nombreMin} caracteres.`;
-    } else {
-      const repetida = obtenerRecetas().some(receta =>
-        normalizar(receta.nombre) === normalizar(nombre) && String(receta.id) !== String(campoId.value)
-      );
-      if (repetida) errorNombre = "Ya existe una receta con ese nombre.";
-    }
-    valido = marcarError(campoNombre, $("error-receta-nombre"), errorNombre) && valido;
-
+  // Arma el objeto que se guarda. Solo se llama cuando todo ya pasó la validación.
+  function leerFormulario() {
     const categoria = campoCategoria.value;
-    const errorCategoria = CATEGORIAS.some(cat => cat.id === categoria)
-      ? ""
-      : "Selecciona una categoría de la lista.";
-    valido = marcarError(campoCategoria, $("error-receta-categoria"), errorCategoria) && valido;
-
-    const porciones = Number(campoPorciones.value);
-    let errorPorciones = "";
-    if (campoPorciones.value.trim() === "") {
-      errorPorciones = "Indica cuántas porciones rinde.";
-    } else if (!Number.isInteger(porciones)) {
-      errorPorciones = "Usa un número entero de porciones.";
-    } else if (porciones < LIMITES.porcionesMin || porciones > LIMITES.porcionesMax) {
-      errorPorciones = `Las porciones van de ${LIMITES.porcionesMin} a ${LIMITES.porcionesMax}.`;
-    }
-    valido = marcarError(campoPorciones, $("error-receta-porciones"), errorPorciones) && valido;
-
-    const tiempo = Number(campoTiempo.value);
-    let errorTiempo = "";
-    if (campoTiempo.value.trim() === "") {
-      errorTiempo = "Indica el tiempo de preparación.";
-    } else if (!Number.isInteger(tiempo)) {
-      errorTiempo = "Usa minutos enteros.";
-    } else if (tiempo < LIMITES.tiempoMin || tiempo > LIMITES.tiempoMax) {
-      errorTiempo = `El tiempo va de ${LIMITES.tiempoMin} a ${LIMITES.tiempoMax} minutos.`;
-    }
-    valido = marcarError(campoTiempo, $("error-receta-tiempo"), errorTiempo) && valido;
-
-    const seVende = categoriaSeVende(categoria) && categoria !== "";
-    const precio = Number(campoPrecio.value);
-    let errorPrecio = "";
-    if (seVende) {
-      if (campoPrecio.value.trim() === "") {
-        errorPrecio = "Escribe el precio de venta.";
-      } else if (Number.isNaN(precio) || precio < LIMITES.precioMin || precio > LIMITES.precioMax) {
-        errorPrecio = `El precio va de ${moneda.format(LIMITES.precioMin)} a ${moneda.format(LIMITES.precioMax)}.`;
-      } else if (Math.round(precio * 100) !== precio * 100) {
-        errorPrecio = "Usa como máximo dos decimales.";
-      }
-    }
-    valido = marcarError(campoPrecio, $("error-receta-precio"), errorPrecio) && valido;
-
-    const estado = campoEstado.value;
-    const errorEstado = ["activa", "inactiva"].includes(estado) ? "" : "Selecciona un estado válido.";
-    valido = marcarError(campoEstado, $("error-receta-estado"), errorEstado) && valido;
-
-    const lineas = leerIngredientes();
-    let errorIngredientes = "";
-    lineas.forEach(linea => linea.elementoCantidad.classList.remove("is-invalid"));
-
-    if (lineas.length === 0) {
-      errorIngredientes = "Agrega al menos un ingrediente.";
-    } else {
-      const vistos = new Set();
-      for (const linea of lineas) {
-        if (vistos.has(linea.insumoId)) {
-          errorIngredientes = "Hay un insumo repetido. Súmalo en una sola línea.";
-          break;
-        }
-        vistos.add(linea.insumoId);
-
-        if (!linea.cantidad || linea.cantidad < LIMITES.cantidadMin) {
-          linea.elementoCantidad.classList.add("is-invalid");
-          errorIngredientes = "Cada ingrediente necesita una cantidad mayor que cero.";
-        } else if (linea.cantidad > LIMITES.cantidadMax) {
-          linea.elementoCantidad.classList.add("is-invalid");
-          errorIngredientes = `La cantidad máxima por ingrediente es ${LIMITES.cantidadMax}.`;
-        }
-      }
-    }
-    $("error-ingredientes").textContent = errorIngredientes;
-    if (errorIngredientes) valido = false;
-
-    const preparacion = campoPreparacion.value.trim();
-    let errorPreparacion = "";
-    if (!preparacion) {
-      errorPreparacion = "Escribe los pasos de preparación.";
-    } else if (preparacion.length < LIMITES.preparacionMin) {
-      errorPreparacion = `Describe la preparación con al menos ${LIMITES.preparacionMin} caracteres.`;
-    }
-    valido = marcarError(campoPreparacion, $("error-receta-preparacion"), errorPreparacion) && valido;
-
-    if (!valido) return null;
-
+    const seVende = seVendeLaCategoria();
     return {
-      nombre,
+      nombre: campoNombre.value.trim().replace(/\s+/g, " "),
       categoria,
-      porciones,
-      tiempoMinutos: tiempo,
-      precioVenta: seVende ? precio : 0,
-      estado,
-      ingredientes: lineas.map(linea => ({ insumoId: linea.insumoId, cantidad: linea.cantidad })),
-      preparacion
+      porciones: Number(campoPorciones.value),
+      tiempoMinutos: Number(campoTiempo.value),
+      precioVenta: seVende ? Number(campoPrecio.value) : 0,
+      estado: campoEstado.value,
+      ingredientes: leerIngredientes().map(linea => ({ insumoId: linea.insumoId, cantidad: linea.cantidad })),
+      preparacion: campoPreparacion.value.trim()
     };
   }
 
-  function guardarReceta(evento) {
+  async function guardarReceta(evento) {
     evento.preventDefault();
-    if (!esAdmin) return;
+    if (!esAdmin || botonGuardar.disabled) return;
 
-    const datos = validarFormulario();
-    if (!datos) {
-      const primerError = formularioReceta.querySelector(".is-invalid");
-      if (primerError) primerError.focus();
+    // Se corren las dos validaciones para marcar todos los errores de una vez.
+    const camposBien = validarCampos();
+    const ingredientesBien = validarIngredientes();
+    if (!camposBien || !ingredientesBien) {
+      // validarCampos ya pone el foco en su primer error; si solo fallaron
+      // los ingredientes, el foco va al primero de ellos.
+      if (camposBien) {
+        const primero = listaIngredientes.querySelector(".is-invalid") || botonAgregarIngrediente;
+        primero.focus();
+      }
+      UI.aviso("Revisa los campos marcados en rojo.", "warning");
       return;
     }
 
-    const id = campoId.value;
-    if (id) {
-      DB.update("recetas", id, { ...datos, actualizadaEn: Date.now() });
-      avisar(`Se guardaron los cambios de ${datos.nombre}.`);
-    } else {
-      DB.create("recetas", {
-        ...datos,
-        creadaPor: sesion.nombre,
-        creadaEn: Date.now(),
-        actualizadaEn: Date.now()
-      });
-      avisar(`${datos.nombre} se agregó al catálogo.`);
+    const datos = leerFormulario();
+    const reactivar = Valida.bloquearEnvio(botonGuardar);
+    try {
+      // Regla de negocio: vender por debajo del costo se permite (una
+      // promoción, por ejemplo), pero el admin tiene que confirmarlo.
+      const margen = margenPorPorcion(datos);
+      if (margen !== null && Math.round(margen * 100) < 0) {
+        const seguir = await UI.confirmar({
+          titulo: "Esta receta deja margen negativo. ¿Guardar de todas formas?",
+          texto: `Cada porción cuesta ${moneda.format(costoPorPorcion(datos))} y se vende a ` +
+            `${moneda.format(datos.precioVenta)}: se pierden ${moneda.format(-margen)} por porción.`,
+          boton: "Sí, guardar",
+          peligro: true
+        });
+        if (!seguir) {
+          campoPrecio.focus();
+          return;
+        }
+      }
+
+      const id = campoId.value;
+      if (id) {
+        DB.update("recetas", id, { ...datos, actualizadaEn: Date.now() });
+      } else {
+        DB.create("recetas", {
+          ...datos,
+          creadaPor: sesion.nombre,
+          creadaEn: Date.now(),
+          actualizadaEn: Date.now()
+        });
+      }
+
+      modalReceta.hide();
+      mostrarListado();
+      UI.exito(
+        id ? "Cambios guardados" : "Receta agregada",
+        id ? `Se actualizó la ficha de ${datos.nombre}.` : `${datos.nombre} ya está en el catálogo.`
+      );
+    } finally {
+      reactivar();
+    }
+  }
+
+  async function eliminarReceta(id, boton) {
+    if (!esAdmin) return;
+    const receta = DB.getById("recetas", id);
+    if (!receta) {
+      UI.error("Receta no encontrada", "Esa receta ya no está en el catálogo.");
+      mostrarListado();
+      return;
     }
 
-    modalReceta.hide();
-    mostrarListado();
+    // Si ya hay ventas de esta receta (módulo Ventas del día), se avisa:
+    // las ventas guardan una copia del nombre, así que siguen en los reportes.
+    const ventas = DB.getAll("ventas").filter(venta => String(venta.recetaId) === String(id)).length;
+    const textoVentas = ventas > 0
+      ? `Tiene ${enteros.format(ventas)} ventas registradas; seguirán en los reportes con su nombre. `
+      : "";
+
+    const reactivar = Valida.bloquearEnvio(boton);
+    try {
+      const confirmado = await UI.confirmar({
+        titulo: `¿Eliminar «${receta.nombre}»?`,
+        texto: `${textoVentas}Los reportes dejarán de tomar en cuenta su consumo estándar. ` +
+          "Esta acción no se puede deshacer.",
+        boton: "Sí, eliminar",
+        peligro: true
+      });
+      if (!confirmado) return;
+
+      DB.remove("recetas", id);
+      mostrarListado(); // la tarjeta (y su botón) desaparecen aquí
+      UI.aviso(`Receta eliminada: ${receta.nombre}`);
+    } finally {
+      reactivar();
+    }
   }
 
-  function pedirConfirmacion(id) {
-    const receta = DB.getById("recetas", id);
-    if (!receta) return;
-    idAEliminar = id;
-    $("nombre-a-eliminar").textContent = receta.nombre;
-    modalEliminar.show();
-  }
-
-  function eliminarConfirmado() {
-    if (!esAdmin || !idAEliminar) return;
-    const receta = DB.getById("recetas", idAEliminar);
-    DB.remove("recetas", idAEliminar);
-    idAEliminar = null;
-    modalEliminar.hide();
-    avisar(`${receta ? receta.nombre : "La receta"} se eliminó del catálogo.`);
-    mostrarListado();
-  }
-
+  // La búsqueda filtra mientras se escribe. Si el texto no es válido se
+  // marca el campo y se deja el listado como estaba.
   filtroTexto.addEventListener("input", () => {
-    const permitido = /^[\p{L}\p{N}\s.,'-]*$/u.test(filtroTexto.value);
-    marcarError(filtroTexto, $("error-filtro-texto"), permitido ? "" : "Usa solo letras, números y espacios.");
-    if (permitido) mostrarListado();
+    const error = Valida.texto(filtroTexto.value, {
+      max: LIMITES.busquedaMax,
+      patron: PATRON_BUSQUEDA,
+      mensaje: "Usa solo letras, números y espacios."
+    });
+    if (error) {
+      Valida.marcar(filtroTexto, error);
+      return;
+    }
+    Valida.limpiar(filtroTexto);
+    mostrarListado();
+  });
+  // Al salir del campo se quitan los espacios sobrantes (la búsqueda ya los ignora).
+  filtroTexto.addEventListener("change", () => {
+    filtroTexto.value = filtroTexto.value.trim().replace(/\s+/g, " ");
   });
   filtroCategoria.addEventListener("change", mostrarListado);
   filtroEstado.addEventListener("change", mostrarListado);
@@ -859,8 +943,9 @@
 
   formularioFiltros.addEventListener("submit", (evento) => evento.preventDefault());
   formularioFiltros.addEventListener("reset", () => {
+    // reset() cambia los valores después de este evento; por eso se espera un instante.
     setTimeout(() => {
-      marcarError(filtroTexto, $("error-filtro-texto"), "");
+      Valida.limpiar(filtroTexto);
       mostrarListado();
     }, 0);
   });
@@ -871,14 +956,36 @@
     const id = boton.dataset.id;
     if (boton.dataset.accion === "ver") mostrarDetalle(id);
     if (boton.dataset.accion === "editar") abrirFormulario(id);
-    if (boton.dataset.accion === "eliminar") pedirConfirmacion(id);
+    if (boton.dataset.accion === "eliminar") eliminarReceta(id, boton);
   });
 
   if (esAdmin) {
     $("btn-nueva-receta").addEventListener("click", () => abrirFormulario());
-    $("btn-agregar-ingrediente").addEventListener("click", () => agregarFilaIngrediente());
-    $("btn-confirmar-eliminar").addEventListener("click", eliminarConfirmado);
+    botonAgregarIngrediente.addEventListener("click", () => agregarFilaIngrediente());
     formularioReceta.addEventListener("submit", guardarReceta);
+
+    // Validación por campo: al salir de cada uno y mientras se corrige.
+    validarCampos = Valida.enVivo(formularioReceta, {
+      "receta-nombre": v => Valida.texto(v, {
+        min: LIMITES.nombreMin,
+        max: LIMITES.nombreMax,
+        patron: PATRON_NOMBRE,
+        mensaje: "Usa letras, números, espacios y los signos . , ' ( ) & -"
+      }) || nombreRepetido(v),
+      "receta-categoria": v => CATEGORIAS.some(cat => cat.id === v) ? "" : "Selecciona una categoría de la lista.",
+      "receta-porciones": v => Valida.numero(v, { min: LIMITES.porcionesMin, max: LIMITES.porcionesMax, entero: true })
+        ? `Usa un número entero de ${LIMITES.porcionesMin} a ${LIMITES.porcionesMax}.`
+        : "",
+      "receta-tiempo": v => Valida.numero(v, { min: LIMITES.tiempoMin, max: LIMITES.tiempoMax, entero: true })
+        ? `Usa minutos enteros, de ${LIMITES.tiempoMin} a ${LIMITES.tiempoMax}.`
+        : "",
+      "receta-precio": reglaPrecio,
+      "receta-estado": v => ["activa", "inactiva"].includes(v) ? "" : "Selecciona un estado válido.",
+      "receta-preparacion": v => Valida.texto(v, { min: LIMITES.preparacionMin, max: LIMITES.preparacionMax })
+    });
+
+    // Como el modal no pone el foco solo (focus: false), lo ponemos en el nombre.
+    $("modal-receta").addEventListener("shown.bs.modal", () => campoNombre.focus());
 
     $("btn-editar-desde-detalle").addEventListener("click", () => {
       modalDetalle.hide();
@@ -889,7 +996,10 @@
       const boton = evento.target.closest('[data-accion="quitar-ingrediente"]');
       if (!boton) return;
       boton.closest(".receta-ingrediente").remove();
+      actualizarBotonAgregar();
       actualizarCalculos();
+      // Al quitar una fila repetida, la otra deja de estar en rojo.
+      if (hayErroresEnIngredientes()) validarIngredientes(true);
     });
 
     listaIngredientes.addEventListener("change", (evento) => {
@@ -899,10 +1009,26 @@
         const entrada = fila.querySelector('[data-campo="cantidad"]');
         fila.querySelector('[data-campo="unidad"]').textContent = insumo ? insumo.unidad : "";
         entrada.step = insumo && insumo.unidad === "unidad" ? "1" : "0.001";
+        // Cambiar de insumo puede crear (o quitar) un repetido: se revisa de una vez.
+        filasTocadas.add(fila);
+        validarIngredientes(true);
       }
       actualizarCalculos();
     });
-    listaIngredientes.addEventListener("input", actualizarCalculos);
+
+    // Igual que Valida.enVivo: mientras se escribe solo se revisa si ya había
+    // un error (para que el rojo se quite al corregir), y al salir del campo
+    // se revisa la fila completa.
+    listaIngredientes.addEventListener("input", (evento) => {
+      const fila = evento.target.closest(".receta-ingrediente");
+      if (fila) filasTocadas.add(fila);
+      actualizarCalculos();
+      if (hayErroresEnIngredientes()) validarIngredientes(true);
+    });
+    listaIngredientes.addEventListener("focusout", (evento) => {
+      const fila = evento.target.closest(".receta-ingrediente");
+      if (fila && filasTocadas.has(fila)) validarIngredientes(true);
+    });
 
     campoCategoria.addEventListener("change", ajustarCampoPrecio);
     campoPorciones.addEventListener("input", actualizarCalculos);
