@@ -19,15 +19,15 @@ Su identidad visual parte de la historia y los valores del restaurante: familia,
 
 ## Contexto del proyecto
 
-Este repositorio corresponde a un proyecto universitario. En la fase 2 se desarrolla un primer avance funcional con HTML5, CSS3 y JavaScript vanilla, diseño responsive y autenticación simulada. Esta base servirá para continuar el sistema con un framework JavaScript en la fase 3.
+Este repositorio corresponde a un proyecto universitario. La fase 2 estableció la estructura con HTML5, CSS3, JavaScript vanilla, Bootstrap y autenticación simulada. En el primer avance de la etapa 3 se incorporan gráficas funcionales, diálogos y validaciones compartidos, reportes desde registros guardados y exportación a PDF mediante librerías JavaScript.
 
 ## Cómo funciona
 
 1. El usuario abre la pantalla de inicio de sesión e ingresa su correo, contraseña y perfil. También puede registrar una cuenta; el registro de administrador solicita una clave adicional de demostración.
 2. La aplicación valida los datos y guarda la sesión en el navegador. El administrador ingresa al Dashboard y el empleado a Mis turnos. Abrir `index.html` también dirige a la pantalla correspondiente o al login si no hay sesión.
 3. Desde el menú lateral se accede a los módulos. Dashboard, Reportes y Abastecimiento requieren el rol de administrador; Recetas, Inventario, Mermas y Turnos requieren una sesión activa, con funciones diferenciadas según el perfil.
-4. Las recetas, turnos, solicitudes, productos, movimientos de inventario y mermas se almacenan localmente. Registrar una merma desde el módulo Mermas descuenta la existencia del producto y genera un movimiento de salida. Dashboard utiliza las recetas para estimar el consumo; otros indicadores y Reportes todavía emplean datos de demostración.
-5. El botón **Cerrar sesión** elimina la sesión activa y vuelve al login, conservando los datos guardados de los módulos.
+4. Las recetas, turnos, solicitudes, productos, movimientos de inventario, ventas y mermas se almacenan localmente. Registrar una merma desde el módulo Mermas descuenta la existencia del producto y genera un movimiento de salida. Reportes consulta las ventas y mermas guardadas, y utiliza los catálogos de Recetas e Inventario. Dashboard utiliza las recetas para estimar el consumo; sus demás indicadores todavía incluyen datos de demostración.
+5. El botón **Cerrar sesión** pide confirmación con SweetAlert2. Cancelar mantiene la sesión; confirmar elimina únicamente la sesión activa y vuelve al login, conservando los datos de los módulos. Si no se puede mostrar la confirmación, la sesión se conserva.
 
 ## Roles de usuario
 
@@ -62,18 +62,26 @@ El empleado consulta su calendario, envía solicitudes y revisa su estado. Turno
 
 ### Reportes de operación
 
-Disponible para administradores. Incluye:
+Disponible para administradores. Consulta las colecciones guardadas mediante `DB` y no genera ventas ni mermas de demostración. Incluye:
 
-- Filtros de últimos 7 o 30 días y selección de insumo.
-- Indicadores de tacos vendidos, kilos y costo estimado de merma, y eficiencia de porción.
-- Gráfica de ventas diarias, con desplazamiento horizontal interno para los 30 días.
-- Gráfica de merma acumulada por ingrediente y tablas desplegables con los valores.
-- Demanda prevista para los próximos 7 días, calculada con el promedio histórico de cada día de la semana dentro del período seleccionado.
-- Hallazgo operativo que identifica el ingrediente con mayor merma y presenta una sugerencia de revisión; contempla registros ausentes, merma cero y empates.
+- Filtros de últimos 7 o 30 días, o rango personalizado de hasta 90 días inclusive. Valida fechas existentes, orden correcto y ausencia de fechas futuras.
+- Filtro de receta vendida obtenido del catálogo de Recetas: tacos, bebidas y complementos. También permite consultar recetas inactivas y ventas históricas de recetas eliminadas. Crear una receta no registra ventas.
+- Filtro independiente de producto de merma, obtenido de Inventario y de los registros históricos.
+- Unidades vendidas e ingresos registrados, gráfica diaria de líneas e ingresos por receta en barras horizontales. Los períodos largos conservan cada día con desplazamiento interno.
+- Mermas por producto, con alternancia entre kg y USD y tablas de cantidades en su unidad original. Convierte kg, g y lb; no convierte litros, unidades o empaques a peso sin una equivalencia conocida. El costo se estima con el costo unitario actual de Inventario, convirtiendo unidades compatibles.
+- Demanda para los 7 días posteriores al período, calculada con el promedio de ventas registradas de cada día de la semana. La ausencia de registros se muestra como «Sin datos», sin inventar ventas de cero.
+- Hallazgo operativo que identifica el producto con mayor merma conocida en kg y contempla empates, registros ausentes y unidades sin conversión.
+- Descarga PDF con marca, período, fecha local, usuario, filtros aplicados, indicadores, tablas y gráficas. Exporta el reporte aplicado, aunque los campos se hayan editado después; divide las series extensas en partes legibles. El nombre es `reporte-tjc-AAAA-MM-DD.pdf`.
 
-El período afecta los indicadores y las gráficas. El filtro de insumo se aplica a mermas, eficiencia y hallazgo; las ventas y la demanda mantienen el total del negocio. La eficiencia se calcula como **consumo estándar ÷ consumo real × 100**; cuando no hay consumo real, se muestra «Sin datos».
+La receta seleccionada filtra ventas, ingresos y demanda. El producto seleccionado filtra las mermas y el hallazgo de forma independiente: las mermas todavía no se pueden atribuir a una receta. Los registros inválidos se omiten con aviso; los pesos o costos incompletos se indican como parciales y las ventas marcadas con `ejemplo: true` se identifican en pantalla y PDF.
 
-Reportes utiliza datos de demostración. Todavía no toma automáticamente las recetas ni las mermas registradas en los demás módulos.
+La eficiencia de porción en peso compara **kg estándar de las ventas ÷ kg de salidas por «Consumo en cocina» × 100**, con las fichas de recetas actuales. Usa únicamente los ingredientes de peso vinculados que intervienen en las ventas del período. No suma litros o unidades con kg, no utiliza las mermas como consumo de cocina y no interpreta una falta de registros como consumo de cero. Si falta una ficha, vínculo, equivalencia o salida necesaria, muestra «Sin datos» con la causa. Incluye una comparación por producto en pantalla y PDF.
+
+En **Conectar ingredientes de Recetas con Inventario**, el administrador elige la correspondencia entre IDs, sin cambiar recetas ni existencias. Las conversiones kg/g/lb, litros/ml y docenas/unidades se calculan automáticamente. Los empaques o densidades exigen indicar una equivalencia real; no se adivinan por nombre. Cada producto se vincula a un solo ingrediente. Guardar o quitar un vínculo requiere volver a aplicar los filtros para actualizar el reporte y el PDF.
+
+Las salidas de Inventario identifican el producto y el motivo, pero no la receta: la eficiencia requiere seleccionar **Todas las recetas**. El filtro de producto sí delimita la comparación. Los nuevos movimientos conservan su unidad; los antiguos usan la unidad actual de Inventario y generan un aviso. Si se cambia la unidad de un producto vinculado, se debe revisar y guardar de nuevo la equivalencia.
+
+Si Chart.js no carga, las tablas permiten consultar los valores. Si jsPDF no carga, se desactiva la descarga y se muestra un aviso. El lector de ventas ya sigue el contrato acordado a continuación; falta comprobarlo con el módulo de Ventas de Carlos cuando se integre.
 
 ### Inventario
 
@@ -97,9 +105,29 @@ La proyección utiliza una serie de ventas y un catálogo de insumos definidos c
 
 La aplicación se ejecuta en el navegador. Cada página HTML carga los estilos compartidos y la lógica JavaScript de su módulo. `main.js` construye la navegación según el rol y `guard.js` comprueba la sesión antes de acceder a las páginas protegidas.
 
-`storage.js` expone el objeto `DB`, que permite consultar, crear, actualizar, eliminar y cargar datos iniciales en colecciones JSON dentro de localStorage. La información se organiza en `usuarios`, `recetas`, `turnos`, `solicitudes`, `inventario`, `movimientos` y `mermas`; la sesión activa utiliza la clave `sesion`.
+`storage.js` expone el objeto `DB`, que permite consultar, crear, actualizar, eliminar y cargar datos iniciales en colecciones JSON dentro de localStorage. La información se organiza en `usuarios`, `recetas`, `turnos`, `solicitudes`, `inventario`, `movimientos`, `ventas`, `mermas` y `vinculosInsumos`; la sesión activa utiliza la clave `sesion`.
 
-Las integraciones actuales son Recetas → consumo esperado del Dashboard e Inventario → registro de Mermas → actualización de existencias y movimientos. Reportes y las proyecciones de Abastecimiento mantienen fuentes de demostración independientes.
+Las integraciones actuales son Recetas → consumo esperado del Dashboard; Inventario → registro de Mermas → actualización de existencias y movimientos; y Ventas + Mermas + Recetas + Inventario + Movimientos → Reportes. `catalogo-insumos.js` comparte los ingredientes y unidades de las fichas; `vinculosInsumos` relaciona cada ingrediente con un producto de Inventario y su equivalencia. Abastecimiento y parte del Dashboard mantienen fuentes de demostración. El módulo de Ventas y su enlace en el menú se incorporarán cuando el responsable lo entregue y solicite la integración.
+
+### Contrato de ventas para la integración
+
+Cada registro de la colección `ventas` representa una receta vendida. El módulo de Ventas debe guardar el ID de la receta, una copia de su nombre y el precio al momento de la venta; Reportes suma el `total` guardado, sin recalcularlo con precios posteriores.
+
+```js
+DB.create("ventas", {
+  fecha: UI.fechaHoy(),             // Día local: AAAA-MM-DD.
+  recetaId: receta.id,              // ID del catálogo de Recetas.
+  recetaNombre: receta.nombre,      // Nombre al momento de la venta.
+  cantidad: 24,                    // Entero entre 1 y 500.
+  precioUnitario: 1.25,             // Precio por porción al vender.
+  total: 30.00,                    // Cantidad × precio, redondeado a 2 decimales.
+  registradoPor: Guard.getSesion().id,
+  creadoEn: new Date().toISOString(), // Marca de tiempo; no es el día del reporte.
+  ejemplo: false                   // true solo para datos de demostración.
+});
+```
+
+`DB.create` genera el `id`. Usa `UI.fechaHoy()` para el día local: `toISOString().slice(0, 10)` trabaja en UTC y puede devolver el día siguiente después de las 6 p. m. en El Salvador. Reportes vuelve a consultar el almacenamiento al abrir la pantalla o aplicar filtros; no requiere copiar datos desde Recetas ni introducir cifras en las gráficas.
 
 ## Tecnologías
 
@@ -107,8 +135,12 @@ Las integraciones actuales son Recetas → consumo esperado del Dashboard e Inve
 - **Bootstrap 5.3.8:** distribución responsive, navegación móvil y componentes de interfaz.
 - **JavaScript vanilla:** validaciones, cálculos y comportamiento de los módulos.
 - **Chart.js 4.5.1:** gráficas de Dashboard y Reportes.
+- **SweetAlert2 11.26.25:** diálogos y avisos mediante `UI.exito`, `UI.error`, `UI.aviso` y `await UI.confirmar`.
+- **jsPDF 4.2.1:** generación y descarga del reporte PDF en el navegador.
 - **localStorage:** persistencia local de datos y sesión simulada.
 - **Git y GitHub:** control de versiones y colaboración mediante ramas y pull requests.
+
+`js/ui.js` centraliza los mensajes y la fecha local. SweetAlert2 muestra un diálogo a la vez: las acciones encadenadas esperan su resultado con `await`. Los mensajes utilizan tuteo. `js/validacion.js` comparte reglas, errores junto a cada campo y bloqueo de botones; `Valida.enVivo(form, reglas)` devuelve `validarTodo()` para comprobar el formulario en el envío. Las páginas cargan ambos archivos antes de la lógica de su módulo.
 
 ## Ejecutar en local
 
@@ -123,7 +155,7 @@ Las integraciones actuales son Recetas → consumo esperado del Dashboard e Inve
 3. Abre `index.html` para entrar según tu sesión, o `pages/login.html` para iniciar sesión. Si utiliza el puerto 5500, la dirección será `http://127.0.0.1:5500/pages/login.html`.
 4. Inicia sesión con una cuenta de prueba o registra una cuenta.
 
-No requiere instalar paquetes con npm ni ejecutar un proceso de compilación. Se necesita JavaScript habilitado y conexión a internet para cargar Bootstrap y Chart.js desde sus CDN.
+No requiere instalar paquetes con npm ni ejecutar un proceso de compilación. Se necesita JavaScript habilitado y conexión a internet para cargar Bootstrap, SweetAlert2, Chart.js y jsPDF desde sus CDN.
 
 ### Cuentas de demostración
 
@@ -144,14 +176,18 @@ Estas cuentas se crean al cargar el login si la colección de usuarios está vac
 | `js/main.js` | Menú lateral, barra superior y cierre de sesión compartidos. |
 | `js/storage.js` | Operaciones de lectura, creación, actualización y eliminación de colecciones en localStorage. |
 | `js/guard.js` | Comprobaciones de sesión y rol. |
+| `js/ui.js`, `js/validacion.js` | Diálogos, avisos, fecha local y validaciones compartidas. |
 | `js/login.js`, `js/recetas.js`, `js/turnos.js` | Lógica de autenticación, recetas, horarios y solicitudes. |
 | `js/inventario.js`, `js/mermas.js` | Productos, movimientos, consulta de existencias y registro de pérdidas. |
 | `js/abastecimientos.js` | Cálculos de cobertura y proyección de recompra. |
-| `js/dashboard.js`, `js/reportes.js`, `js/reportes-graficas.js` | Indicadores, cálculos y gráficas. |
+| `js/dashboard.js`, `js/reportes.js`, `js/reportes-graficas.js` | Indicadores, filtros, lectura de registros, cálculos y gráficas. |
+| `js/catalogo-insumos.js` | Catálogo compartido de ingredientes de las fichas técnicas. |
+| `js/reportes-vinculos.js`, `js/reportes-eficiencia.js` | Correspondencias con Inventario, equivalencias y comparación del consumo estándar y real en peso. |
+| `js/reportes-pdf.js` | Exportación del reporte aplicado a PDF. |
 
 ## Estado y próximos pasos
 
-El avance incluye autenticación simulada, navegación por roles, gestión local de recetas, turnos e inventario, registro de mermas con descuento de existencias y consultas de indicadores, reportes y abastecimiento. Queda pendiente unificar el registro rápido de mermas de Turnos con el flujo de Inventario e integrar datos operativos en Reportes, Abastecimiento y los indicadores del Dashboard que aún utilizan ejemplos.
+El avance incluye autenticación simulada, navegación por roles, gestión local de recetas, turnos e inventario, registro de mermas con descuento de existencias y consultas de indicadores, reportes y abastecimiento. Queda pendiente comprobar Reportes con el módulo de Ventas integrado, unificar la merma rápida de Turnos con Inventario y conectar Abastecimiento y los indicadores del Dashboard que aún utilizan ejemplos.
 
 Los datos pertenecen al navegador y al origen utilizado: cambiar de navegador, equipo, dominio o puerto no comparte automáticamente la información. Cerrar sesión conserva los registros; borrar el almacenamiento del sitio los elimina.
 

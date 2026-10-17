@@ -64,7 +64,21 @@
     </div>
   `;
 
-  document.getElementById("btn-cerrar-sesion").addEventListener("click", () => Guard.logout());
+  const botonCerrarSesion = document.getElementById("btn-cerrar-sesion");
+  botonCerrarSesion.addEventListener("click", async () => {
+    if (botonCerrarSesion.disabled) return;
+    const desbloquear = Valida.bloquearEnvio(botonCerrarSesion);
+    try {
+      const confirmado = await UI.confirmar({
+        titulo: "¿Quieres cerrar sesión?",
+        texto: "Volverás al inicio de sesión. Los datos guardados se conservarán.",
+        boton: "Sí, cerrar sesión"
+      });
+      if (confirmado) Guard.logout();
+    } finally {
+      desbloquear();
+    }
+  });
 
   const listaMenu = document.getElementById("enlaces-menu");
   paginas.forEach(pagina => {

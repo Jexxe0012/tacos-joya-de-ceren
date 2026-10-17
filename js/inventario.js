@@ -751,6 +751,8 @@ async function eliminarProducto(producto) {
 /** Guarda el movimiento con la fecha y el usuario que lo hizo. */
 function registrarMovimiento(datos) {
   DB.create('movimientos', {
+    // Conserva la unidad del movimiento aunque después se edite el producto.
+    unidad: DB.getById('inventario', datos.productoId)?.unidad || '',
     ...datos,
     usuario: sesion.nombre,
     fecha: new Date().toISOString()
