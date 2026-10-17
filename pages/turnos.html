@@ -134,22 +134,23 @@
   <div class="modal-overlay" id="modal-merma" hidden>
     <div class="modal-card" role="dialog" aria-labelledby="modal-merma-title">
       <h2 id="modal-merma-title">Registrar merma</h2>
-      <p class="modal-subtitle">Reportá qué producto se botó y por qué.</p>
+      <p class="modal-subtitle">Reporta qué producto se botó y por qué.</p>
 
       <form id="form-merma" novalidate>
         <label for="merma-producto">Producto</label>
-        <input type="text" id="merma-producto" name="producto" required>
+        <select id="merma-producto" name="producto" required>
+          <option value="">— Selecciona —</option>
+        </select>
 
-        <label for="merma-cantidad">Cantidad</label>
-        <input type="text" id="merma-cantidad" name="cantidad" placeholder="Ej: 5 kg, 2 unidades" required>
+        <!-- La unidad (kg, docena…) la pone turnos.js según el producto elegido. -->
+        <label for="merma-cantidad">Cantidad <span id="merma-unidad"></span></label>
+        <input type="number" id="merma-cantidad" name="cantidad" min="0.01" step="0.01" required>
 
         <label for="merma-fecha">Fecha</label>
         <input type="date" id="merma-fecha" name="fecha" required>
 
         <label for="merma-motivo">Motivo</label>
-        <textarea id="merma-motivo" name="motivo" required></textarea>
-
-        <div class="modal-msg" id="merma-msg" role="alert" aria-live="polite"></div>
+        <textarea id="merma-motivo" name="motivo" required minlength="3" maxlength="300"></textarea>
 
         <div class="modal-actions">
           <button type="button" class="btn-cancel" id="btn-merma-cancel">Cancelar</button>

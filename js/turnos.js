@@ -234,20 +234,83 @@ function renderEmpleadoWeek(monday) {
 
 /* ---------- Modal: Registrar merma ---------- */
 
+// Unidades que se cuentan por pieza: no aceptan decimales (igual que en Inventario).
+const UNIDADES_ENTERAS = ['unidad', 'docena', 'caja', 'bolsa'];
+// Mismo motivo que usa la pantalla de Mermas para la salida de inventario.
+const MOTIVO_SALIDA_MERMA = 'Merma o desperdicio';
+
 function setupModalMerma() {
   const btnOpen = document.getElementById('btn-registrar-merma');
   const modal = document.getElementById('modal-merma');
   const btnCancel = document.getElementById('btn-merma-cancel');
   const form = document.getElementById('form-merma');
-  const msgBox = document.getElementById('merma-msg');
+  const selectProducto = document.getElementById('merma-producto');
+  const campoCantidad = document.getElementById('merma-cantidad');
+  const textoUnidad = document.getElementById('merma-unidad');
   const fechaInput = document.getElementById('merma-fecha');
 
+  const productoElegido = () => DB.getById('inventario', selectProducto.value);
+
+  // Productos del inventario, ordenados igual que en la pantalla de Mermas.
+  function poblarProductos() {
+    const productos = DB.getAll('inventario')
+      .slice()
+      .sort((a, b) => a.categoria.localeCompare(b.categoria) || a.nombre.localeCompare(b.nombre));
+
+    selectProducto.innerHTML = productos.length
+      ? '<option value="">— Selecciona —</option>'
+      : '<option value="">No hay productos en el inventario</option>';
+
+    productos.forEach(p => {
+      const opcion = document.createElement('option');
+      opcion.value = p.id;
+      opcion.textContent = `${p.categoria} · ${p.nombre}`;
+      selectProducto.appendChild(opcion);
+    });
+  }
+
+  /**
+   * Cantidad: número mayor que 0; entero si la unidad se cuenta por pieza.
+   * Regla de negocio que cruza datos: no se puede dar de baja más de lo
+   * que hay en inventario.
+   */
+  function reglaCantidad(v) {
+    const producto = productoElegido();
+    const entero = producto ? UNIDADES_ENTERAS.includes(producto.unidad) : false;
+    const error = Valida.numero(v, { min: entero ? 1 : 0.01, entero });
+    if (error || !producto) return error;
+
+    const existencia = Number(producto.cantidad);
+    if (existencia <= 0) return 'No hay existencias de este producto en inventario.';
+    if (Number(v) > existencia) return `Solo hay ${existencia} ${producto.unidad} en inventario.`;
+    return '';
+  }
+
+  const validarMerma = Valida.enVivo(form, {
+    'merma-producto': v => v ? '' : 'Elige el producto.',
+    'merma-cantidad': reglaCantidad,
+    'merma-fecha': v => Valida.fecha(v, { noFutura: true }),
+    'merma-motivo': v => Valida.texto(v, { min: 3, max: 300 })
+  });
+
+  // La unidad sale del producto: se muestra junto a "Cantidad" y se guarda aparte.
+  // Si la cantidad ya tenía error, se revisa de nuevo con el producto nuevo.
+  selectProducto.addEventListener('change', () => {
+    const producto = productoElegido();
+    textoUnidad.textContent = producto ? `(en ${producto.unidad})` : '';
+    if (!campoCantidad.classList.contains('is-invalid')) return;
+    const mensaje = reglaCantidad(campoCantidad.value);
+    if (mensaje) Valida.marcar(campoCantidad, mensaje);
+    else Valida.limpiar(campoCantidad);
+  });
+
   btnOpen.addEventListener('click', () => {
+    // reset() también quita los errores de la vez anterior (lo hace Valida.enVivo).
     form.reset();
-    msgBox.textContent = '';
-    msgBox.className = 'modal-msg';
-    fechaInput.value = formatDateISO(new Date());
-    form.querySelector('.btn-submit').disabled = false;
+    poblarProductos(); // el inventario pudo cambiar desde la última vez
+    textoUnidad.textContent = '';
+    fechaInput.value = UI.fechaHoy();
+    fechaInput.max = UI.fechaHoy(); // el calendario no deja elegir días futuros
     modal.hidden = false;
   });
 
@@ -262,37 +325,53 @@ function setupModalMerma() {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    msgBox.textContent = '';
-    msgBox.className = 'modal-msg';
+    if (!validarMerma()) return;
 
-    const producto = document.getElementById('merma-producto').value.trim();
-    const cantidad = document.getElementById('merma-cantidad').value.trim();
-    const fecha = fechaInput.value;
+    const producto = productoElegido();
+    const cantidad = Number(campoCantidad.value);
     const motivo = document.getElementById('merma-motivo').value.trim();
+    const existenciaAnterior = Number(producto.cantidad);
+    // Se redondea a 2 decimales para que las restas no arrastren colas binarias.
+    const existenciaNueva = Number((existenciaAnterior - cantidad).toFixed(2));
+    // Hora exacta del registro (no es "la fecha de hoy"), igual que en Inventario.
+    const ahora = new Date().toISOString();
 
-    if (!producto || !cantidad || !fecha || !motivo) {
-      msgBox.textContent = 'Todos los campos son obligatorios.';
-      msgBox.className = 'modal-msg error';
-      return;
-    }
+    // Lo mismo que hace la pantalla de Mermas: descontar, anotar el movimiento
+    // y guardar la merma. Así el inventario no dice que hay más de lo que queda.
+    DB.update('inventario', producto.id, {
+      cantidad: existenciaNueva,
+      actualizadoEn: ahora
+    });
 
-    const btnSubmit = form.querySelector('.btn-submit');
-    btnSubmit.disabled = true;
-
-    DB.create('mermas', {
-      producto,
+    DB.create('movimientos', {
+      productoId: producto.id,
+      producto: producto.nombre,
+      tipo: 'salida',
       cantidad,
-      fecha,
+      existenciaAnterior,
+      existenciaNueva,
+      motivo: MOTIVO_SALIDA_MERMA,
+      nota: motivo,
+      usuario: sesion.nombre,
+      fecha: ahora
+    });
+
+    // Mismos campos que la pantalla de Mermas: cantidad como número y
+    // unidad aparte, para que sus totales no den "NaN kg".
+    DB.create('mermas', {
+      producto: producto.nombre,
+      productoId: producto.id,
+      unidad: producto.unidad,
+      cantidad,
+      fecha: fechaInput.value,
       motivo,
+      responsable: sesion.nombre,
       reportadoPor: sesion.id
     });
 
-    msgBox.textContent = 'Merma registrada correctamente.';
-    msgBox.className = 'modal-msg success';
-    setTimeout(() => {
-      modal.hidden = true;
-      btnSubmit.disabled = false;
-    }, 1200);
+    // El modal se cierra en el mismo instante: un doble clic no registra dos veces.
+    modal.hidden = true;
+    UI.aviso(`Merma registrada: ${cantidad} ${producto.unidad} de ${producto.nombre}`);
   });
 }
 
