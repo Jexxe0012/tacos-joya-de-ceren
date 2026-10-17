@@ -75,7 +75,7 @@
               <!-- Se llena con JS -->
             </table>
           </div>
-          <p class="calendar-hint">Hacé click en una celda para crear o editar el turno. Los turnos con ↻ se repiten cada semana.</p>
+          <p class="calendar-hint">Haz clic en una celda para crear o editar el turno. Los turnos con ↻ se repiten cada semana.</p>
         </div>
 
         <div class="admin-solicitudes-container">
@@ -163,14 +163,14 @@
   <div class="modal-overlay" id="modal-turno" hidden>
     <div class="modal-card modal-card-wide" role="dialog" aria-labelledby="modal-turno-title">
       <h2 id="modal-turno-title">Crear turno</h2>
-      <p class="modal-subtitle">Asigná un turno a un empleado.</p>
+      <p class="modal-subtitle">Asigna un turno a un empleado.</p>
 
       <form id="form-turno" novalidate>
         <input type="hidden" id="turno-id">
 
         <label for="turno-empleado">Empleado</label>
         <select id="turno-empleado" required>
-          <option value="">— Seleccioná —</option>
+          <option value="">— Selecciona —</option>
         </select>
 
         <label for="turno-fecha">Fecha</label>
@@ -189,7 +189,7 @@
 
         <label for="turno-estacion">Estación</label>
         <select id="turno-estacion" required>
-          <option value="">— Seleccioná —</option>
+          <option value="">— Selecciona —</option>
           <option value="Cocina">Cocina</option>
           <option value="Plancha">Plancha</option>
           <option value="Caja">Caja</option>
@@ -199,14 +199,12 @@
         </select>
 
         <label for="turno-notas">Notas (opcional)</label>
-        <textarea id="turno-notas"></textarea>
+        <textarea id="turno-notas" maxlength="300"></textarea>
 
         <label class="checkbox-label">
           <input type="checkbox" id="turno-recurrente">
           Repetir este turno cada semana
         </label>
-
-        <div class="modal-msg" id="turno-msg" role="alert" aria-live="polite"></div>
 
         <div class="modal-actions">
           <button type="button" class="btn-danger" id="btn-turno-delete" hidden>Borrar</button>

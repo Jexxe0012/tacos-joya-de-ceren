@@ -1,6 +1,7 @@
 /**
  * turnos.js — Lógica del módulo Turnos.
- * Requiere: storage.js (DB), guard.js (Guard) y main.js cargados antes.
+ * Requiere: storage.js (DB), guard.js (Guard), ui.js (UI), validacion.js
+ * (Valida) y main.js cargados antes.
  *
  * Personaliza la plantilla compartida y muestra la vista según la sesión.
  */
@@ -330,7 +331,7 @@ function setupVistaAdmin() {
 function populateEmpleadoSelect() {
   const select = document.getElementById('turno-empleado');
   const empleados = DB.getAll('usuarios').filter(u => u.rol === 'empleado');
-  select.innerHTML = '<option value="">— Seleccioná —</option>';
+  select.innerHTML = '<option value="">— Selecciona —</option>';
   empleados.forEach(emp => {
     const opt = document.createElement('option');
     opt.value = emp.id;
@@ -479,6 +480,36 @@ function horasEntre(inicio, fin) {
   return (h2 + m2 / 60) - (h1 + m1 / 60);
 }
 
+const MAX_HORAS_TURNO = 12;
+
+/**
+ * Busca un turno del mismo empleado que se cruce con el horario dado.
+ * - turnosForDate() trae los turnos que ya caen ese día, incluidos los
+ *   semanales que empezaron en semanas anteriores.
+ * - Si el turno nuevo se repite cada semana, también puede chocar con
+ *   turnos del mismo día de la semana en las semanas siguientes.
+ * Dos horarios se cruzan si cada uno empieza antes de que termine el otro.
+ * Las horas "HH:MM" se comparan como texto, igual que las fechas.
+ * Al editar, el turno no se compara consigo mismo (idPropio).
+ */
+function buscarCruce(turno, idPropio) {
+  const dia = new Date(turno.fecha + 'T00:00:00');
+  let candidatos = turnosForDate(dia, turno.empleadoId);
+
+  if (turno.esRecurrenteSemanal) {
+    const semanasSiguientes = DB.getAll('turnos').filter(t =>
+      t.empleadoId === turno.empleadoId &&
+      t.fecha > turno.fecha &&
+      new Date(t.fecha + 'T00:00:00').getDay() === dia.getDay()
+    );
+    candidatos = candidatos.concat(semanasSiguientes);
+  }
+
+  return candidatos.find(t =>
+    t.id !== idPropio && turno.horaInicio < t.horaFin && t.horaInicio < turno.horaFin
+  );
+}
+
 /* ---------- Modal: Crear / Editar / Borrar turno ---------- */
 
 function setupModalTurno(onSave) {
@@ -486,48 +517,92 @@ function setupModalTurno(onSave) {
   const form = document.getElementById('form-turno');
   const btnCancel = document.getElementById('btn-turno-cancel');
   const btnDelete = document.getElementById('btn-turno-delete');
-  const msgBox = document.getElementById('turno-msg');
+  const campoId = document.getElementById('turno-id');
+  const campoInicio = document.getElementById('turno-hora-inicio');
+  const campoFin = document.getElementById('turno-hora-fin');
 
   btnCancel.addEventListener('click', () => { modal.hidden = true; });
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.hidden = true;
   });
 
-  btnDelete.addEventListener('click', () => {
-    const id = document.getElementById('turno-id').value;
+  // Fin después del inicio y como máximo MAX_HORAS_TURNO horas.
+  function reglaHoraFin(v) {
+    if (!v) return 'Elige la hora de fin.';
+    if (!campoInicio.value) return '';
+    if (v <= campoInicio.value) return 'La hora de fin debe ser después de la hora de inicio.';
+    if (horasEntre(campoInicio.value, v) > MAX_HORAS_TURNO) {
+      return `Un turno no puede durar más de ${MAX_HORAS_TURNO} horas.`;
+    }
+    return '';
+  }
+
+  // Las fechas pasadas solo se rechazan al crear (turno-id vacío):
+  // un turno que ya pasó sí se puede corregir.
+  const validarTurno = Valida.enVivo(form, {
+    'turno-empleado': v => v ? '' : 'Elige un empleado.',
+    'turno-fecha': v => Valida.fecha(v, { noPasada: !campoId.value }),
+    'turno-hora-inicio': v => v ? '' : 'Elige la hora de inicio.',
+    'turno-hora-fin': reglaHoraFin,
+    'turno-estacion': v => v ? '' : 'Elige una estación.',
+    'turno-notas': v => Valida.texto(v, { max: 300 })
+  });
+
+  // Si cambia el inicio, la regla del fin puede cambiar: se revisa de nuevo
+  // cuando el fin ya estaba marcado con error.
+  campoInicio.addEventListener('input', () => {
+    if (!campoFin.classList.contains('is-invalid')) return;
+    const mensaje = reglaHoraFin(campoFin.value);
+    if (mensaje) Valida.marcar(campoFin, mensaje);
+    else Valida.limpiar(campoFin);
+  });
+
+  btnDelete.addEventListener('click', async () => {
+    const id = campoId.value;
     if (!id) return;
-    if (!confirm('¿Borrar este turno?')) return;
+    // Un turno semanal es un solo registro: al borrarlo se va de todas las semanas.
+    const turno = DB.getById('turnos', id);
+    const confirmado = await UI.confirmar({
+      titulo: '¿Borrar este turno?',
+      texto: turno && turno.esRecurrenteSemanal
+        ? 'Este turno se repite cada semana: se borrará de todas las semanas.'
+        : 'Esta acción no se puede deshacer.',
+      boton: 'Sí, borrar',
+      peligro: true
+    });
+    if (!confirmado) return;
     DB.remove('turnos', id);
     modal.hidden = true;
     onSave();
+    UI.aviso('Turno borrado');
   });
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    msgBox.textContent = '';
-    msgBox.className = 'modal-msg';
+    if (!validarTurno()) return;
 
-    const id = document.getElementById('turno-id').value;
-    const empleadoId = document.getElementById('turno-empleado').value;
-    const fecha = document.getElementById('turno-fecha').value;
-    const horaInicio = document.getElementById('turno-hora-inicio').value;
-    const horaFin = document.getElementById('turno-hora-fin').value;
-    const estacion = document.getElementById('turno-estacion').value;
-    const notas = document.getElementById('turno-notas').value.trim();
-    const esRecurrenteSemanal = document.getElementById('turno-recurrente').checked;
+    const id = campoId.value;
+    const data = {
+      empleadoId: document.getElementById('turno-empleado').value,
+      fecha: document.getElementById('turno-fecha').value,
+      horaInicio: campoInicio.value,
+      horaFin: campoFin.value,
+      estacion: document.getElementById('turno-estacion').value,
+      notas: document.getElementById('turno-notas').value.trim(),
+      esRecurrenteSemanal: document.getElementById('turno-recurrente').checked
+    };
 
-    if (!empleadoId || !fecha || !horaInicio || !horaFin || !estacion) {
-      msgBox.textContent = 'Empleado, fecha, horas y estación son obligatorios.';
-      msgBox.className = 'modal-msg error';
+    // Regla de negocio que cruza datos: un empleado no puede tener dos turnos a la vez.
+    const cruce = buscarCruce(data, id);
+    if (cruce) {
+      // Si el choque es en una semana siguiente, se dice qué día es.
+      const dia = new Date(cruce.fecha + 'T00:00:00');
+      const cuando = cruce.fecha > data.fecha ? ` del ${dia.getDate()} ${MESES[dia.getMonth()]}` : '';
+      Valida.marcar(campoInicio,
+        `Se cruza con el turno${cuando} de ${formatHora(cruce.horaInicio)}–${formatHora(cruce.horaFin)} (${cruce.estacion}).`);
+      campoInicio.focus();
       return;
     }
-    if (horaFin <= horaInicio) {
-      msgBox.textContent = 'La hora de fin debe ser después de la hora de inicio.';
-      msgBox.className = 'modal-msg error';
-      return;
-    }
-
-    const data = { empleadoId, fecha, horaInicio, horaFin, estacion, notas, esRecurrenteSemanal };
 
     if (id) {
       DB.update('turnos', id, data);
@@ -535,8 +610,11 @@ function setupModalTurno(onSave) {
       DB.create('turnos', data);
     }
 
+    // El modal se cierra en el mismo instante en que se guarda,
+    // así que un doble clic no alcanza a guardar dos veces.
     modal.hidden = true;
     onSave();
+    UI.aviso(id ? 'Turno actualizado' : 'Turno creado');
   });
 }
 
@@ -545,10 +623,9 @@ function openTurnoModal(turno, prefill = {}) {
   const title = document.getElementById('modal-turno-title');
   const btnDelete = document.getElementById('btn-turno-delete');
   const btnSave = document.getElementById('btn-turno-save');
-  const msgBox = document.getElementById('turno-msg');
 
-  msgBox.textContent = '';
-  msgBox.className = 'modal-msg';
+  // reset() también quita los errores de la vez anterior (lo hace Valida.enVivo).
+  document.getElementById('form-turno').reset();
 
   if (turno) {
     title.textContent = 'Editar turno';
@@ -568,7 +645,7 @@ function openTurnoModal(turno, prefill = {}) {
     btnDelete.hidden = true;
     document.getElementById('turno-id').value = '';
     document.getElementById('turno-empleado').value = prefill.empleadoId || '';
-    document.getElementById('turno-fecha').value = prefill.fecha || formatDateISO(new Date());
+    document.getElementById('turno-fecha').value = prefill.fecha || UI.fechaHoy();
     document.getElementById('turno-hora-inicio').value = '14:00';
     document.getElementById('turno-hora-fin').value = '21:00';
     document.getElementById('turno-estacion').value = '';
