@@ -3,6 +3,7 @@
 const formularioFiltros = document.getElementById("formulario-filtros");
 const filtroPeriodo = document.getElementById("filtro-periodo");
 const filtroInsumo = document.getElementById("filtro-insumo");
+const filtroReceta = document.getElementById("filtro-receta");
 const resumenFiltros = document.getElementById("resumen-filtros");
 const camposRango = document.getElementById("rango-personalizado");
 const filtroFechaInicio = document.getElementById("filtro-fecha-inicio");
@@ -11,6 +12,7 @@ const botonAplicarFiltros = document.getElementById("btn-aplicar-filtros");
 
 const periodosPermitidos = ["7", "30"];
 const productosPermitidosReporte = new Map();
+const recetasPermitidasReporte = new Map();
 let reporteActual = null;
 
 // Incluye el día actual. Por ejemplo, 7 días del 10 al 16, ambos incluidos.
@@ -81,6 +83,9 @@ const validarFiltros = Valida.enVivo(formularioFiltros, {
   "filtro-insumo": (valor) => valor === "todos" || productosPermitidosReporte.has(valor)
     ? ""
     : "Selecciona un producto de la lista.",
+  "filtro-receta": (valor) => valor === "todas" || recetasPermitidasReporte.has(valor)
+    ? ""
+    : "Selecciona una receta de la lista.",
   "filtro-fecha-inicio": (valor) => filtroPeriodo.value === "personalizado" ? validarFechaRango(valor) : "",
   "filtro-fecha-fin": validarFinRango
 });
@@ -154,6 +159,12 @@ function obtenerDatos(rango) {
     .filter(receta => receta?.id != null)
     .map(receta => [String(receta.id), receta]));
   const catalogo = new Map([...productos].map(([id, producto]) => [id, producto.nombre]));
+  // Incluye recetas sin ventas e inactivas para poder consultar su historial.
+  // Las preparaciones base (por ejemplo, una salsa) no se venden por separado.
+  const catalogoRecetas = new Map([...recetas]
+    .filter(([, receta]) => ["taco", "bebida", "complemento"].includes(receta.categoria)
+      && typeof receta.nombre === "string" && receta.nombre.trim())
+    .map(([id, receta]) => [id, receta.nombre + (receta.estado === "inactiva" ? " (inactiva)" : "")]));
   const enPeriodo = fecha => fecha && fecha >= rango.inicio && fecha <= rango.fin;
   const ventas = [];
   const mermas = [];
@@ -162,15 +173,18 @@ function obtenerDatos(rango) {
   for (const venta of DB.getAll("ventas")) {
     const fecha = fechaRegistroReporte(venta?.fecha);
     if (!fecha) { descartados++; continue; }
-    if (!enPeriodo(fecha)) continue;
     const cantidad = numeroReporte(venta.cantidad);
     const total = numeroReporte(venta.total);
     if (!venta.recetaId || !Number.isInteger(cantidad) || cantidad < 1 || total === null || total < 0) {
-      descartados++; continue;
+      if (enPeriodo(fecha)) descartados++;
+      continue;
     }
     const recetaId = String(venta.recetaId);
-    ventas.push({ fecha, cantidad, total, recetaId,
-      nombre: String(venta.recetaNombre || recetas.get(recetaId)?.nombre || "Receta no disponible"),
+    const nombre = String(venta.recetaNombre || recetas.get(recetaId)?.nombre || "Receta no disponible");
+    // Una receta eliminada sigue siendo consultable si tiene ventas guardadas.
+    if (!catalogoRecetas.has(recetaId)) catalogoRecetas.set(recetaId, `${nombre} (venta histórica)`);
+    if (!enPeriodo(fecha)) continue;
+    ventas.push({ fecha, cantidad, total, recetaId, nombre,
       ejemplo: venta.ejemplo === true });
   }
 
@@ -192,7 +206,7 @@ function obtenerDatos(rango) {
       kg: Object.hasOwn(pesoEnKgReporte, medida.unidad) ? medida.cantidad * pesoEnKgReporte[medida.unidad] : null,
       costo: costoMermaReporte(medida.cantidad, medida.unidad, producto) });
   }
-  return { ventas, mermas, catalogo, descartados };
+  return { ventas, mermas, catalogo, catalogoRecetas, descartados };
 }
 
 function actualizarProductosReporte(catalogo) {
@@ -208,6 +222,21 @@ function actualizarProductosReporte(catalogo) {
     });
   filtroInsumo.replaceChildren(...opciones);
   filtroInsumo.value = seleccion;
+}
+
+function actualizarRecetasReporte(catalogo) {
+  const seleccion = filtroReceta.value || "todas";
+  // Mantiene una selección anterior si la receta desaparece mientras se consulta.
+  for (const [id, nombre] of catalogo) recetasPermitidasReporte.set(id, nombre);
+  const opciones = [["todas", "Todas las recetas"], ...[...recetasPermitidasReporte]
+    .sort((a, b) => a[1].localeCompare(b[1], "es"))].map(([id, nombre]) => {
+      const opcion = document.createElement("option");
+      opcion.value = id;
+      opcion.textContent = nombre;
+      return opcion;
+    });
+  filtroReceta.replaceChildren(...opciones);
+  filtroReceta.value = seleccion;
 }
 
 function calcularIndicadores(datos, productoSeleccionado) {
@@ -233,7 +262,7 @@ function mostrarIndicadores(indicadores, dias) {
   const moneda = new Intl.NumberFormat("es-SV", { style: "currency", currency: "USD" });
   document.getElementById("valor-ventas").textContent = indicadores.ventas === null ? "Sin datos" : enteros.format(indicadores.ventas);
   document.getElementById("detalle-ventas").textContent = indicadores.ventas === null
-    ? "No hay ventas registradas en el período."
+    ? "No hay ventas registradas para la receta y el período seleccionados."
     : `Unidades vendidas en ${dias} ${dias === 1 ? "día" : "días"} · ingresos: ${moneda.format(indicadores.ingresos)}.`;
   document.getElementById("valor-mermas").textContent = indicadores.mermaKg === null ? "Sin datos en kg" : `${decimales.format(indicadores.mermaKg)} kg`;
   document.getElementById("detalle-mermas").textContent = !indicadores.cantidadMermas ? "No hay mermas registradas en el período."
@@ -273,15 +302,22 @@ function mostrarSeleccionFiltros() {
     : calcularRangoPeriodo(filtroPeriodo.value, fechaActual);
   const datos = obtenerDatos(rango);
   actualizarProductosReporte(datos.catalogo);
-  const indicadores = calcularIndicadores(datos, filtroInsumo.value);
-  const series = prepararSeriesReportes(datos, rango, filtroInsumo.value);
+  actualizarRecetasReporte(datos.catalogoRecetas);
+  // Se filtra una sola vez: indicadores, gráficas, demanda y PDF usan las mismas ventas.
+  const datosFiltrados = { ...datos,
+    ventas: datos.ventas.filter(venta => filtroReceta.value === "todas" || venta.recetaId === filtroReceta.value) };
+  const indicadores = calcularIndicadores(datosFiltrados, filtroInsumo.value);
+  const series = prepararSeriesReportes(datosFiltrados, rango, filtroInsumo.value);
   mostrarIndicadores(indicadores, diasEnRango(rango.inicio, rango.fin));
   mostrarGraficasReportes(series, rango);
   const hallazgo = calcularHallazgoOperativo(series);
   mostrarHallazgoOperativo(hallazgo);
   const formatoFecha = new Intl.DateTimeFormat("es-SV", { day: "2-digit", month: "2-digit", year: "numeric" });
   const nombreProducto = filtroInsumo.options[filtroInsumo.selectedIndex].textContent;
-  resumenFiltros.textContent = `Período seleccionado: ${formatoFecha.format(rango.inicio)} al ${formatoFecha.format(rango.fin)} · ${nombreProducto}.`;
+  const nombreReceta = filtroReceta.options[filtroReceta.selectedIndex].textContent;
+  resumenFiltros.textContent = `Período seleccionado: ${formatoFecha.format(rango.inicio)} al ${formatoFecha.format(rango.fin)} · Receta: ${nombreReceta} · Merma: ${nombreProducto}.`;
+  const alcance = `Ventas, ingresos y demanda: ${nombreReceta}. Las mermas se filtran por producto de forma independiente; no se atribuyen a la receta.`;
+  document.getElementById("alcance-reportes").textContent = `Datos guardados en este navegador. ${alcance}`;
   const avisos = [];
   if (datos.descartados) avisos.push(`Se omitieron ${datos.descartados} registros con fechas, cantidades o importes inválidos.`);
   if (indicadores.sinPeso) avisos.push(`${indicadores.sinPeso} ${indicadores.sinPeso === 1 ? "merma no se suma" : "mermas no se suman"} en kg por tener otras unidades o no indicar su unidad.`);
@@ -290,9 +326,9 @@ function mostrarSeleccionFiltros() {
   const aviso = document.getElementById("aviso-datos");
   aviso.hidden = avisos.length === 0;
   aviso.textContent = avisos.join(" ");
-  document.getElementById("vacio-reportes").hidden = datos.ventas.length > 0 || indicadores.cantidadMermas > 0;
-  // El PDF conserva el período y el producto aplicados, aunque se editen luego los filtros.
-  reporteActual = { rango, producto: nombreProducto, indicadores, series, hallazgo, avisos };
+  document.getElementById("vacio-reportes").hidden = datosFiltrados.ventas.length > 0 || indicadores.cantidadMermas > 0;
+  // El PDF conserva los filtros aplicados, aunque después se editen los campos.
+  reporteActual = { rango, producto: nombreProducto, receta: nombreReceta, alcance, indicadores, series, hallazgo, avisos };
 }
 
 // El botón queda bloqueado hasta terminar el aviso para evitar envíos repetidos.
@@ -312,6 +348,10 @@ formularioFiltros.addEventListener("submit", async (evento) => {
   }
 });
 
+// Permite elegir recetas añadidas en otra pestaña sin aplicar los demás filtros en edición.
+filtroReceta.addEventListener("focus", () => {
+  actualizarRecetasReporte(obtenerDatos(reporteActual.rango).catalogoRecetas);
+});
 filtroPeriodo.addEventListener("change", actualizarCamposRango);
 filtroFechaInicio.addEventListener("input", () => {
   // Corregir el inicio también puede resolver un error de orden o duración en el fin.

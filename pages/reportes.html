@@ -54,7 +54,7 @@
           <h2 class="h6 fw-semibold mb-3" id="titulo-filtros">Filtrar reportes</h2>
           <form id="formulario-filtros" novalidate>
             <div class="row g-3 align-items-end">
-              <div class="col-12 col-md-6 col-xl-4">
+              <div class="col-12 col-md-6 col-xl-3">
                 <label class="form-label" for="filtro-periodo">Período</label>
                 <select class="form-select" id="filtro-periodo" name="periodo" required>
                   <option value="7" selected>Últimos 7 días</option>
@@ -62,13 +62,19 @@
                   <option value="personalizado">Rango personalizado</option>
                 </select>
               </div>
-              <div class="col-12 col-md-6 col-xl-4">
+              <div class="col-12 col-md-6 col-xl-3">
                 <label class="form-label" for="filtro-insumo">Producto de merma</label>
                 <select class="form-select" id="filtro-insumo" name="insumo" required>
                   <option value="todos" selected>Todos los productos</option>
                 </select>
               </div>
-              <div class="col-12 col-xl-4 d-grid">
+              <div class="col-12 col-md-6 col-xl-3">
+                <label class="form-label" for="filtro-receta">Receta vendida</label>
+                <select class="form-select" id="filtro-receta" name="receta" required aria-describedby="ayuda-receta">
+                  <option value="todas" selected>Todas las recetas</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6 col-xl-3 d-grid">
                 <button class="btn btn-app-primary" type="submit" id="btn-aplicar-filtros">Aplicar filtros</button>
               </div>
             </div>
@@ -89,6 +95,9 @@
               </div>
             </fieldset>
           </form>
+          <p class="small text-body-secondary mt-3 mb-0" id="ayuda-receta">
+            Las recetas vendibles se toman de Recetas: tacos, bebidas y complementos. Crear una receta no registra una venta.
+          </p>
           <noscript>
             <p class="mt-3 mb-0">Activa JavaScript en tu navegador para utilizar los filtros.</p>
           </noscript>
@@ -96,7 +105,7 @@
         </section>
 
         <p class="reportes-vacio p-3 mb-4" id="vacio-reportes" role="status" hidden>
-          Sin datos en este período. Registra ventas o mermas para consultar los reportes.
+          Sin datos para estos filtros. Selecciona otro período, receta o producto, o registra ventas y mermas.
         </p>
         <p class="small mb-4" id="aviso-datos" role="status" hidden></p>
         <div class="reportes-contenido" id="contenido-reportes">
@@ -105,9 +114,9 @@
               <h2 class="h5 fw-semibold mb-0" id="titulo-indicadores">Resumen del período</h2>
               <span class="badge rounded-pill app-estado app-estado-atencion" id="estado-datos">Registros del sistema</span>
             </div>
-            <p class="small text-body-secondary mb-3">
-              Datos guardados en este navegador. Ventas, ingresos y demanda corresponden al negocio completo;
-              el producto seleccionado filtra las mermas.
+            <p class="small text-body-secondary mb-3" id="alcance-reportes">
+              Datos guardados en este navegador. La receta filtra ventas, ingresos y demanda;
+              el producto filtra las mermas de forma independiente.
             </p>
             <div class="row g-3">
               <div class="col-12 col-md-6 col-xl-4">

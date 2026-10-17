@@ -166,8 +166,9 @@
       subject: `Período ${periodo}`, creator: "Tacos Joya de Cerén" });
     texto(`Generado: ${UI.fechaHoy()} ${new Intl.DateTimeFormat("es-SV", { hour: "2-digit", minute: "2-digit", hour12: false }).format(generado)} (hora local)`);
     texto(`Usuario: ${usuario}`);
+    texto(`Receta vendida: ${reporte.receta}`);
     texto(`Producto de merma: ${reporte.producto}`);
-    texto("Ventas, ingresos y demanda corresponden al negocio completo. El producto seleccionado filtra las mermas.", false, 9);
+    texto(reporte.alcance, false, 9);
     const indicador = reporte.indicadores;
     const valor = (numero, unidad) => valorTablaReporte(numero, unidad);
     tabla("Resumen del período", ["Indicador", "Valor"], [108, 70], [
