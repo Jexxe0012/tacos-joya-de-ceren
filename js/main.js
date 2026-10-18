@@ -19,9 +19,10 @@
     { id: "mermas", nombre: "Mermas", ruta: "pages/mermas.html", roles: ["admin", "empleado"] },
     { id: "turnos", nombre: "Turnos", ruta: "pages/turnos.html", roles: ["admin", "empleado"] },
     { id: "reportes", nombre: "Reportes", ruta: "pages/reportes.html", roles: ["admin"] },
+    { id: "ventas", nombre: "Ventas del día", ruta: "pages/ventas.html", roles: ["admin", "empleado"] },
     { id: "abastecimientos", nombre: "Abastecimiento", ruta: "pages/abastecimientos.html", roles: ["admin"] }
   ];
-  const ordenEmpleado = ["turnos", "recetas", "inventario", "mermas"];
+  const ordenEmpleado = ["turnos", "recetas", "ventas", "inventario", "mermas"];
   const paginas = sesion.rol === "empleado"
     ? ordenEmpleado.map(id => {
       const pagina = catalogo.find(pagina => pagina.id === id);
@@ -64,7 +65,21 @@
     </div>
   `;
 
-  document.getElementById("btn-cerrar-sesion").addEventListener("click", () => Guard.logout());
+  const botonCerrarSesion = document.getElementById("btn-cerrar-sesion");
+  botonCerrarSesion.addEventListener("click", async () => {
+    if (botonCerrarSesion.disabled) return;
+    const desbloquear = Valida.bloquearEnvio(botonCerrarSesion);
+    try {
+      const confirmado = await UI.confirmar({
+        titulo: "¿Quieres cerrar sesión?",
+        texto: "Volverás al inicio de sesión. Los datos guardados se conservarán.",
+        boton: "Sí, cerrar sesión"
+      });
+      if (confirmado) Guard.logout();
+    } finally {
+      desbloquear();
+    }
+  });
 
   const listaMenu = document.getElementById("enlaces-menu");
   paginas.forEach(pagina => {

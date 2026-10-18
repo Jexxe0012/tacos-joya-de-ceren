@@ -35,7 +35,11 @@
     /* Sin margen horizontal: las columnas de Bootstrap ya miden un
        porcentaje del ancho y el margen extra las sacaba de la pantalla. */
     margin-bottom: 1rem;
+
     background-color: rgb(var(--bs-light-rgb));
+
+    background-color: #f8f9fa;
+
 }
 .pagina-mermas .indicadores-row {
     gap: 3rem;
@@ -61,6 +65,7 @@
 .pagina-mermas .row {
     display: flex;
 }
+
 .pagina-mermas .historial-card {
     /* Ocupa la columna que le toca. Con un ancho fijo se desbordaba en
        pantallas angostas y aparecia scroll horizontal en toda la pagina. */
@@ -70,7 +75,9 @@
 /* El historial crece con cada merma registrada: se limita la altura del
    area de la tabla y el scroll queda adentro, para que la tarjeta no
    estire la pagina cuando hay muchos registros. */
+
 .pagina-mermas .historial-card .table-responsive {
+
     max-height: 420px;
     overflow-y: auto;
 }

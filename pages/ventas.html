@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ventas del día | Tacos Joya de Cerén</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/ventas.css">
+  <script src="../js/storage.js"></script>
+  <script src="../js/guard.js"></script>
+  <script>Guard.requireLogin();</script>
+</head>
+<body class="app-page ventas-page" data-pagina="ventas" data-seccion="Operación" data-rol="Equipo">
+  <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
+  <div class="app-layout d-lg-flex">
+    <aside class="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column" tabindex="-1" id="menu-lateral" aria-labelledby="titulo-menu"></aside>
+    <div class="app-area flex-grow-1">
+      <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
+      <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1">
+        <section class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+          <div><h1 class="h3 fw-bold mb-2">Ventas del día</h1><p class="text-body-secondary mb-0">Registra pedidos y consulta el movimiento de hoy.</p></div>
+          <span class="badge rounded-pill app-estado app-estado-ok" id="fecha-actual"></span>
+        </section>
+        <section class="row g-3 mb-4" aria-label="Resumen de ventas de la fecha seleccionada">
+          <div class="col-12 col-md-6 col-xl-3"><article class="app-panel p-3 p-md-4 h-100"><p class="small text-body-secondary mb-2">INGRESOS</p><p class="ventas-kpi fw-bold mb-1" id="total-dia">$0.00</p><p class="small text-body-secondary mb-0" id="detalle-ingresos">Total registrado hoy</p></article></div>
+          <div class="col-12 col-md-6 col-xl-3"><article class="app-panel p-3 p-md-4 h-100"><p class="small text-body-secondary mb-2">PEDIDOS</p><p class="ventas-kpi fw-bold mb-1" id="cantidad-pedidos">0</p><p class="small text-body-secondary mb-0">Pedidos registrados</p></article></div>
+          <div class="col-12 col-md-6 col-xl-3"><article class="app-panel p-3 p-md-4 h-100"><p class="small text-body-secondary mb-2">TACOS VENDIDOS</p><p class="ventas-kpi fw-bold mb-1" id="cantidad-tacos">0</p><p class="small text-body-secondary mb-0">Unidades registradas</p></article></div>
+          <div class="col-12 col-md-6 col-xl-3"><article class="app-panel p-3 p-md-4 h-100"><p class="small text-body-secondary mb-2">RECETA MÁS VENDIDA</p><p class="ventas-kpi ventas-kpi-receta fw-bold mb-1" id="receta-mas-vendida">—</p><p class="small text-body-secondary mb-0" id="detalle-receta-mas-vendida">En el día seleccionado</p></article></div>
+        </section>
+        <div class="row g-3">
+          <section class="col-12 col-xl-5" aria-labelledby="titulo-formulario">
+            <article class="app-panel p-3 p-md-4 h-100">
+              <h2 class="h5 fw-semibold mb-1" id="titulo-formulario">Registrar pedido</h2><p class="small text-body-secondary mb-4">Agrega uno o más productos. El total se calcula automáticamente.</p>
+              <form id="formulario-venta" novalidate>
+                <div class="mb-3"><label for="fecha-venta" class="form-label">Fecha de la venta</label><input class="form-control" id="fecha-venta" type="date" required></div>
+                <div id="lineas-productos" class="d-grid gap-3"></div>
+                <button class="btn btn-app-secondary w-100 mt-3" id="agregar-producto" type="button">+ Agregar producto</button>
+                <div class="row g-3 mt-1">
+                  <div class="col-12 col-md-6"><label for="metodo-pago" class="form-label">Método de pago</label><select id="metodo-pago" class="form-select" required><option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option><option value="transferencia">Transferencia</option></select></div>
+                  <div class="col-12 col-md-6"><span class="form-label d-block">Total del pedido</span><output class="ventas-total d-block" id="total-pedido">$0.00</output></div>
+                </div>
+                <button class="btn btn-app-primary w-100 mt-4" type="submit">Guardar venta</button>
+              </form>
+            </article>
+          </section>
+          <section class="col-12 col-xl-7" aria-labelledby="titulo-historial">
+            <article class="app-panel p-3 p-md-4 h-100">
+              <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3"><div><h2 class="h5 fw-semibold mb-1" id="titulo-historial">Ventas registradas hoy</h2><p class="small text-body-secondary mb-0">Los registros también alimentan los reportes del proyecto.</p></div><button class="btn btn-app-secondary btn-sm" type="button" id="limpiar-ventas">Limpiar día</button></div>
+              <div class="ventas-grafica mb-4"><canvas id="grafica-ventas" role="img" aria-label="Gráfica de tacos vendidos por producto hoy"></canvas></div>
+              <div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Hora</th><th>Productos</th><th>Pago</th><th class="text-end">Total</th></tr></thead><tbody id="tabla-ventas"></tbody></table></div>
+              <p class="small text-body-secondary text-center py-4 mb-0" id="sin-ventas">Todavía no hay ventas registradas para esta fecha.</p>
+            </article>
+          </section>
+        </div>
+        <p class="small text-body-secondary mt-3 mb-0" id="sin-recetas" role="status" hidden>No hay recetas activas con precio. <a href="recetas.html">Ve a Recetas</a> para crear o activar una antes de registrar ventas.</p>
+      </main>
+    </div>
+  </div>
+  <noscript><p class="p-3">Activa JavaScript para registrar ventas.</p></noscript>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js" integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2" crossorigin="anonymous"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/validacion.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <script src="../js/ventas.js"></script>
+</body>
+</html>

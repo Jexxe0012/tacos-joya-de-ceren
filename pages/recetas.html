@@ -79,8 +79,9 @@
               <div class="col-12 col-xl-4">
                 <label class="form-label" for="filtro-texto">Nombre o ingrediente</label>
                 <input class="form-control" type="search" id="filtro-texto" name="texto"
-                  placeholder="Por ejemplo: pastor" maxlength="40" autocomplete="off">
-                <p class="invalid-feedback receta-error" id="error-filtro-texto"></p>
+                  placeholder="Por ejemplo: pastor" maxlength="60" autocomplete="off"
+                  aria-describedby="error-filtro-texto">
+                <p class="invalid-feedback" id="error-filtro-texto"></p>
               </div>
               <div class="col-12 col-sm-6 col-xl-2">
                 <label class="form-label" for="filtro-categoria">Categoría</label>
@@ -153,34 +154,29 @@
             <div class="row g-3">
               <div class="col-12 col-md-6">
                 <label class="form-label" for="receta-nombre">Nombre de la receta</label>
-                <input class="form-control" type="text" id="receta-nombre" maxlength="60" autocomplete="off" required>
-                <p class="receta-error" id="error-receta-nombre"></p>
+                <input class="form-control" type="text" id="receta-nombre" minlength="3" maxlength="60" autocomplete="off" required>
               </div>
               <div class="col-12 col-md-6">
                 <label class="form-label" for="receta-categoria">Categoría</label>
                 <select class="form-select" id="receta-categoria" required>
                   <option value="">Selecciona una categoría</option>
                 </select>
-                <p class="receta-error" id="error-receta-categoria"></p>
               </div>
               <div class="col-6 col-md-3">
                 <label class="form-label" for="receta-porciones">Porciones que rinde</label>
                 <input class="form-control" type="number" id="receta-porciones" min="1" max="200" step="1" required>
-                <p class="receta-error" id="error-receta-porciones"></p>
               </div>
               <div class="col-6 col-md-3">
                 <label class="form-label" for="receta-tiempo">Tiempo (minutos)</label>
                 <input class="form-control" type="number" id="receta-tiempo" min="1" max="240" step="1" required>
-                <p class="receta-error" id="error-receta-tiempo"></p>
               </div>
               <div class="col-6 col-md-3">
                 <label class="form-label" for="receta-precio">Precio de venta</label>
                 <div class="input-group">
                   <span class="input-group-text">$</span>
-                  <input class="form-control" type="number" id="receta-precio" min="0" max="100" step="0.01">
+                  <input class="form-control" type="number" id="receta-precio" min="0.05" max="100" step="0.01">
                 </div>
                 <p class="small text-body-secondary mt-1 mb-0" id="ayuda-receta-precio">Precio de una porción.</p>
-                <p class="receta-error" id="error-receta-precio"></p>
               </div>
               <div class="col-6 col-md-3">
                 <label class="form-label" for="receta-estado">Estado</label>
@@ -188,7 +184,6 @@
                   <option value="activa">Activa</option>
                   <option value="inactiva">Inactiva</option>
                 </select>
-                <p class="receta-error" id="error-receta-estado"></p>
               </div>
             </div>
 
@@ -204,7 +199,7 @@
               Anota la cantidad que lleva la receta completa, no la de una sola porción.
             </p>
             <div id="ingredientes-lista" role="group" aria-labelledby="titulo-ingredientes"></div>
-            <p class="receta-error mt-2" id="error-ingredientes"></p>
+            <p class="receta-error mt-2" id="error-ingredientes" role="alert"></p>
 
             <div class="app-panel p-3 mt-3">
               <dl class="mb-0">
@@ -226,12 +221,11 @@
             <hr class="my-4">
 
             <label class="form-label" for="receta-preparacion">Preparación</label>
-            <textarea class="form-control" id="receta-preparacion" rows="4" maxlength="1000" required
+            <textarea class="form-control" id="receta-preparacion" rows="4" minlength="20" maxlength="1000" required
               placeholder="Escribe los pasos en el orden en que se hacen."></textarea>
             <p class="small text-body-secondary mt-1 mb-0">
-              <span id="contador-preparacion">0</span> de 1000 caracteres.
+              <span id="contador-preparacion">0</span> de 1000 caracteres (mínimo 20).
             </p>
-            <p class="receta-error" id="error-receta-preparacion"></p>
           </div>
           <div class="modal-footer">
             <button class="btn btn-app-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
@@ -258,27 +252,6 @@
     </div>
   </div>
 
-  <div class="modal fade" id="modal-eliminar" tabindex="-1" aria-labelledby="titulo-modal-eliminar" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 class="modal-title h5" id="titulo-modal-eliminar">Eliminar receta</h2>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-          <p class="mb-1">Se eliminará <strong id="nombre-a-eliminar"></strong> del catálogo.</p>
-          <p class="small text-body-secondary mb-0">
-            Los reportes dejarán de tomar en cuenta su consumo estándar. Esta acción no se puede deshacer.
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-app-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
-          <button class="btn btn-app-primary" type="button" id="btn-confirmar-eliminar">Sí, eliminar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <noscript><p class="p-3">Activa JavaScript para utilizar la navegación y el módulo de recetas.</p></noscript>
 
   <script
@@ -295,7 +268,15 @@
       }
     })();
   </script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.25/dist/sweetalert2.all.min.js"
+    integrity="sha384-nLoOnA/BDh8A/jxqtckg4DumuCGOBYUnNJLZdQz/zfYNp3wcjGSoWTAzgko06G/2"
+    crossorigin="anonymous"
+  ></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/validacion.js"></script>
   <script src="../js/main.js"></script>
+  <script src="../js/catalogo-insumos.js"></script>
   <script src="../js/recetas.js"></script>
 </body>
 </html>
