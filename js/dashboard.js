@@ -120,41 +120,143 @@
   }
 })();
 
-// Serie de demostración equivalente a la utilizada en Reportes. Cuando los
-// módulos compartan datos reales, esta fuente se reemplazará sin cambiar la vista.
+// Gráfica de tacos vendidos durante los últimos siete días.
 (() => {
   const canvas = document.getElementById("grafica-ventas-dashboard");
-  if (!canvas || typeof Chart === "undefined") return;
+
+  if (!canvas || typeof Chart === "undefined" || typeof DB === "undefined") {
+    return;
+  }
 
   const estilos = getComputedStyle(document.body);
   const texto = estilos.getPropertyValue("--text").trim();
   const borde = estilos.getPropertyValue("--bs-border-color").trim();
-  const ventas = [120, 130, 145, 155, 170, 200, 158];
+
+  const hoy = new Date();
+  hoy.setHours(12, 0, 0, 0);
+
+  const formatoFecha = fecha =>
+    `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(fecha.getDate()).padStart(2, "0")}`;
+
+  const formatoDia = new Intl.DateTimeFormat("es-SV", {
+    weekday: "short"
+  });
+
+  // Obtener únicamente las ventas reales registradas.
+const registros = DB.getAll("ventas").filter(venta =>
+  venta.fecha && venta.ejemplo !== true
+);
+
+  const dias = [];
+
+  // Preparar los últimos siete días, incluyendo hoy.
+  for (let i = 6; i >= 0; i--) {
+    const fecha = new Date(hoy);
+    fecha.setDate(hoy.getDate() - i);
+
+    dias.push({
+      fecha: formatoFecha(fecha),
+      etiqueta: formatoDia.format(fecha).replace(".", ""),
+      cantidad: 0
+    });
+  }
+
+  // Sumar los tacos vendidos de cada día.
+  registros.forEach(venta => {
+    const dia = dias.find(item => item.fecha === venta.fecha);
+
+    if (!dia) {
+      return;
+    }
+
+    const cantidad = Number(venta.cantidad);
+
+    if (Number.isFinite(cantidad) && cantidad > 0) {
+      dia.cantidad += cantidad;
+    }
+  });
+
+  const cantidades = dias.map(dia => dia.cantidad);
+
+ const graficaExistente = Chart.getChart(canvas);
+
+if (graficaExistente) {
+  graficaExistente.destroy();
+}
 
   new Chart(canvas, {
     type: "bar",
+
     data: {
-      labels: ["L", "M", "X", "J", "V", "S", "D"],
+      labels: dias.map(dia => dia.etiqueta),
+
       datasets: [{
         label: "Tacos vendidos",
-        data: ventas,
-        backgroundColor: ventas.map((_, indice) => indice === ventas.length - 1 ? texto : "#C9CDD3"),
+        data: cantidades,
+
+        backgroundColor: dias.map((dia, indice) =>
+          indice === dias.length - 1 ? texto : "#C9CDD3"
+        ),
+
         borderRadius: 5,
         maxBarThickness: 38
       }]
     },
+
     options: {
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
       locale: "es-SV",
+
       plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: contexto => `${contexto.parsed.y} tacos vendidos` } }
+        legend: {
+          display: false
+        },
+
+        tooltip: {
+          callbacks: {
+            title: context => {
+              const dia = dias[context[0].dataIndex];
+              return dia.fecha;
+            },
+
+            label: contexto =>
+              `${contexto.parsed.y} tacos vendidos`
+          }
+        }
       },
+
       scales: {
-        x: { ticks: { color: texto, maxRotation: 0 }, grid: { display: false } },
-        y: { beginAtZero: true, ticks: { color: texto, precision: 0 }, grid: { color: borde }, title: { display: true, text: "Tacos", color: texto } }
+        x: {
+          ticks: {
+            color: texto,
+            maxRotation: 0
+          },
+
+          grid: {
+            display: false
+          }
+        },
+
+        y: {
+          beginAtZero: true,
+
+          ticks: {
+            color: texto,
+            precision: 0
+          },
+
+          grid: {
+            color: borde
+          },
+
+          title: {
+            display: true,
+            text: "Tacos",
+            color: texto
+          }
+        }
       }
     }
   });

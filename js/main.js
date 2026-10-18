@@ -12,15 +12,16 @@
   const raizProyecto = new URL("../", document.currentScript.src);
   if (!Guard.requireLogin()) return;
   const sesion = Guard.getSesion();
-  const catalogo = [
-    { id: "dashboard", nombre: "Dashboard", ruta: "pages/dashboard.html", roles: ["admin"] },
-    { id: "recetas", nombre: "Recetas", ruta: "pages/recetas.html", roles: ["admin", "empleado"] },
-    { id: "inventario", nombre: "Inventario", ruta: "pages/inventario.html", roles: ["admin", "empleado"] },
-    { id: "mermas", nombre: "Mermas", ruta: "pages/mermas.html", roles: ["admin", "empleado"] },
-    { id: "turnos", nombre: "Turnos", ruta: "pages/turnos.html", roles: ["admin", "empleado"] },
-    { id: "reportes", nombre: "Reportes", ruta: "pages/reportes.html", roles: ["admin"] },
-    { id: "abastecimientos", nombre: "Abastecimiento", ruta: "pages/abastecimientos.html", roles: ["admin"] }
-  ];
+ const catalogo = [
+  { id: "dashboard", nombre: "Dashboard", ruta: "pages/dashboard.html", roles: ["admin"] },
+  { id: "ventas", nombre: "Ventas", ruta: "pages/ventas.html", roles: ["admin", "empleado"] },
+  { id: "recetas", nombre: "Recetas", ruta: "pages/recetas.html", roles: ["admin", "empleado"] },
+  { id: "inventario", nombre: "Inventario", ruta: "pages/inventario.html", roles: ["admin", "empleado"] },
+  { id: "mermas", nombre: "Mermas", ruta: "pages/mermas.html", roles: ["admin", "empleado"] },
+  { id: "turnos", nombre: "Turnos", ruta: "pages/turnos.html", roles: ["admin", "empleado"] },
+  { id: "reportes", nombre: "Reportes", ruta: "pages/reportes.html", roles: ["admin"] },
+  { id: "abastecimientos", nombre: "Abastecimiento", ruta: "pages/abastecimientos.html", roles: ["admin"] }
+];
   const ordenEmpleado = ["turnos", "recetas", "inventario", "mermas"];
   const paginas = sesion.rol === "empleado"
     ? ordenEmpleado.map(id => {
