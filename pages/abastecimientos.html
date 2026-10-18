@@ -39,7 +39,7 @@
           <section class="col-12 col-xl-6" aria-labelledby="titulo-datos-pedido">
             <article class="app-panel abastecimientos-datos h-100 p-3 p-md-4">
               <h2 class="h5 fw-semibold mb-1" id="titulo-datos-pedido">Datos del pedido</h2>
-              <p class="small text-body-secondary mb-4">La proyección usa las ventas promedio y el día de la semana.</p>
+              <p class="small text-body-secondary mb-4">La proyección usa el promedio diario de ventas de los últimos siete días.</p>
               <form id="formulario-pedido" novalidate>
                 <div class="row g-3">
                   <div class="col-12 col-md-6">
@@ -96,7 +96,8 @@
           <div class="col-12 col-xl-6 d-grid gap-3">
             <section class="app-panel abastecimientos-demanda p-3 p-md-4" aria-labelledby="titulo-demanda">
               <h2 class="h5 fw-semibold mb-1" id="titulo-demanda">Demanda esperada</h2>
-              <p class="small text-body-secondary mb-3">Tacos por día según histórico de reportes.</p>
+              <p class="small text-body-secondary mb-2">Ventas registradas en cada uno de los últimos siete días.</p>
+              <p class="small mb-3" id="mensaje-demanda" role="status" aria-live="polite"></p>
               <div class="abastecimientos-grafica" id="grafica-demanda" role="img" aria-label="Gráfica de barras de la demanda esperada por día"></div>
             </section>
             <section class="app-panel abastecimientos-logica p-3 p-md-4" aria-labelledby="titulo-logica">
@@ -105,7 +106,7 @@
                 <span class="badge rounded-pill app-estado app-estado-ok">Basado en reportes</span>
               </div>
               <p class="mb-2">Cobertura = cantidad disponible ÷ consumo diario esperado.</p>
-              <p class="small text-body-secondary mb-0">El consumo diario combina el promedio de ventas del día de la semana y la porción estándar. Los valores son datos de demostración alineados con Reportes.</p>
+              <p class="small text-body-secondary mb-0">El consumo diario combina el promedio de tacos vendidos al día con la porción estándar del insumo. Si no hay ventas reales, se usa la serie de referencia.</p>
             </section>
           </div>
 

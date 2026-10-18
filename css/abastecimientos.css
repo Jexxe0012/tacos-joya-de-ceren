@@ -8,7 +8,7 @@
 .abastecimientos-page .abastecimientos-alerta strong { display: block; margin-bottom: .2rem; }
 .abastecimientos-page .abastecimientos-alerta span { color: var(--bs-secondary-color); font-size: .75rem; }
 .abastecimientos-page .abastecimientos-mensaje { min-height: 1.25rem; color: var(--danger); }
-.abastecimientos-page .abastecimientos-grafica { display: grid; grid-template-columns: repeat(5, minmax(2.5rem, 1fr)); align-items: end; gap: clamp(1rem, 4vw, 2.6rem); min-height: 12rem; padding: 1rem 1.5rem 0; }
+.abastecimientos-page .abastecimientos-grafica { display: grid; grid-template-columns: repeat(7, minmax(2.5rem, 1fr)) !important; align-items: end; gap: clamp(1rem, 4vw, 2.6rem); min-height: 12rem; padding: 1rem 1.5rem 0; }
 .abastecimientos-page .demanda-barra { display: grid; grid-template-rows: auto 1fr auto; height: 11rem; gap: .4rem; text-align: center; font-size: .75rem; }
 .abastecimientos-page .demanda-valor { font-weight: 700; font-size: .7rem; }
 .abastecimientos-page .demanda-columna { align-self: end; min-height: 2rem; width: 100%; border-radius: .45rem .45rem .2rem .2rem; background: color-mix(in srgb, var(--text) 25%, var(--surface)); }

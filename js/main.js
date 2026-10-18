@@ -19,9 +19,10 @@
     { id: "mermas", nombre: "Mermas", ruta: "pages/mermas.html", roles: ["admin", "empleado"] },
     { id: "turnos", nombre: "Turnos", ruta: "pages/turnos.html", roles: ["admin", "empleado"] },
     { id: "reportes", nombre: "Reportes", ruta: "pages/reportes.html", roles: ["admin"] },
+    { id: "ventas", nombre: "Ventas del día", ruta: "pages/ventas.html", roles: ["admin", "empleado"] },
     { id: "abastecimientos", nombre: "Abastecimiento", ruta: "pages/abastecimientos.html", roles: ["admin"] }
   ];
-  const ordenEmpleado = ["turnos", "recetas", "inventario", "mermas"];
+  const ordenEmpleado = ["turnos", "recetas", "ventas", "inventario", "mermas"];
   const paginas = sesion.rol === "empleado"
     ? ordenEmpleado.map(id => {
       const pagina = catalogo.find(pagina => pagina.id === id);

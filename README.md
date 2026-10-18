@@ -81,7 +81,7 @@ En **Conectar ingredientes de Recetas con Inventario**, el administrador elige l
 
 Las salidas de Inventario identifican el producto y el motivo, pero no la receta: la eficiencia requiere seleccionar **Todas las recetas**. El filtro de producto sí delimita la comparación. Los nuevos movimientos conservan su unidad; los antiguos usan la unidad actual de Inventario y generan un aviso. Si se cambia la unidad de un producto vinculado, se debe revisar y guardar de nuevo la equivalencia.
 
-Si Chart.js no carga, las tablas permiten consultar los valores. Si jsPDF no carga, se desactiva la descarga y se muestra un aviso. El lector de ventas ya sigue el contrato acordado a continuación; falta comprobarlo con el módulo de Ventas de Carlos cuando se integre.
+Si Chart.js no carga, las tablas permiten consultar los valores. Si jsPDF no carga, se desactiva la descarga y se muestra un aviso. Ventas guarda una línea por receta dentro de cada pedido, con su precio congelado y fecha local; Reportes lee las ventas del contrato descrito a continuación.
 
 ### Inventario
 
@@ -99,7 +99,7 @@ Al guardar, actualiza la cantidad del producto, crea un movimiento de salida con
 
 Disponible para administradores. Permite elegir un insumo, fecha de compra, cantidad comprada y consumo estándar por taco. Con esos valores calcula el consumo diario estimado, los días de cobertura, la fecha prevista de agotamiento y una fecha sugerida de recompra. Incluye una gráfica de demanda, alertas y una tabla de cobertura por insumo.
 
-La proyección utiliza una serie de ventas y un catálogo de insumos definidos como ejemplos en el código. Todavía no consulta automáticamente las existencias de Inventario ni los datos de Reportes, y no guarda pedidos de compra.
+La demanda usa las ventas no marcadas como ejemplos de los últimos 7 días y calcula un promedio diario; si no hay registros reales, muestra la serie de referencia y lo indica en pantalla. La fecha de compra no puede ser futura ni tener más de 30 días; cantidad y porción se validan dentro de sus rangos. Si la cobertura es menor a 3 días, aparece una alerta de cobertura crítica con la fecha sugerida del pedido. Las existencias y porciones de insumo aún son valores de referencia: el módulo no guarda pedidos de compra ni consulta automáticamente el inventario.
 
 ## Arquitectura y almacenamiento
 
@@ -107,11 +107,11 @@ La aplicación se ejecuta en el navegador. Cada página HTML carga los estilos c
 
 `storage.js` expone el objeto `DB`, que permite consultar, crear, actualizar, eliminar y cargar datos iniciales en colecciones JSON dentro de localStorage. La información se organiza en `usuarios`, `recetas`, `turnos`, `solicitudes`, `inventario`, `movimientos`, `ventas`, `mermas` y `vinculosInsumos`; la sesión activa utiliza la clave `sesion`.
 
-Las integraciones actuales son Recetas → consumo esperado del Dashboard; Inventario → registro de Mermas → actualización de existencias y movimientos; y Ventas + Mermas + Recetas + Inventario + Movimientos → Reportes. `catalogo-insumos.js` comparte los ingredientes y unidades de las fichas; `vinculosInsumos` relaciona cada ingrediente con un producto de Inventario y su equivalencia. Abastecimiento y parte del Dashboard mantienen fuentes de demostración. El módulo de Ventas y su enlace en el menú se incorporarán cuando el responsable lo entregue y solicite la integración.
+Las integraciones actuales son Recetas → consumo esperado del Dashboard; Ventas → demanda de Abastecimiento; Inventario → registro de Mermas → actualización de existencias y movimientos; y Ventas + Mermas + Recetas + Inventario + Movimientos → Reportes. `catalogo-insumos.js` comparte los ingredientes y unidades de las fichas; `vinculosInsumos` relaciona cada ingrediente con un producto de Inventario y su equivalencia. Las existencias y parte de los indicadores del Dashboard todavía usan valores de referencia.
 
 ### Contrato de ventas para la integración
 
-Cada registro de la colección `ventas` representa una receta vendida. El módulo de Ventas debe guardar el ID de la receta, una copia de su nombre y el precio al momento de la venta; Reportes suma el `total` guardado, sin recalcularlo con precios posteriores.
+Cada registro de la colección `ventas` representa una receta vendida. Ventas guarda el ID de la receta, una copia de su nombre y el precio al momento de la venta; Reportes suma el `total` guardado, sin recalcularlo con precios posteriores. Las líneas del mismo pedido comparten `pedidoId`.
 
 ```js
 DB.create("ventas", {
@@ -170,7 +170,7 @@ Estas cuentas se crean al cargar el login si la colección de usuarios está vac
 
 | Ruta | Contenido |
 | --- | --- |
-| `pages/` | Pantallas de login, dashboard, recetas, turnos, inventario, mermas, reportes y abastecimiento. |
+| `pages/` | Pantallas de login, dashboard, recetas, ventas, turnos, inventario, mermas, reportes y abastecimiento. |
 | `css/main.css` | Paleta de colores y estilos compartidos. |
 | `css/` | Estilos específicos de cada módulo. |
 | `js/main.js` | Menú lateral, barra superior y cierre de sesión compartidos. |
@@ -184,11 +184,14 @@ Estas cuentas se crean al cargar el login si la colección de usuarios está vac
 | `js/catalogo-insumos.js` | Catálogo compartido de ingredientes de las fichas técnicas. |
 | `js/reportes-vinculos.js`, `js/reportes-eficiencia.js` | Correspondencias con Inventario, equivalencias y comparación del consumo estándar y real en peso. |
 | `js/reportes-pdf.js` | Exportación del reporte aplicado a PDF. |
+| `js/ventas.js` | Registro de ventas del día desde las recetas activas. |
 
 ## Estado y próximos pasos
 
-El avance incluye autenticación simulada, navegación por roles, gestión local de recetas, turnos e inventario, registro de mermas con descuento de existencias y consultas de indicadores, reportes y abastecimiento. Queda pendiente comprobar Reportes con el módulo de Ventas integrado, unificar la merma rápida de Turnos con Inventario y conectar Abastecimiento y los indicadores del Dashboard que aún utilizan ejemplos.
+El avance incluye autenticación simulada, navegación por roles, gestión local de recetas, ventas, turnos e inventario, registro de mermas con descuento de existencias y consultas de indicadores, reportes y abastecimiento. Queda pendiente unificar la merma rápida de Turnos con Inventario y conectar Abastecimiento y los indicadores del Dashboard que aún utilizan ejemplos.
 
 Los datos pertenecen al navegador y al origen utilizado: cambiar de navegador, equipo, dominio o puerto no comparte automáticamente la información. Cerrar sesión conserva los registros; borrar el almacenamiento del sitio los elimina.
+
+Ventas registra una entrada por producto vendido en `DB.getAll("ventas")`, con `fecha`, `hora`, `pedidoId`, `recetaId`, `recetaNombre`, `cantidad`, `precioUnitario`, `total` (importe de esa línea) y `metodoPago`. Este formato permite que Reportes agrupe las unidades e ingresos por receta y fecha.
 
 La aplicación todavía no cuenta con servidor ni base de datos remota. La autenticación con localStorage corresponde al prototipo académico; la validación de permisos y el almacenamiento de credenciales deberán trasladarse al servidor antes de un uso real.
