@@ -1,5 +1,12 @@
 # Tacos Joya de Cerén
 
+## Entrega de la Etapa 3 Foro 1
+
+- [Video de demostración](https://youtu.be/ShDF-nkBVLs)
+- [Documento de entrega e investigación grupal en PDF](docs/Entrega_Foro1_TacosJoya.pdf)
+- [Aplicación web](https://jexxe0012.github.io/tacos-joya-de-ceren/pages/login.html)
+- [Código fuente integrado](https://github.com/Jexxe0012/tacos-joya-de-ceren/tree/main)
+
 ## Integrantes
 
 | Nombre completo | Carné |
