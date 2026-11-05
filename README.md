@@ -110,7 +110,7 @@ La demanda usa las ventas no marcadas como ejemplos de los últimos 7 días y ca
 
 ## Arquitectura y almacenamiento
 
-La aplicación se ejecuta en el navegador. Cada página HTML carga los estilos compartidos y la lógica JavaScript de su módulo. `main.js` construye la navegación según el rol y `guard.js` comprueba la sesión antes de acceder a las páginas protegidas.
+La aplicación se ejecuta en el navegador. Cada página carga los estilos compartidos y la lógica de su módulo. React dibuja el menú, el encabezado y los resultados de Reportes. `src/navegacion.js` determina el menú según el rol y `js/guard.js` comprueba la sesión antes de acceder a las páginas protegidas.
 
 `storage.js` expone el objeto `DB`, que permite consultar, crear, actualizar, eliminar y cargar datos iniciales en colecciones JSON dentro de localStorage. La información se organiza en `usuarios`, `recetas`, `turnos`, `solicitudes`, `inventario`, `movimientos`, `ventas`, `mermas` y `vinculosInsumos`; la sesión activa utiliza la clave `sesion`.
 
@@ -141,6 +141,7 @@ DB.create("ventas", {
 - **HTML5 y CSS3:** estructura y estilos de las pantallas.
 - **Bootstrap 5.3.8:** distribución responsive, navegación móvil y componentes de interfaz.
 - **JavaScript vanilla:** validaciones, cálculos y comportamiento de los módulos.
+- **React y Vite:** componentes de navegación y Reportes, servidor de desarrollo y compilación.
 - **Chart.js 4.5.1:** gráficas de Dashboard y Reportes.
 - **SweetAlert2 11.26.25:** diálogos y avisos mediante `UI.exito`, `UI.error`, `UI.aviso` y `await UI.confirmar`.
 - **jsPDF 4.2.1:** generación y descarga del reporte PDF en el navegador.
@@ -158,11 +159,18 @@ DB.create("ventas", {
    cd tacos-joya-de-ceren
    ```
 
-2. Inicia un servidor local, por ejemplo con la extensión **Live Server**.
-3. Abre `index.html` para entrar según tu sesión, o `pages/login.html` para iniciar sesión. Si utiliza el puerto 5500, la dirección será `http://127.0.0.1:5500/pages/login.html`.
-4. Inicia sesión con una cuenta de prueba o registra una cuenta.
+2. Con Node.js 20.19+ de la serie 20 o Node.js 22.12+ de una serie compatible, ejecuta:
 
-No requiere instalar paquetes con npm ni ejecutar un proceso de compilación. Se necesita JavaScript habilitado y conexión a internet para cargar Bootstrap, SweetAlert2, Chart.js y jsPDF desde sus CDN.
+   ```bash
+   npm ci
+   npm run dev
+   ```
+
+3. Abre la dirección que muestra Vite e inicia sesión. El administrador entra a Dashboard y tiene acceso a Reportes. El empleado entra a Mis turnos.
+
+Reportes usa la misma selección aplicada para los indicadores, las gráficas, el hallazgo y la descarga PDF. Bootstrap, SweetAlert2, Chart.js y jsPDF se cargan desde sus CDN.
+
+`npm run build` compila la aplicación completa en `dist/`. Usa `npm run preview` para probar la compilación. Para publicar esta versión en GitHub Pages, configura el despliegue para servir `dist/`.
 
 ### Cuentas de demostración
 
@@ -180,7 +188,11 @@ Estas cuentas se crean al cargar el login si la colección de usuarios está vac
 | `pages/` | Pantallas de login, dashboard, recetas, ventas, turnos, inventario, mermas, reportes y abastecimiento. |
 | `css/main.css` | Paleta de colores y estilos compartidos. |
 | `css/` | Estilos específicos de cada módulo. |
-| `js/main.js` | Menú lateral, barra superior y cierre de sesión compartidos. |
+| `src/plantilla.jsx` | Menú lateral y barra superior en React. |
+| `src/reportes/Reportes.jsx` | Filtros e indicadores de Reportes en React. |
+| `src/reportes/GraficasReportes.jsx` | Gráficas, tablas y hallazgo operativo en React. |
+| `src/reportes/EncabezadoReporte.jsx` | Título y descarga del PDF. |
+| `src/navegacion.js` | Menú por rol y flujo compartido de cierre de sesión. |
 | `js/storage.js` | Operaciones de lectura, creación, actualización y eliminación de colecciones en localStorage. |
 | `js/guard.js` | Comprobaciones de sesión y rol. |
 | `js/ui.js`, `js/validacion.js` | Diálogos, avisos, fecha local y validaciones compartidas. |

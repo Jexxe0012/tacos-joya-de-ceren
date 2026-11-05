@@ -1,13 +1,13 @@
 /**
  * turnos.js — Lógica del módulo Turnos.
  * Requiere: storage.js (DB), guard.js (Guard), ui.js (UI), validacion.js
- * (Valida) y main.js cargados antes.
+ * (Valida) cargados antes.
  *
- * Personaliza la plantilla compartida y muestra la vista según la sesión.
+ * Muestra la vista de turnos según la sesión.
  */
 
 /* ============================================
-   Setup de la plantilla compartida y de la vista
+   Configuración de la vista por rol
    ============================================ */
 
 const sesion = Guard.getSesion();
@@ -17,12 +17,6 @@ const sesion = Guard.getSesion();
 if (!sesion) {
   throw new Error('No hay sesión activa.');
 }
-
-// main.js ya creó la navegación y el cierre de sesión comunes.
-const rolTurnos = sesion.rol === 'admin' ? 'Dueño / Admin' : 'Empleado';
-document.body.dataset.rol = rolTurnos;
-document.getElementById('rol-menu').textContent = `${sesion.nombre} · ${rolTurnos}`;
-document.getElementById('rol-barra').textContent = rolTurnos;
 
 // Mostrar la vista que corresponde al rol
 if (sesion.rol === 'admin') {

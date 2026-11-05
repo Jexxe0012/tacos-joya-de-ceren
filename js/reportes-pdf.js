@@ -1,20 +1,8 @@
 "use strict";
 
-// Exporta una copia de los últimos filtros aplicados, sin consultar ni modificar DB.
-(() => {
-  const boton = document.getElementById("btn-descargar-pdf");
-  const estado = document.getElementById("estado-exportacion");
-  let exportando = false;
+// Genera el PDF a partir del reporte aplicado que entrega la vista.
+const ReportePDF = (() => {
   const color = variable => getComputedStyle(document.body).getPropertyValue(variable).trim();
-
-  function actualizarDisponibilidad() {
-    const disponible = typeof window.jspdf?.jsPDF === "function";
-    boton.disabled = !disponible;
-    estado.hidden = disponible;
-    estado.textContent = disponible ? ""
-      : "No se pudo cargar la descarga en PDF. Revisa tu conexión y recarga la página.";
-    return disponible;
-  }
 
   function imagenGrafica(datos, unidad, tipo, horizontal, limite, variableColor) {
     const canvas = document.createElement("canvas");
@@ -222,27 +210,14 @@
     return pdf;
   }
 
-  boton.addEventListener("click", async () => {
-    if (exportando || !actualizarDisponibilidad() || !reporteActual || !Guard.requireRole("admin")) return;
-    exportando = true;
-    const desbloquear = Valida.bloquearEnvio(boton);
-    boton.textContent = "Generando PDF…";
-    const reporte = reporteActual;
-    const generado = new Date();
-    try {
-      await new Promise(resolve => requestAnimationFrame(resolve));
-      const pdf = crearDocumentoPDF(reporte, Guard.getSesion().nombre || "Administrador", generado);
-      await pdf.save(`reporte-tjc-${UI.fechaHoy()}.pdf`, { returnPromise: true });
-      await UI.aviso("Reporte descargado");
-    } catch (error) {
-      console.error("No se pudo exportar Reportes:", error);
-      await UI.error("No se pudo descargar el reporte", "Intenta de nuevo. Si el problema continúa, recarga la página.");
-    } finally {
-      exportando = false;
-      desbloquear();
-      boton.textContent = "Descargar reporte PDF";
-      actualizarDisponibilidad();
-    }
-  });
-  actualizarDisponibilidad();
+  function disponible() {
+    return typeof window.jspdf?.jsPDF === "function";
+  }
+
+  async function descargar(reporte, usuario, generado) {
+    const pdf = crearDocumentoPDF(reporte, usuario, generado);
+    await pdf.save(`reporte-tjc-${UI.fechaHoy()}.pdf`, { returnPromise: true });
+  }
+
+  return { disponible, descargar };
 })();
