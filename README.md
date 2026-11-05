@@ -110,7 +110,7 @@ La demanda usa las ventas no marcadas como ejemplos de los últimos 7 días y ca
 
 ## Arquitectura y almacenamiento
 
-La aplicación se ejecuta en el navegador. Cada página HTML carga los estilos compartidos y la lógica JavaScript de su módulo. `main.js` construye la navegación según el rol y `guard.js` comprueba la sesión antes de acceder a las páginas protegidas.
+La aplicación se ejecuta en el navegador. Cada página HTML carga los estilos compartidos y la lógica JavaScript de su módulo. `navegacion.js` determina el menú según el rol y `guard.js` comprueba la sesión antes de acceder a las páginas protegidas. Con Vite, React dibuja el menú y la barra superior sobre las páginas existentes.
 
 `storage.js` expone el objeto `DB`, que permite consultar, crear, actualizar, eliminar y cargar datos iniciales en colecciones JSON dentro de localStorage. La información se organiza en `usuarios`, `recetas`, `turnos`, `solicitudes`, `inventario`, `movimientos`, `ventas`, `mermas` y `vinculosInsumos`; la sesión activa utiliza la clave `sesion`.
 
@@ -162,7 +162,20 @@ DB.create("ventas", {
 3. Abre `index.html` para entrar según tu sesión, o `pages/login.html` para iniciar sesión. Si utiliza el puerto 5500, la dirección será `http://127.0.0.1:5500/pages/login.html`.
 4. Inicia sesión con una cuenta de prueba o registra una cuenta.
 
-No requiere instalar paquetes con npm ni ejecutar un proceso de compilación. Se necesita JavaScript habilitado y conexión a internet para cargar Bootstrap, SweetAlert2, Chart.js y jsPDF desde sus CDN.
+La versión estática se puede ejecutar sin instalar paquetes ni compilar. Se necesita JavaScript habilitado y conexión a internet para cargar Bootstrap, SweetAlert2, Chart.js y jsPDF desde sus CDN.
+
+### Plantilla compartida en React
+
+Usa Node.js 20.19+ de la serie 20 o Node.js 22.12+ de una serie compatible. Desde la raíz del repositorio ejecuta:
+
+```bash
+npm ci
+npm run dev
+```
+
+Abre la dirección que muestra Vite. Inicia sesión para entrar a Dashboard como administrador o a Mis turnos como empleado. Ambas vistas usan los mismos componentes de React para el menú y el encabezado. Reportes solo admite la sesión de administrador.
+
+`npm run build` compila la aplicación completa en `dist/`. Usa `npm run preview` para probarla. Live Server y la publicación estática desde los archivos fuente usan la plantilla anterior durante la migración.
 
 ### Cuentas de demostración
 
@@ -180,7 +193,9 @@ Estas cuentas se crean al cargar el login si la colección de usuarios está vac
 | `pages/` | Pantallas de login, dashboard, recetas, ventas, turnos, inventario, mermas, reportes y abastecimiento. |
 | `css/main.css` | Paleta de colores y estilos compartidos. |
 | `css/` | Estilos específicos de cada módulo. |
-| `js/main.js` | Menú lateral, barra superior y cierre de sesión compartidos. |
+| `src/plantilla.jsx` | Menú lateral y barra superior en React. |
+| `js/navegacion.js` | Menú por rol y flujo compartido de cierre de sesión. |
+| `js/main.js` | Plantilla para la versión estática. |
 | `js/storage.js` | Operaciones de lectura, creación, actualización y eliminación de colecciones en localStorage. |
 | `js/guard.js` | Comprobaciones de sesión y rol. |
 | `js/ui.js`, `js/validacion.js` | Diálogos, avisos, fecha local y validaciones compartidas. |

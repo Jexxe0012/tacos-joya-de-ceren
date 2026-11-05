@@ -8,37 +8,9 @@
   // Las páginas que no usan el panel (por ejemplo, login) pueden omitir estos contenedores.
   if (!menuLateral || !barraSuperior) return;
 
-  // Se calcula desde js/main.js para funcionar en index, pages/ y GitHub Pages.
-  const raizProyecto = new URL("../", document.currentScript.src);
-  if (!Guard.requireLogin()) return;
-  const sesion = Guard.getSesion();
-const catalogo = [
-  { id: "dashboard", nombre: "Dashboard", ruta: "pages/dashboard.html", roles: ["admin"] },
-  { id: "recetas", nombre: "Recetas", ruta: "pages/recetas.html", roles: ["admin", "empleado"] },
-  { id: "inventario", nombre: "Inventario", ruta: "pages/inventario.html", roles: ["admin", "empleado"] },
-  { id: "mermas", nombre: "Mermas", ruta: "pages/mermas.html", roles: ["admin", "empleado"] },
-  { id: "turnos", nombre: "Turnos", ruta: "pages/turnos.html", roles: ["admin", "empleado"] },
-  { id: "reportes", nombre: "Reportes", ruta: "pages/reportes.html", roles: ["admin"] },
-  { id: "ventas", nombre: "Ventas del día", ruta: "pages/ventas.html", roles: ["admin", "empleado"] },
-  { id: "abastecimientos", nombre: "Abastecimiento", ruta: "pages/abastecimientos.html", roles: ["admin"] }
-];
-
-const ordenEmpleado = ["turnos", "recetas", "ventas", "inventario", "mermas"];
-  const paginas = sesion.rol === "empleado"
-    ? ordenEmpleado.map(id => {
-      const pagina = catalogo.find(pagina => pagina.id === id);
-      return { ...pagina, nombre: id === "turnos" ? "Mis turnos" : pagina.nombre };
-    })
-    : catalogo.filter(pagina => pagina.roles.includes(sesion.rol));
-  const paginaActual = paginas.find(pagina => pagina.id === document.body.dataset.pagina);
-  if (!paginaActual) {
-    Guard.irAlInicio();
-    return;
-  }
-  const seccion = document.body.dataset.seccion || "General";
-  const rol = sesion.rol === "admin" ? "Dueño / Admin" : "Empleado";
-  document.body.dataset.rol = rol;
-  document.title = `${paginaActual.nombre} | Tacos Joya de Cerén`;
+  const navegacion = Navegacion.preparar();
+  if (!navegacion) return;
+  const { paginas, paginaActual, seccion, rol, perfil } = navegacion;
 
   menuLateral.innerHTML = `
     <div class="d-flex align-items-center justify-content-between gap-3 p-4">
@@ -67,20 +39,7 @@ const ordenEmpleado = ["turnos", "recetas", "ventas", "inventario", "mermas"];
   `;
 
   const botonCerrarSesion = document.getElementById("btn-cerrar-sesion");
-  botonCerrarSesion.addEventListener("click", async () => {
-    if (botonCerrarSesion.disabled) return;
-    const desbloquear = Valida.bloquearEnvio(botonCerrarSesion);
-    try {
-      const confirmado = await UI.confirmar({
-        titulo: "¿Quieres cerrar sesión?",
-        texto: "Volverás al inicio de sesión. Los datos guardados se conservarán.",
-        boton: "Sí, cerrar sesión"
-      });
-      if (confirmado) Guard.logout();
-    } finally {
-      desbloquear();
-    }
-  });
+  botonCerrarSesion.addEventListener("click", () => Navegacion.cerrarSesion(botonCerrarSesion));
 
   const listaMenu = document.getElementById("enlaces-menu");
   paginas.forEach(pagina => {
@@ -88,14 +47,7 @@ const ordenEmpleado = ["turnos", "recetas", "ventas", "inventario", "mermas"];
     elemento.className = "nav-item";
     const enlace = document.createElement("a");
     enlace.className = "nav-link";
-    if (pagina.pendiente) {
-      enlace.classList.add("disabled");
-      enlace.setAttribute("role", "link");
-      enlace.setAttribute("aria-disabled", "true");
-      enlace.title = "Vista de inventario para empleados pendiente";
-    } else {
-      enlace.href = new URL(pagina.ruta, raizProyecto).href;
-    }
+    enlace.href = pagina.href;
 
     const marca = document.createElement("span");
     marca.className = "app-nav-marca";
@@ -104,7 +56,7 @@ const ordenEmpleado = ["turnos", "recetas", "ventas", "inventario", "mermas"];
     nombre.textContent = pagina.nombre;
     enlace.append(marca, nombre);
 
-    if (paginaActual && pagina.id === paginaActual.id) {
+    if (pagina.id === paginaActual.id) {
       enlace.classList.add("active");
       enlace.setAttribute("aria-current", "page");
     }
@@ -124,8 +76,8 @@ const ordenEmpleado = ["turnos", "recetas", "ventas", "inventario", "mermas"];
     <span class="badge rounded-pill app-rol border ms-auto" id="rol-barra"></span>
   `;
 
-  document.getElementById("nombre-pagina").textContent = paginaActual ? paginaActual.nombre : "Tacos Joya de Cerén";
+  document.getElementById("nombre-pagina").textContent = paginaActual.nombre;
   document.getElementById("nombre-seccion").textContent = seccion;
-  document.getElementById("rol-menu").textContent = sesion.nombre ? `${sesion.nombre} · ${rol}` : rol;
+  document.getElementById("rol-menu").textContent = perfil;
   document.getElementById("rol-barra").textContent = rol;
 })();
