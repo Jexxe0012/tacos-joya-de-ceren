@@ -175,7 +175,9 @@ npm run dev
 
 Abre la dirección que muestra Vite. Inicia sesión para entrar a Dashboard como administrador o a Mis turnos como empleado. Ambas vistas usan los mismos componentes de React para el menú y el encabezado. Reportes solo admite la sesión de administrador.
 
-`npm run build` compila la aplicación completa en `dist/`. Usa `npm run preview` para probarla. Live Server y la publicación estática desde los archivos fuente usan la plantilla anterior durante la migración.
+Con Vite, los filtros y los indicadores de Reportes también se renderizan en React. Los indicadores, las gráficas y la descarga PDF usan la misma selección aplicada.
+
+`npm run build` compila la aplicación completa en `dist/`. Usa `npm run preview` para probarla. Live Server y la publicación estática desde los archivos fuente usan las vistas estáticas durante la migración.
 
 ### Cuentas de demostración
 
@@ -194,6 +196,7 @@ Estas cuentas se crean al cargar el login si la colección de usuarios está vac
 | `css/main.css` | Paleta de colores y estilos compartidos. |
 | `css/` | Estilos específicos de cada módulo. |
 | `src/plantilla.jsx` | Menú lateral y barra superior en React. |
+| `src/reportes/Reportes.jsx` | Filtros e indicadores de Reportes en React. |
 | `js/navegacion.js` | Menú por rol y flujo compartido de cierre de sesión. |
 | `js/main.js` | Plantilla para la versión estática. |
 | `js/storage.js` | Operaciones de lectura, creación, actualización y eliminación de colecciones en localStorage. |

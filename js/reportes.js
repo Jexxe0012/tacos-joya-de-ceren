@@ -1,15 +1,5 @@
 "use strict";
 
-const formularioFiltros = document.getElementById("formulario-filtros");
-const filtroPeriodo = document.getElementById("filtro-periodo");
-const filtroInsumo = document.getElementById("filtro-insumo");
-const filtroReceta = document.getElementById("filtro-receta");
-const resumenFiltros = document.getElementById("resumen-filtros");
-const camposRango = document.getElementById("rango-personalizado");
-const filtroFechaInicio = document.getElementById("filtro-fecha-inicio");
-const filtroFechaFin = document.getElementById("filtro-fecha-fin");
-const botonAplicarFiltros = document.getElementById("btn-aplicar-filtros");
-
 const periodosPermitidos = ["7", "30"];
 const productosPermitidosReporte = new Map();
 const recetasPermitidasReporte = new Map();
@@ -61,11 +51,11 @@ function validarFechaRango(valor) {
   return fechaLocalReporte(valor) ? "" : "Selecciona una fecha válida.";
 }
 
-function validarFinRango(valor) {
-  if (filtroPeriodo.value !== "personalizado") return "";
+function validarFinRango(valor, { periodo, fechaInicio }) {
+  if (periodo !== "personalizado") return "";
   const error = validarFechaRango(valor);
   if (error) return error;
-  const inicio = fechaLocalReporte(filtroFechaInicio.value);
+  const inicio = fechaLocalReporte(fechaInicio);
   const fin = fechaLocalReporte(valor);
   if (!inicio) return ""; // El error de inicio se muestra en su propio campo.
   if (inicio > fin) return "Selecciona una fecha final igual o posterior a la inicial.";
@@ -75,30 +65,20 @@ function validarFinRango(valor) {
   return "";
 }
 
-// Reutiliza los mensajes junto al campo y el foco en el primer error del equipo.
-const validarFiltros = Valida.enVivo(formularioFiltros, {
-  "filtro-periodo": (valor) => periodosPermitidos.includes(valor) || valor === "personalizado"
-    ? ""
-    : "Selecciona un período de la lista.",
-  "filtro-insumo": (valor) => valor === "todos" || productosPermitidosReporte.has(valor)
-    ? ""
-    : "Selecciona un producto de la lista.",
-  "filtro-receta": (valor) => valor === "todas" || recetasPermitidasReporte.has(valor)
-    ? ""
-    : "Selecciona una receta de la lista.",
-  "filtro-fecha-inicio": (valor) => filtroPeriodo.value === "personalizado" ? validarFechaRango(valor) : "",
-  "filtro-fecha-fin": validarFinRango
-});
-
-function actualizarCamposRango() {
-  const personalizado = filtroPeriodo.value === "personalizado";
-  camposRango.hidden = !personalizado;
-  camposRango.disabled = !personalizado;
-  for (const campo of [filtroFechaInicio, filtroFechaFin]) {
-    campo.required = personalizado;
-    campo.max = UI.fechaHoy();
-    if (!personalizado) Valida.limpiar(campo);
-  }
+function reglasFiltrosReporte(leerFiltros) {
+  return {
+    "filtro-periodo": (valor) => periodosPermitidos.includes(valor) || valor === "personalizado"
+      ? ""
+      : "Selecciona un período de la lista.",
+    "filtro-insumo": (valor) => valor === "todos" || productosPermitidosReporte.has(valor)
+      ? ""
+      : "Selecciona un producto de la lista.",
+    "filtro-receta": (valor) => valor === "todas" || recetasPermitidasReporte.has(valor)
+      ? ""
+      : "Selecciona una receta de la lista.",
+    "filtro-fecha-inicio": (valor) => leerFiltros().periodo === "personalizado" ? validarFechaRango(valor) : "",
+    "filtro-fecha-fin": valor => validarFinRango(valor, leerFiltros())
+  };
 }
 
 // Las fechas de ventas y mermas pueden ser días locales o marcas de tiempo ISO.
@@ -210,36 +190,6 @@ function obtenerDatos(rango) {
     productos, recetas, movimientos: DB.getAll("movimientos"), vinculos: DB.getAll("vinculosInsumos") };
 }
 
-function actualizarProductosReporte(catalogo) {
-  const seleccion = filtroInsumo.value || "todos";
-  // Conserva la selección aplicada aunque se elimine un producto mientras la página está abierta.
-  for (const [id, nombre] of catalogo) productosPermitidosReporte.set(id, nombre);
-  const opciones = [["todos", "Todos los productos"], ...[...productosPermitidosReporte]
-    .sort((a, b) => a[1].localeCompare(b[1], "es"))].map(([id, nombre]) => {
-      const opcion = document.createElement("option");
-      opcion.value = id;
-      opcion.textContent = nombre;
-      return opcion;
-    });
-  filtroInsumo.replaceChildren(...opciones);
-  filtroInsumo.value = seleccion;
-}
-
-function actualizarRecetasReporte(catalogo) {
-  const seleccion = filtroReceta.value || "todas";
-  // Mantiene una selección anterior si la receta desaparece mientras se consulta.
-  for (const [id, nombre] of catalogo) recetasPermitidasReporte.set(id, nombre);
-  const opciones = [["todas", "Todas las recetas"], ...[...recetasPermitidasReporte]
-    .sort((a, b) => a[1].localeCompare(b[1], "es"))].map(([id, nombre]) => {
-      const opcion = document.createElement("option");
-      opcion.value = id;
-      opcion.textContent = nombre;
-      return opcion;
-    });
-  filtroReceta.replaceChildren(...opciones);
-  filtroReceta.value = seleccion;
-}
-
 function calcularIndicadores(datos, productoSeleccionado) {
   const mermas = datos.mermas.filter(merma => productoSeleccionado === "todos" || merma.productoId === productoSeleccionado);
   const conPeso = mermas.filter(merma => merma.kg !== null);
@@ -257,36 +207,28 @@ function calcularIndicadores(datos, productoSeleccionado) {
   };
 }
 
-function mostrarIndicadores(indicadores, dias) {
+function presentarIndicadoresReporte(indicadores, dias) {
   const enteros = new Intl.NumberFormat("es-SV", { maximumFractionDigits: 0 });
   const decimales = new Intl.NumberFormat("es-SV", { maximumFractionDigits: 3 });
   const moneda = new Intl.NumberFormat("es-SV", { style: "currency", currency: "USD" });
-  document.getElementById("valor-ventas").textContent = indicadores.ventas === null ? "Sin datos" : enteros.format(indicadores.ventas);
-  document.getElementById("detalle-ventas").textContent = indicadores.ventas === null
+  const ventas = indicadores.ventas === null ? "Sin datos" : enteros.format(indicadores.ventas);
+  const detalleVentas = indicadores.ventas === null
     ? "No hay ventas registradas para la receta y el período seleccionados."
     : `Unidades vendidas en ${dias} ${dias === 1 ? "día" : "días"} · ingresos: ${moneda.format(indicadores.ingresos)}.`;
-  document.getElementById("valor-mermas").textContent = indicadores.mermaKg === null ? "Sin datos en kg" : `${decimales.format(indicadores.mermaKg)} kg`;
-  document.getElementById("detalle-mermas").textContent = !indicadores.cantidadMermas ? "No hay mermas registradas en el período."
+  const mermas = indicadores.mermaKg === null ? "Sin datos en kg" : `${decimales.format(indicadores.mermaKg)} kg`;
+  const detalleMermas = !indicadores.cantidadMermas ? "No hay mermas registradas en el período."
     : indicadores.costoMerma === null ? "No hay costos disponibles para estas mermas."
     : `Costo estimado${indicadores.sinCosto ? " parcial" : ""}: ${moneda.format(indicadores.costoMerma)}.`;
-  document.getElementById("valor-eficiencia").textContent = indicadores.eficiencia === null ? "Sin datos"
+  const eficiencia = indicadores.eficiencia === null ? "Sin datos"
     : `${new Intl.NumberFormat("es-SV", { maximumFractionDigits: 1 }).format(indicadores.eficiencia)}%`;
-  document.getElementById("detalle-eficiencia").textContent = indicadores.comparacion.detalle;
-  const tabla = document.getElementById("tabla-eficiencia");
-  tabla.replaceChildren();
-  for (const fila of indicadores.comparacion.filas) {
-    const elemento = document.createElement("tr");
-    for (const [indice, texto] of [fila.nombre, `${decimales.format(fila.estandarKg)} kg`,
-      fila.realKg === null ? "Sin salidas" : `${decimales.format(fila.realKg)} kg`].entries()) {
-      const celda = document.createElement(indice ? "td" : "th");
-      if (!indice) celda.scope = "row";
-      celda.textContent = texto;
-      elemento.append(celda);
-    }
-    tabla.append(elemento);
-  }
-  document.getElementById("datos-eficiencia").hidden = !indicadores.comparacion.filas.length;
-  document.getElementById("estado-datos").textContent = indicadores.ejemplos ? "Incluye ventas de ejemplo" : "Registros del sistema";
+  const detalleEficiencia = indicadores.comparacion.detalle;
+  const filas = indicadores.comparacion.filas.map(fila => ({
+    id: fila.productoId,
+    nombre: fila.nombre,
+    estandar: `${decimales.format(fila.estandarKg)} kg`,
+    real: fila.realKg === null ? "Sin salidas" : `${decimales.format(fila.realKg)} kg`
+  }));
+  return { ventas, detalleVentas, mermas, detalleMermas, eficiencia, detalleEficiencia, filas };
 }
 
 function calcularHallazgoOperativo(series) {
@@ -311,80 +253,79 @@ function mostrarHallazgoOperativo(hallazgo) {
   document.getElementById("hallazgo-sugerencia").textContent = hallazgo.sugerencia;
 }
 
-function mostrarSeleccionFiltros() {
+// Los catálogos conservan las selecciones históricas durante la consulta.
+function incorporarCatalogoReporte(destino, origen) {
+  for (const [id, nombre] of origen) destino.set(id, nombre);
+}
+
+function opcionesFiltroReporte(catalogo, opcionInicial) {
+  return [opcionInicial, ...[...catalogo].sort((a, b) => a[1].localeCompare(b[1], "es"))];
+}
+
+function opcionesProductosReporte() {
+  return opcionesFiltroReporte(productosPermitidosReporte, ["todos", "Todos los productos"]);
+}
+
+function opcionesRecetasReporte() {
+  return opcionesFiltroReporte(recetasPermitidasReporte, ["todas", "Todas las recetas"]);
+}
+
+function refrescarRecetasReporte(rango) {
+  incorporarCatalogoReporte(recetasPermitidasReporte, obtenerDatos(rango).catalogoRecetas);
+  return opcionesRecetasReporte();
+}
+
+function filtrosInicialesReporte() {
+  const { inicio, fin } = calcularRangoPeriodo(7, fechaLocalReporte(UI.fechaHoy()));
+  return { periodo: "7", insumo: "todos", receta: "todas",
+    fechaInicio: textoFechaReporte(inicio), fechaFin: textoFechaReporte(fin) };
+}
+
+function leerFiltrosReporte(formulario) {
+  return Object.fromEntries(new FormData(formulario));
+}
+
+function revalidarFinReporte(campo, filtros) {
+  if (!campo.classList.contains("is-invalid")) return;
+  const error = validarFinRango(campo.value, filtros);
+  if (error) Valida.marcar(campo, error);
+  else Valida.limpiar(campo);
+}
+
+function aplicarReporte({ periodo, insumo, receta, fechaInicio, fechaFin }) {
   const fechaActual = fechaLocalReporte(UI.fechaHoy());
-  const rango = filtroPeriodo.value === "personalizado"
-    ? { inicio: fechaLocalReporte(filtroFechaInicio.value), fin: fechaLocalReporte(filtroFechaFin.value) }
-    : calcularRangoPeriodo(filtroPeriodo.value, fechaActual);
+  const rango = periodo === "personalizado"
+    ? { inicio: fechaLocalReporte(fechaInicio), fin: fechaLocalReporte(fechaFin) }
+    : calcularRangoPeriodo(periodo, fechaActual);
   const datos = obtenerDatos(rango);
-  actualizarProductosReporte(datos.catalogo);
-  actualizarRecetasReporte(datos.catalogoRecetas);
-  // Se filtra una sola vez: indicadores, gráficas, demanda y PDF usan las mismas ventas.
+  incorporarCatalogoReporte(productosPermitidosReporte, datos.catalogo);
+  incorporarCatalogoReporte(recetasPermitidasReporte, datos.catalogoRecetas);
+  // Los indicadores, las gráficas y el PDF comparten las mismas ventas filtradas.
   const datosFiltrados = { ...datos,
-    ventas: datos.ventas.filter(venta => filtroReceta.value === "todas" || venta.recetaId === filtroReceta.value) };
-  const indicadores = calcularIndicadores(datosFiltrados, filtroInsumo.value);
-  indicadores.comparacion = calcularEficienciaReporte(datosFiltrados, rango, filtroInsumo.value, filtroReceta.value);
+    ventas: datos.ventas.filter(venta => receta === "todas" || venta.recetaId === receta) };
+  const indicadores = calcularIndicadores(datosFiltrados, insumo);
+  indicadores.comparacion = calcularEficienciaReporte(datosFiltrados, rango, insumo, receta);
   indicadores.eficiencia = indicadores.comparacion.valor;
-  const series = prepararSeriesReportes(datosFiltrados, rango, filtroInsumo.value);
-  mostrarIndicadores(indicadores, diasEnRango(rango.inicio, rango.fin));
-  mostrarGraficasReportes(series, rango);
+  const series = prepararSeriesReportes(datosFiltrados, rango, insumo);
   const hallazgo = calcularHallazgoOperativo(series);
-  mostrarHallazgoOperativo(hallazgo);
   const formatoFecha = new Intl.DateTimeFormat("es-SV", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const nombreProducto = filtroInsumo.options[filtroInsumo.selectedIndex].textContent;
-  const nombreReceta = filtroReceta.options[filtroReceta.selectedIndex].textContent;
-  resumenFiltros.textContent = `Período seleccionado: ${formatoFecha.format(rango.inicio)} al ${formatoFecha.format(rango.fin)} · Receta: ${nombreReceta} · Merma: ${nombreProducto}.`;
+  const nombreProducto = productosPermitidosReporte.get(insumo) ?? "Todos los productos";
+  const nombreReceta = recetasPermitidasReporte.get(receta) ?? "Todas las recetas";
+  const resumen = `Período seleccionado: ${formatoFecha.format(rango.inicio)} al ${formatoFecha.format(rango.fin)} · Receta: ${nombreReceta} · Merma: ${nombreProducto}.`;
   const alcance = `Ventas, ingresos y demanda: ${nombreReceta}. Las mermas se filtran por producto de forma independiente; no se atribuyen a la receta.`;
-  document.getElementById("alcance-reportes").textContent = `Datos guardados en este navegador. ${alcance}`;
   const avisos = [...indicadores.comparacion.avisos];
   if (datos.descartados) avisos.push(`Se omitieron ${datos.descartados} registros con fechas, cantidades o importes inválidos.`);
   if (indicadores.sinPeso) avisos.push(`${indicadores.sinPeso} ${indicadores.sinPeso === 1 ? "merma no se suma" : "mermas no se suman"} en kg por tener otras unidades o no indicar su unidad.`);
   if (indicadores.sinCosto) avisos.push(`${indicadores.sinCosto} ${indicadores.sinCosto === 1 ? "merma no tiene" : "mermas no tienen"} un costo comparable en Inventario; el total disponible es parcial.`);
   if (indicadores.ejemplos) avisos.push(`El período incluye ${indicadores.ejemplos} ${indicadores.ejemplos === 1 ? "venta marcada" : "ventas marcadas"} como ejemplo.`);
+  mostrarGraficasReportes(series, rango);
+  mostrarHallazgoOperativo(hallazgo);
   const aviso = document.getElementById("aviso-datos");
   aviso.hidden = avisos.length === 0;
   aviso.textContent = avisos.join(" ");
   document.getElementById("vacio-reportes").hidden = datosFiltrados.ventas.length > 0 || indicadores.cantidadMermas > 0;
-  // El PDF conserva los filtros aplicados, aunque después se editen los campos.
-  reporteActual = { rango, producto: nombreProducto, receta: nombreReceta, alcance, indicadores, series, hallazgo, avisos };
+
+  // El PDF conserva la última selección aplicada, aunque se editen los campos.
+  reporteActual = { rango, producto: nombreProducto, receta: nombreReceta, alcance, indicadores, series, hallazgo, avisos, resumen };
+  return reporteActual;
 }
-
-// El botón queda bloqueado hasta terminar el aviso para evitar envíos repetidos.
-let aplicandoFiltros = false;
-formularioFiltros.addEventListener("submit", async (evento) => {
-  evento.preventDefault();
-  if (aplicandoFiltros || !validarFiltros()) return;
-
-  aplicandoFiltros = true;
-  const desbloquear = Valida.bloquearEnvio(botonAplicarFiltros);
-  try {
-    mostrarSeleccionFiltros();
-    await UI.aviso("Reporte actualizado");
-  } finally {
-    desbloquear();
-    aplicandoFiltros = false;
-  }
-});
-
-// Permite elegir recetas añadidas en otra pestaña sin aplicar los demás filtros en edición.
-filtroReceta.addEventListener("focus", () => {
-  actualizarRecetasReporte(obtenerDatos(reporteActual.rango).catalogoRecetas);
-});
-filtroPeriodo.addEventListener("change", actualizarCamposRango);
-filtroFechaInicio.addEventListener("input", () => {
-  // Corregir el inicio también puede resolver un error de orden o duración en el fin.
-  if (filtroFechaFin.classList.contains("is-invalid")) {
-    const error = validarFinRango(filtroFechaFin.value);
-    if (error) Valida.marcar(filtroFechaFin, error);
-    else Valida.limpiar(filtroFechaFin);
-  }
-});
-for (const campo of [filtroFechaInicio, filtroFechaFin]) {
-  campo.addEventListener("focus", () => { campo.max = UI.fechaHoy(); });
-}
-
-const rangoInicial = calcularRangoPeriodo(7, fechaLocalReporte(UI.fechaHoy()));
-filtroFechaInicio.value = textoFechaReporte(rangoInicial.inicio);
-filtroFechaFin.value = textoFechaReporte(rangoInicial.fin);
-actualizarCamposRango();
-mostrarSeleccionFiltros();

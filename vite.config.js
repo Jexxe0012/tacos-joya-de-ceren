@@ -20,6 +20,7 @@ export default defineConfig({
           // Live Server conserva el menú estático. Vite monta el de React en las mismas páginas.
           return html
             .replace('<script src="../js/main.js"></script>', '<script type="module" src="../src/plantilla.jsx"></script>')
+            .replace('<script src="../js/reportes-estatico.js"></script>', '<script type="module" src="../src/reportes/Reportes.jsx"></script>')
             .replace(/<script(\s+src="(?:\.\.\/)?js\/[^"]+\.js")/g, '<script vite-ignore$1');
         }
       },

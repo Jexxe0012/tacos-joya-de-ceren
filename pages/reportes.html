@@ -50,7 +50,7 @@
         </div>
 
         <!-- Bootstrap distribuye los filtros en columnas y los apila en celular. -->
-        <section class="reportes-filtros app-panel p-3 p-md-4 mb-4" aria-labelledby="titulo-filtros">
+        <section class="reportes-filtros app-panel p-3 p-md-4 mb-4" id="filtros-reportes" aria-labelledby="titulo-filtros">
           <h2 class="h6 fw-semibold mb-3" id="titulo-filtros">Filtrar reportes</h2>
           <form id="formulario-filtros" novalidate>
             <div class="row g-3 align-items-end">
@@ -147,7 +147,7 @@
         </p>
         <p class="small mb-4" id="aviso-datos" role="status" hidden></p>
         <div class="reportes-contenido" id="contenido-reportes">
-          <section aria-labelledby="titulo-indicadores">
+          <section id="indicadores-reportes" aria-labelledby="titulo-indicadores">
             <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
               <h2 class="h5 fw-semibold mb-0" id="titulo-indicadores">Resumen del período</h2>
               <span class="badge rounded-pill app-estado app-estado-atencion" id="estado-datos">Registros del sistema</span>
@@ -342,6 +342,7 @@
   <script src="../js/reportes-eficiencia.js"></script>
   <script src="../js/reportes-graficas.js"></script>
   <script src="../js/reportes.js"></script>
+  <script src="../js/reportes-estatico.js"></script>
   <script
     src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"
     integrity="sha384-qovJwSBbRDPP5cEjCp8S0UP66wrvnjaa60XMOGzTNanrThcrGfXfnZkvgY8N1KT3"
