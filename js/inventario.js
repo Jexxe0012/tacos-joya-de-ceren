@@ -1,7 +1,7 @@
 /**
  * inventario.js — Lógica del módulo Inventario.
  * Requiere: storage.js (DB), guard.js (Guard), ui.js (UI), validacion.js
- * (Valida) y main.js cargados antes.
+ * (Valida) cargados antes.
  *
  * Guarda dos colecciones en localStorage:
  *   - "inventario": los productos con su existencia, mínimo y costo.
@@ -23,8 +23,6 @@ const sesion = Guard.getSesion();
 if (!sesion) {
   throw new Error('No hay sesión activa.');
 }
-
-// main.js ya creó la navegación, la etiqueta del rol y el cierre de sesión.
 
 /* ============================================
    Catálogos y datos de prueba

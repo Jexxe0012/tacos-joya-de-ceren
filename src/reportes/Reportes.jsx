@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createRoot } from "react-dom/client";
+import EncabezadoReporte from "./EncabezadoReporte.jsx";
 import GraficasReportes from "./GraficasReportes.jsx";
 
 function Selector({ id, etiqueta, nombre, opciones, ...atributos }) {
@@ -170,26 +171,44 @@ function Indicadores({ reporte }) {
   );
 }
 
-function Reportes({ iniciales, reporteInicial, destinoIndicadores, destinoGraficas }) {
+function Resultados({ reporte }) {
+  return (
+    <>
+      {reporte.sinDatos && (
+        <p className="reportes-vacio p-3 mb-4" id="vacio-reportes" role="status">
+          Sin datos para estos filtros. Selecciona otro período, receta o producto, o registra ventas y mermas.
+        </p>
+      )}
+      {reporte.avisos.length > 0 && (
+        <p className="small mb-4" id="aviso-datos" role="status">{reporte.avisos.join(" ")}</p>
+      )}
+      <section aria-labelledby="titulo-indicadores">
+        <Indicadores reporte={reporte} />
+      </section>
+      <div className="row g-3 mt-2" id="graficas-reportes">
+        <GraficasReportes reporte={reporte} />
+      </div>
+    </>
+  );
+}
+
+function Reportes({ iniciales, reporteInicial, destinoResultados }) {
   const [reporte, fijarReporte] = useState(reporteInicial);
   return (
     <>
-      <Filtros iniciales={iniciales} reporte={reporte} alAplicar={filtros => fijarReporte(aplicarReporte(filtros))} />
-      {createPortal(<Indicadores reporte={reporte} />, destinoIndicadores)}
-      {createPortal(<GraficasReportes reporte={reporte} />, destinoGraficas)}
+      <EncabezadoReporte reporte={reporte} />
+      <section className="reportes-filtros app-panel p-3 p-md-4 mb-4" id="filtros-reportes" aria-labelledby="titulo-filtros">
+        <Filtros iniciales={iniciales} reporte={reporte} alAplicar={filtros => fijarReporte(calcularReporte(filtros))} />
+      </section>
+      {createPortal(<Resultados reporte={reporte} />, destinoResultados)}
     </>
   );
 }
 
 if (Guard.requireRole("admin")) {
-  const filtros = document.getElementById("filtros-reportes");
-  const indicadores = document.getElementById("indicadores-reportes");
-  const graficas = document.getElementById("graficas-reportes");
   const iniciales = filtrosInicialesReporte();
-  const reporteInicial = aplicarReporte(iniciales);
-  // Los contenedores ya existen para que la versión estática conserve su distribución.
-  indicadores.replaceChildren();
-  graficas.replaceChildren();
-  createRoot(filtros).render(<Reportes iniciales={iniciales} reporteInicial={reporteInicial}
-    destinoIndicadores={indicadores} destinoGraficas={graficas} />);
+  const destinoResultados = document.getElementById("resultados-reportes");
+  createRoot(document.getElementById("reportes-react")).render(
+    <Reportes iniciales={iniciales} reporteInicial={calcularReporte(iniciales)} destinoResultados={destinoResultados} />
+  );
 }

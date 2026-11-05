@@ -3,7 +3,6 @@
 const periodosPermitidos = ["7", "30"];
 const productosPermitidosReporte = new Map();
 const recetasPermitidasReporte = new Map();
-let reporteActual = null;
 
 // Incluye el día actual. Por ejemplo, 7 días del 10 al 16, ambos incluidos.
 // Se usan fechas locales para evitar cambios de día por conversiones a UTC.
@@ -286,7 +285,7 @@ function revalidarFinReporte(campo, filtros) {
   else Valida.limpiar(campo);
 }
 
-function aplicarReporte({ periodo, insumo, receta, fechaInicio, fechaFin }) {
+function calcularReporte({ periodo, insumo, receta, fechaInicio, fechaFin }) {
   const fechaActual = fechaLocalReporte(UI.fechaHoy());
   const rango = periodo === "personalizado"
     ? { inicio: fechaLocalReporte(fechaInicio), fin: fechaLocalReporte(fechaFin) }
@@ -312,12 +311,7 @@ function aplicarReporte({ periodo, insumo, receta, fechaInicio, fechaFin }) {
   if (indicadores.sinPeso) avisos.push(`${indicadores.sinPeso} ${indicadores.sinPeso === 1 ? "merma no se suma" : "mermas no se suman"} en kg por tener otras unidades o no indicar su unidad.`);
   if (indicadores.sinCosto) avisos.push(`${indicadores.sinCosto} ${indicadores.sinCosto === 1 ? "merma no tiene" : "mermas no tienen"} un costo comparable en Inventario; el total disponible es parcial.`);
   if (indicadores.ejemplos) avisos.push(`El período incluye ${indicadores.ejemplos} ${indicadores.ejemplos === 1 ? "venta marcada" : "ventas marcadas"} como ejemplo.`);
-  const aviso = document.getElementById("aviso-datos");
-  aviso.hidden = avisos.length === 0;
-  aviso.textContent = avisos.join(" ");
-  document.getElementById("vacio-reportes").hidden = datosFiltrados.ventas.length > 0 || indicadores.cantidadMermas > 0;
-
-  // El PDF conserva la última selección aplicada, aunque se editen los campos.
-  reporteActual = { rango, producto: nombreProducto, receta: nombreReceta, alcance, indicadores, series, hallazgo, avisos, resumen };
-  return reporteActual;
+  const sinDatos = !datosFiltrados.ventas.length && !indicadores.cantidadMermas;
+  return { rango, producto: nombreProducto, receta: nombreReceta, alcance, indicadores,
+    series, hallazgo, avisos, resumen, sinDatos };
 }

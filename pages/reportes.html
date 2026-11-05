@@ -23,7 +23,7 @@
   <a class="visually-hidden-focusable app-salto" href="#contenido-principal">Saltar al contenido principal</a>
 
   <div class="app-layout d-lg-flex">
-    <!-- main.js completa el mismo menú y la misma barra superior en todas las páginas. -->
+    <!-- Menú y encabezado compartidos en React. -->
     <aside class="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column"
       tabindex="-1" id="menu-lateral" aria-labelledby="titulo-menu"></aside>
 
@@ -31,78 +31,7 @@
       <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
 
       <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1">
-        <div class="row mb-4">
-          <div class="col-12 d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3">
-            <div>
-              <h1 class="h3 fw-bold mb-2">Reportes de operación</h1>
-              <p class="text-body-secondary mb-0">
-                Ventas, consumo, mermas y proyecciones para tomar decisiones.
-              </p>
-            </div>
-            <button class="btn btn-app-secondary flex-shrink-0" type="button" id="btn-descargar-pdf"
-              aria-describedby="estado-exportacion" disabled>Descargar reporte PDF</button>
-          </div>
-          <div class="col-12">
-            <p class="small text-body-secondary mt-2 mb-0" id="estado-exportacion" role="status">
-              El PDF incluye los últimos filtros aplicados. Activa JavaScript para descargarlo.
-            </p>
-          </div>
-        </div>
-
-        <!-- Bootstrap distribuye los filtros en columnas y los apila en celular. -->
-        <section class="reportes-filtros app-panel p-3 p-md-4 mb-4" id="filtros-reportes" aria-labelledby="titulo-filtros">
-          <h2 class="h6 fw-semibold mb-3" id="titulo-filtros">Filtrar reportes</h2>
-          <form id="formulario-filtros" novalidate>
-            <div class="row g-3 align-items-end">
-              <div class="col-12 col-md-6 col-xl-3">
-                <label class="form-label" for="filtro-periodo">Período</label>
-                <select class="form-select" id="filtro-periodo" name="periodo" required>
-                  <option value="7" selected>Últimos 7 días</option>
-                  <option value="30">Últimos 30 días</option>
-                  <option value="personalizado">Rango personalizado</option>
-                </select>
-              </div>
-              <div class="col-12 col-md-6 col-xl-3">
-                <label class="form-label" for="filtro-insumo">Producto de merma</label>
-                <select class="form-select" id="filtro-insumo" name="insumo" required>
-                  <option value="todos" selected>Todos los productos</option>
-                </select>
-              </div>
-              <div class="col-12 col-md-6 col-xl-3">
-                <label class="form-label" for="filtro-receta">Receta vendida</label>
-                <select class="form-select" id="filtro-receta" name="receta" required aria-describedby="ayuda-receta">
-                  <option value="todas" selected>Todas las recetas</option>
-                </select>
-              </div>
-              <div class="col-12 col-md-6 col-xl-3 d-grid">
-                <button class="btn btn-app-primary" type="submit" id="btn-aplicar-filtros">Aplicar filtros</button>
-              </div>
-            </div>
-            <fieldset class="mt-3" id="rango-personalizado" aria-describedby="ayuda-rango" hidden disabled>
-              <legend class="h6">Fechas del reporte</legend>
-              <p class="small text-body-secondary" id="ayuda-rango">
-                Selecciona hasta 90 días, incluyendo ambas fechas. La fecha final no puede ser posterior a hoy.
-              </p>
-              <div class="row g-3">
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="filtro-fecha-inicio">Fecha inicial</label>
-                  <input class="form-control" type="date" id="filtro-fecha-inicio" name="fechaInicio" required>
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label" for="filtro-fecha-fin">Fecha final</label>
-                  <input class="form-control" type="date" id="filtro-fecha-fin" name="fechaFin" required>
-                </div>
-              </div>
-            </fieldset>
-          </form>
-          <p class="small text-body-secondary mt-3 mb-0" id="ayuda-receta">
-            Las recetas vendibles se toman de Recetas: tacos, bebidas y complementos. Crear una receta no registra una venta.
-          </p>
-          <noscript>
-            <p class="mt-3 mb-0">Activa JavaScript en tu navegador para utilizar los filtros.</p>
-          </noscript>
-          <p class="small text-body-secondary mt-3 mb-0" id="resumen-filtros" role="status" aria-live="polite" aria-atomic="true"></p>
-        </section>
+        <div id="reportes-react"></div>
 
         <details class="app-panel p-3 p-md-4 mb-4" id="conexiones-inventario">
           <summary class="fw-semibold">Conectar ingredientes de Recetas con Inventario</summary>
@@ -142,179 +71,7 @@
           </div>
         </details>
 
-        <p class="reportes-vacio p-3 mb-4" id="vacio-reportes" role="status" hidden>
-          Sin datos para estos filtros. Selecciona otro período, receta o producto, o registra ventas y mermas.
-        </p>
-        <p class="small mb-4" id="aviso-datos" role="status" hidden></p>
-        <div class="reportes-contenido" id="contenido-reportes">
-          <section id="indicadores-reportes" aria-labelledby="titulo-indicadores">
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-              <h2 class="h5 fw-semibold mb-0" id="titulo-indicadores">Resumen del período</h2>
-              <span class="badge rounded-pill app-estado app-estado-atencion" id="estado-datos">Registros del sistema</span>
-            </div>
-            <p class="small text-body-secondary mb-3" id="alcance-reportes">
-              Datos guardados en este navegador. La receta filtra ventas, ingresos y demanda;
-              el producto filtra las mermas de forma independiente.
-            </p>
-            <div class="row g-3">
-              <div class="col-12 col-md-6 col-xl-4">
-                <article class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-ventas">
-                  <h3 class="h6 text-body-secondary mb-3" id="titulo-ventas">Ventas</h3>
-                  <p class="reportes-indicador-valor fw-bold mb-2" id="valor-ventas">—</p>
-                  <p class="small text-body-secondary mb-0" id="detalle-ventas">Unidades vendidas e ingresos del período.</p>
-                </article>
-              </div>
-              <div class="col-12 col-md-6 col-xl-4">
-                <article class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-mermas">
-                  <h3 class="h6 text-body-secondary mb-3" id="titulo-mermas">Mermas</h3>
-                  <p class="reportes-indicador-valor reportes-valor-merma fw-bold mb-2" id="valor-mermas">—</p>
-                  <p class="small text-body-secondary mb-0" id="detalle-mermas">Costo estimado de los insumos desperdiciados.</p>
-                </article>
-              </div>
-              <div class="col-12 col-md-6 col-xl-4">
-                <article class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-eficiencia">
-                  <h3 class="h6 text-body-secondary mb-3" id="titulo-eficiencia">Eficiencia de porción (peso)</h3>
-                  <p class="reportes-indicador-valor fw-bold mb-2" id="valor-eficiencia">—</p>
-                  <p class="small text-body-secondary mb-0" id="detalle-eficiencia">Conecta los ingredientes con Inventario para comparar consumos.</p>
-                  <details class="small mt-3" id="datos-eficiencia">
-                    <summary>Ver comparación por producto</summary>
-                    <div class="table-responsive mt-2">
-                      <table class="table table-sm mb-0">
-                        <caption>Consumo estándar de las ventas y salidas de cocina del período, en kg</caption>
-                        <thead><tr><th scope="col">Producto</th><th scope="col">Estándar</th><th scope="col">Real</th></tr></thead>
-                        <tbody id="tabla-eficiencia"></tbody>
-                      </table>
-                    </div>
-                  </details>
-                </article>
-              </div>
-            </div>
-            <p class="small text-body-secondary mt-3 mb-0">
-              Eficiencia en peso = kg estándar de las ventas ÷ kg de salidas por Consumo en cocina × 100.
-              Usa las fichas actuales y los ingredientes de peso vinculados usados en esas ventas; excluye mermas, litros y unidades.
-              Para compararla, selecciona Todas las recetas. No representa por sí sola la calidad de la porción.
-            </p>
-          </section>
-
-          <div class="row g-3 mt-2" id="graficas-reportes">
-            <p class="col-12 small mb-0" id="aviso-graficas" role="status" hidden></p>
-            <div class="col-12 col-xl-6">
-              <section class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-grafica-ventas">
-                <h2 class="h6 fw-semibold mb-2" id="titulo-grafica-ventas">Ventas semanales</h2>
-                <p class="small text-body-secondary" id="descripcion-ventas">Unidades vendidas por día en el período seleccionado.</p>
-                <div class="reportes-grafica-desplazable" id="desplazamiento-ventas"
-                  tabindex="0" role="region" aria-label="Gráfica de ventas con desplazamiento horizontal">
-                  <div class="reportes-grafica">
-                    <canvas id="grafica-ventas" role="img" aria-labelledby="titulo-grafica-ventas" aria-describedby="descripcion-ventas">
-                      Consulta los valores en la tabla de datos debajo de la gráfica.
-                    </canvas>
-                  </div>
-                </div>
-                <p class="reportes-vacio p-3 mt-3" id="vacio-ventas" hidden>Sin datos en este período</p>
-                <details class="reportes-datos mt-3" id="datos-ventas">
-                  <summary>Ver datos de la gráfica</summary>
-                  <div class="table-responsive mt-2" tabindex="0" role="region" aria-label="Datos de la gráfica">
-                    <table class="table table-sm mb-0">
-                      <caption class="visually-hidden">Ventas registradas por día</caption>
-                      <thead><tr><th scope="col">Fecha</th><th scope="col">Unidades vendidas</th></tr></thead>
-                      <tbody id="tabla-ventas"></tbody>
-                    </table>
-                  </div>
-                </details>
-              </section>
-            </div>
-            <div class="col-12 col-xl-6">
-              <section class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-grafica-ingresos">
-                <h2 class="h6 fw-semibold mb-2" id="titulo-grafica-ingresos">Ingresos por receta</h2>
-                <p class="small text-body-secondary" id="descripcion-ingresos">Suma del total registrado en las ventas de cada receta.</p>
-                <div class="reportes-grafica">
-                  <canvas id="grafica-ingresos" role="img" aria-labelledby="titulo-grafica-ingresos" aria-describedby="descripcion-ingresos">
-                    Consulta los valores en la tabla debajo de la gráfica.
-                  </canvas>
-                </div>
-                <p class="reportes-vacio p-3 mt-3" id="vacio-ingresos" hidden>Sin datos en este período</p>
-                <details class="reportes-datos mt-3" id="datos-ingresos">
-                  <summary>Ver datos de la gráfica</summary>
-                  <div class="table-responsive mt-2" tabindex="0" role="region" aria-label="Ingresos por receta">
-                    <table class="table table-sm mb-0">
-                      <caption class="visually-hidden">Ingresos registrados por receta</caption>
-                      <thead><tr><th scope="col">Receta</th><th scope="col">Ingresos (USD)</th></tr></thead>
-                      <tbody id="tabla-ingresos"></tbody>
-                    </table>
-                  </div>
-                </details>
-              </section>
-            </div>
-            <div class="col-12 col-xl-6">
-              <section class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-grafica-mermas">
-                <h2 class="h6 fw-semibold mb-2" id="titulo-grafica-mermas">Mermas por producto</h2>
-                <div class="btn-group btn-group-sm mb-3" role="group" aria-label="Medida de la gráfica de mermas">
-                  <button class="btn btn-app-secondary active" type="button" id="mermas-en-kg" aria-pressed="true">Kilogramos</button>
-                  <button class="btn btn-app-secondary" type="button" id="mermas-en-usd" aria-pressed="false">Costo (USD)</button>
-                </div>
-                <p class="small text-body-secondary" id="descripcion-mermas">Mermas del período y del producto seleccionado. Los kg incluyen solo unidades de peso convertibles.</p>
-                <div class="reportes-grafica">
-                  <canvas id="grafica-mermas" role="img" aria-labelledby="titulo-grafica-mermas" aria-describedby="descripcion-mermas">
-                    Consulta los valores en la tabla de datos debajo de la gráfica.
-                  </canvas>
-                </div>
-                <p class="reportes-vacio p-3 mt-3" id="vacio-mermas" hidden>Sin datos en este período</p>
-                <details class="reportes-datos mt-3" id="datos-mermas">
-                  <summary>Ver datos de la gráfica</summary>
-                  <div class="table-responsive mt-2" tabindex="0" role="region" aria-label="Datos de la gráfica">
-                    <table class="table table-sm mb-0">
-                      <caption class="visually-hidden">Mermas registradas por producto</caption>
-                      <thead><tr><th scope="col">Producto</th><th scope="col">Cantidad registrada</th><th scope="col">Peso (kg)</th><th scope="col">Costo estimado</th></tr></thead>
-                      <tbody id="tabla-mermas"></tbody>
-                    </table>
-                  </div>
-                </details>
-                <p class="small text-body-secondary mt-3 mb-0">
-                  Costos estimados con los precios actuales de Inventario. No se convierten litros, cajas ni unidades a kg.
-                  Consulta los avisos del reporte si hay pesos o costos parciales.
-                </p>
-              </section>
-            </div>
-            <div class="col-12 col-xl-6">
-              <section class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-grafica-demanda">
-                <h2 class="h6 fw-semibold mb-2" id="titulo-grafica-demanda">Demanda prevista</h2>
-                <p class="small text-body-secondary" id="descripcion-demanda">Próximos 7 días · promedio por día de la semana del período seleccionado.</p>
-                <div class="reportes-grafica">
-                  <canvas id="grafica-demanda" role="img" aria-labelledby="titulo-grafica-demanda" aria-describedby="descripcion-demanda">
-                    Consulta los valores en la tabla de datos debajo de la gráfica.
-                  </canvas>
-                </div>
-                <p class="reportes-vacio p-3 mt-3" id="vacio-demanda" hidden>Sin datos en este período</p>
-                <details class="reportes-datos mt-3" id="datos-demanda">
-                  <summary>Ver datos de la gráfica</summary>
-                  <div class="table-responsive mt-2" tabindex="0" role="region" aria-label="Datos de la gráfica">
-                    <table class="table table-sm mb-0">
-                      <caption class="visually-hidden">Demanda estimada según ventas registradas</caption>
-                      <thead><tr><th scope="col">Fecha prevista</th><th scope="col">Unidades estimadas</th></tr></thead>
-                      <tbody id="tabla-demanda"></tbody>
-                    </table>
-                  </div>
-                </details>
-                <p class="small text-body-secondary mt-3 mb-0">
-                  Estimación según las ventas registradas, no pedidos confirmados.
-                  Los días sin registros aparecen como «Sin datos» y no se cuentan como días con cero ventas.
-                </p>
-              </section>
-            </div>
-            <div class="col-12">
-              <section class="app-panel h-100 p-3 p-md-4" aria-labelledby="titulo-hallazgo">
-                <h2 class="h6 fw-semibold mb-2" id="titulo-hallazgo">Hallazgo operativo</h2>
-                <p class="small text-body-secondary mb-3">Según las mermas registradas y los filtros aplicados.</p>
-                <div class="reportes-hallazgo ps-3">
-                  <h3 class="h6 fw-semibold" id="hallazgo-observacion">Analizando el período…</h3>
-                  <p class="small text-body-secondary" id="hallazgo-detalle">Activa JavaScript para consultar el hallazgo.</p>
-                  <h3 class="h6 fw-semibold mt-4">Sugerencia</h3>
-                  <p class="small mb-0" id="hallazgo-sugerencia">—</p>
-                </div>
-              </section>
-            </div>
-          </div>
-        </div>
+        <div id="resultados-reportes"></div>
       </main>
     </div>
   </div>
@@ -334,15 +91,14 @@
   <script src="../js/validacion.js"></script>
   <!-- Primero el diseño común, después la lógica propia del módulo. -->
   <script src="../js/storage.js"></script>
-  <script src="../js/navegacion.js"></script>
-  <script src="../js/main.js"></script>
+  <script type="module" src="../src/plantilla.jsx"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
   <script src="../js/catalogo-insumos.js"></script>
   <script src="../js/reportes-vinculos.js"></script>
   <script src="../js/reportes-eficiencia.js"></script>
   <script src="../js/reportes-graficas.js"></script>
   <script src="../js/reportes.js"></script>
-  <script src="../js/reportes-estatico.js"></script>
+  <script type="module" src="../src/reportes/Reportes.jsx"></script>
   <script
     src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"
     integrity="sha384-qovJwSBbRDPP5cEjCp8S0UP66wrvnjaa60XMOGzTNanrThcrGfXfnZkvgY8N1KT3"

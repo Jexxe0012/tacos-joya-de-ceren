@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { cerrarSesion, prepararNavegacion } from "./navegacion.js";
 
 function MenuLateral({ paginas, paginaActual, perfil }) {
   return (
@@ -36,7 +37,7 @@ function MenuLateral({ paginas, paginaActual, perfil }) {
           <p className="small fw-semibold mb-1" id="rol-menu">{perfil}</p>
           <p className="small app-texto-lateral mb-0">Tacos Joya de Cerén</p>
           <button className="btn btn-app-primary w-100 mt-3" type="button" id="btn-cerrar-sesion"
-            onClick={evento => Navegacion.cerrarSesion(evento.currentTarget)}>
+            onClick={evento => cerrarSesion(evento.currentTarget)}>
             Cerrar sesión
           </button>
         </div>
@@ -68,7 +69,7 @@ const barraSuperior = document.getElementById("barra-superior");
 
 // React monta la navegación. Los módulos conservan el control de su contenido.
 if (menuLateral && barraSuperior) {
-  const navegacion = Navegacion.preparar();
+  const navegacion = prepararNavegacion();
   if (navegacion) {
     createRoot(menuLateral).render(<MenuLateral {...navegacion} />);
     createRoot(barraSuperior).render(<BarraSuperior {...navegacion} />);
