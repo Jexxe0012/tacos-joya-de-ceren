@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createRoot } from "react-dom/client";
+import GraficasReportes from "./GraficasReportes.jsx";
 
 function Selector({ id, etiqueta, nombre, opciones, ...atributos }) {
   return (
@@ -169,12 +170,13 @@ function Indicadores({ reporte }) {
   );
 }
 
-function Reportes({ iniciales, reporteInicial, destinoIndicadores }) {
+function Reportes({ iniciales, reporteInicial, destinoIndicadores, destinoGraficas }) {
   const [reporte, fijarReporte] = useState(reporteInicial);
   return (
     <>
       <Filtros iniciales={iniciales} reporte={reporte} alAplicar={filtros => fijarReporte(aplicarReporte(filtros))} />
       {createPortal(<Indicadores reporte={reporte} />, destinoIndicadores)}
+      {createPortal(<GraficasReportes reporte={reporte} />, destinoGraficas)}
     </>
   );
 }
@@ -182,10 +184,12 @@ function Reportes({ iniciales, reporteInicial, destinoIndicadores }) {
 if (Guard.requireRole("admin")) {
   const filtros = document.getElementById("filtros-reportes");
   const indicadores = document.getElementById("indicadores-reportes");
+  const graficas = document.getElementById("graficas-reportes");
   const iniciales = filtrosInicialesReporte();
   const reporteInicial = aplicarReporte(iniciales);
   // Los contenedores ya existen para que la versión estática conserve su distribución.
   indicadores.replaceChildren();
+  graficas.replaceChildren();
   createRoot(filtros).render(<Reportes iniciales={iniciales} reporteInicial={reporteInicial}
-    destinoIndicadores={indicadores} />);
+    destinoIndicadores={indicadores} destinoGraficas={graficas} />);
 }

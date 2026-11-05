@@ -61,8 +61,16 @@
     document.getElementById("estado-datos").textContent = indicadores.ejemplos ? "Incluye ventas de ejemplo" : "Registros del sistema";
   }
 
+  function mostrarHallazgoOperativo(hallazgo) {
+    document.getElementById("hallazgo-observacion").textContent = hallazgo.titulo;
+    document.getElementById("hallazgo-detalle").textContent = hallazgo.detalle;
+    document.getElementById("hallazgo-sugerencia").textContent = hallazgo.sugerencia;
+  }
+
   function aplicarFiltros() {
     const reporte = aplicarReporte(leerFiltros());
+    mostrarGraficasReportes(reporte.series, reporte.rango);
+    mostrarHallazgoOperativo(reporte.hallazgo);
     cargarOpciones(filtroInsumo, opcionesProductosReporte());
     cargarOpciones(filtroReceta, opcionesRecetasReporte());
     mostrarIndicadores(reporte.indicadores, diasEnRango(reporte.rango.inicio, reporte.rango.fin));
@@ -93,5 +101,6 @@
   filtroFechaInicio.value = iniciales.fechaInicio;
   filtroFechaFin.value = iniciales.fechaFin;
   actualizarCamposRango();
+  enlazarMedidasMermasReporte();
   aplicarFiltros();
 })();

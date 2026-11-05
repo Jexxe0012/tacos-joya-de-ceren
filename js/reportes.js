@@ -247,12 +247,6 @@ function calcularHallazgoOperativo(series) {
     sugerencia: "Revisa los registros de preparación y porcionado de estos productos antes de ajustar la producción." };
 }
 
-function mostrarHallazgoOperativo(hallazgo) {
-  document.getElementById("hallazgo-observacion").textContent = hallazgo.titulo;
-  document.getElementById("hallazgo-detalle").textContent = hallazgo.detalle;
-  document.getElementById("hallazgo-sugerencia").textContent = hallazgo.sugerencia;
-}
-
 // Los catálogos conservan las selecciones históricas durante la consulta.
 function incorporarCatalogoReporte(destino, origen) {
   for (const [id, nombre] of origen) destino.set(id, nombre);
@@ -318,8 +312,6 @@ function aplicarReporte({ periodo, insumo, receta, fechaInicio, fechaFin }) {
   if (indicadores.sinPeso) avisos.push(`${indicadores.sinPeso} ${indicadores.sinPeso === 1 ? "merma no se suma" : "mermas no se suman"} en kg por tener otras unidades o no indicar su unidad.`);
   if (indicadores.sinCosto) avisos.push(`${indicadores.sinCosto} ${indicadores.sinCosto === 1 ? "merma no tiene" : "mermas no tienen"} un costo comparable en Inventario; el total disponible es parcial.`);
   if (indicadores.ejemplos) avisos.push(`El período incluye ${indicadores.ejemplos} ${indicadores.ejemplos === 1 ? "venta marcada" : "ventas marcadas"} como ejemplo.`);
-  mostrarGraficasReportes(series, rango);
-  mostrarHallazgoOperativo(hallazgo);
   const aviso = document.getElementById("aviso-datos");
   aviso.hidden = avisos.length === 0;
   aviso.textContent = avisos.join(" ");
