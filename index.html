@@ -4,10 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tacos Joya de Cerén</title>
-  <script src="js/guard.js"></script>
-  <script>Guard.irAlInicio();</script>
+  <meta name="description" content="Gestión de ventas, recetas, inventario, mermas y turnos de Tacos Joya de Cerén.">
 </head>
 <body>
-  <noscript><p>Activa JavaScript para iniciar sesión en Tacos Joya de Cerén.</p></noscript>
+  <noscript>
+    <p>Activa JavaScript para usar el sistema de Tacos Joya de Cerén.</p>
+  </noscript>
+
+  <!-- El único punto de montaje de React. Las rutas viven en src/app/Rutas.jsx. -->
+  <div id="raiz"></div>
+
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

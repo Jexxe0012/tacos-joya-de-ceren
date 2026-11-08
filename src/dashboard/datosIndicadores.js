@@ -1,157 +1,119 @@
-const ventasPrevistas = 162;
+import {
+  aFechaLocal,
+  aTextoLocal,
+  fechaHoyLocal,
+  fechaLegible
+} from "../utils/fechas.js";
+import { listarInsumos } from "../services/insumosService.js";
+import { calcularReporte } from "../modulos/reportes/modeloReporte.js";
+import { agruparPedidos } from "../modulos/ventas/ventasService.js";
 
-function consumoEsperado() {
-  const formato = new Intl.NumberFormat("es-SV", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 3
+export function obtenerResumenDashboard(registros, hoy = fechaHoyLocal()) {
+  const fechas = Array.from({ length: 7 }, (_, indice) => {
+    const dia = aFechaLocal(hoy);
+    dia.setDate(dia.getDate() + indice - 6);
+    return aTextoLocal(dia);
   });
-
-  const catalogo = CatalogoInsumos.listar();
-  const insumosPorId = new Map(catalogo.map(insumo => [insumo.id, insumo]));
-  const recetas = DB.getAll("recetas").filter(receta =>
-    receta.estado === "activa" &&
-    receta.categoria === "taco" &&
-    Number.isFinite(Number(receta.porciones)) &&
-    Number(receta.porciones) > 0
+  const ventas = registros.ventas.filter((venta) => venta?.ejemplo !== true);
+  const recientes = ventas.filter(
+    (venta) => fechas.includes(venta?.fecha) && Number(venta.cantidad) > 0
   );
-
-  if (recetas.length === 0) {
-    return {
-      valor: "Sin datos",
-      descripcion: "Registra recetas de tacos activas.",
-      nota: "No hay recetas disponibles para calcular el consumo.",
-      insumos: []
-    };
-  }
-
-  const basePorReceta = Math.floor(ventasPrevistas / recetas.length);
-  const sobrantes = ventasPrevistas % recetas.length;
+  const dias = fechas.map((fecha) => ({
+    fecha,
+    etiqueta: fechaLegible(fecha, { weekday: "short", day: "numeric" }),
+    cantidad: recientes
+      .filter((venta) => venta.fecha === fecha)
+      .reduce((total, venta) => total + Number(venta.cantidad), 0)
+  }));
+  const promedio = recientes.length
+    ? recientes.reduce((total, venta) => total + Number(venta.cantidad), 0) / 7
+    : null;
+  const reporte = calcularReporte(
+    {
+      periodo: "personalizado",
+      insumo: "todos",
+      receta: "todas",
+      fechaInicio: fechas[0],
+      fechaFin: hoy
+    },
+    { ...registros, ventas }
+  );
   const cantidades = new Map();
-
-  recetas.forEach((receta, indice) => {
-    const tacosAsignados = basePorReceta + (indice < sobrantes ? 1 : 0);
-    const factor = tacosAsignados / Number(receta.porciones);
-
-    (receta.ingredientes || []).forEach(ingrediente => {
-      const insumo = insumosPorId.get(ingrediente.insumoId);
-      const cantidad = Number(ingrediente.cantidad);
-
-      if (!insumo || !Number.isFinite(cantidad) || cantidad <= 0) return;
-
-      if (!cantidades.has(insumo.id)) {
-        cantidades.set(insumo.id, {
-          id: insumo.id,
-          nombre: insumo.nombre,
-          unidad: insumo.unidad,
-          cantidad: 0
-        });
+  let recetasSinFicha = 0;
+  const catalogo = new Map(
+    listarInsumos().map((insumo) => [insumo.id, insumo])
+  );
+  recientes.forEach((venta) => {
+    const receta = registros.recetas.find(
+      (item) => String(item.id) === String(venta.recetaId)
+    );
+    if (
+      !receta ||
+      !(Number(receta.porciones) > 0) ||
+      !receta.ingredientes?.length
+    ) {
+      recetasSinFicha++;
+      return;
+    }
+    receta.ingredientes.forEach((ingrediente) => {
+      const insumo = catalogo.get(ingrediente.insumoId);
+      if (!insumo || !(Number(ingrediente.cantidad) > 0)) {
+        recetasSinFicha++;
+        return;
       }
-
-      cantidades.get(insumo.id).cantidad += cantidad * factor;
+      if (!cantidades.has(insumo.id))
+        cantidades.set(insumo.id, { ...insumo, cantidad: 0 });
+      cantidades.get(insumo.id).cantidad +=
+        (Number(ingrediente.cantidad) * Number(venta.cantidad)) /
+        Number(receta.porciones) /
+        7;
     });
   });
-
-  const insumos = [...cantidades.values()];
-  const totalKg = insumos
-    .filter(insumo => insumo.unidad === "kg")
-    .reduce((suma, insumo) => suma + insumo.cantidad, 0);
-
+  const consumo = [...cantidades.values()];
+  const kg = consumo
+    .filter((item) => item.unidad === "kg")
+    .reduce((total, item) => total + item.cantidad, 0);
+  const inventarioValido = registros.inventario.filter(
+    (item) =>
+      Number.isFinite(Number(item.cantidad)) &&
+      Number(item.cantidad) >= 0 &&
+      Number.isFinite(Number(item.stockMinimo)) &&
+      Number(item.stockMinimo) >= 0
+  );
+  const criticos = inventarioValido
+    .filter(
+      (item) =>
+        Number(item.cantidad) <= 0 ||
+        (Number(item.stockMinimo) > 0 &&
+          Number(item.cantidad) <= Number(item.stockMinimo))
+    )
+    .sort(
+      (a, b) =>
+        Number(a.cantidad) / (Number(a.stockMinimo) || 1) -
+        Number(b.cantidad) / (Number(b.stockMinimo) || 1)
+    );
+  const alertas = criticos.map((item) => ({
+    titulo:
+      Number(item.cantidad) === 0 ? "Inventario agotado" : "Inventario bajo",
+    mensaje: `${item.nombre}: ${item.cantidad} ${item.unidad}. Mínimo: ${item.stockMinimo}.`
+  }));
+  if (reporte.indicadores.cantidadMermas)
+    alertas.push({
+      titulo: "Merma registrada",
+      mensaje: `${reporte.indicadores.cantidadMermas} registros en los últimos siete días.`
+    });
   return {
-    valor: `${formato.format(totalKg)} kg`,
-    descripcion: `Ingredientes medidos en kg para ${ventasPrevistas} tacos previstos.`,
-    nota: `Estimación distribuida entre ${recetas.length} recetas activas. Las demás unidades se muestran por separado.`,
-    insumos: insumos.map(insumo => ({
-      ...insumo,
-      valor: `${formato.format(insumo.cantidad)} ${insumo.unidad}`
-    })),
-    sinIngredientes: insumos.length === 0
-  };
-}
-
-function mermaSemanal() {
-  const formato = new Intl.NumberFormat("es-SV", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-  const hoy = new Date();
-  const fechaLimite = new Date(hoy);
-  fechaLimite.setDate(fechaLimite.getDate() - 6);
-  fechaLimite.setHours(0, 0, 0, 0);
-
-  const mermas = DB.getAll("mermas").filter(merma => {
-    if (!merma.fecha) return false;
-    const fecha = new Date(`${merma.fecha.slice(0, 10)}T00:00:00`);
-    return !Number.isNaN(fecha.getTime()) && fecha >= fechaLimite && fecha <= hoy;
-  });
-
-  const total = mermas.reduce((suma, merma) => {
-    const cantidad = Number(merma.cantidad);
-    return Number.isFinite(cantidad) && cantidad > 0 ? suma + cantidad : suma;
-  }, 0);
-
-  return {
-    valor: `${formato.format(total)} kg`,
-    descripcion: mermas.length === 0
-      ? "No hay mermas registradas en los últimos siete días."
-      : `${mermas.length} registro${mermas.length === 1 ? "" : "s"} en los últimos siete días.`
-  };
-}
-
-function inventarioCritico() {
-  const formato = new Intl.NumberFormat("es-SV", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-  const inventario = DB.getAll("inventario").filter(producto => {
-    const cantidad = Number(producto.cantidad);
-    const minimo = Number(producto.stockMinimo);
-    return Number.isFinite(cantidad) && cantidad >= 0 && Number.isFinite(minimo) && minimo >= 0;
-  });
-
-  if (inventario.length === 0) {
-    return { valor: "Sin datos", descripcion: "No hay productos registrados en el inventario." };
-  }
-
-  inventario.sort((a, b) => {
-    const cantidadA = Number(a.cantidad);
-    const cantidadB = Number(b.cantidad);
-    const minimoA = Number(a.stockMinimo);
-    const minimoB = Number(b.stockMinimo);
-    const agotadoA = cantidadA <= 0;
-    const agotadoB = cantidadB <= 0;
-
-    if (agotadoA !== agotadoB) return agotadoA ? -1 : 1;
-
-    const proporcionA = minimoA > 0 ? cantidadA / minimoA : cantidadA === 0 ? 0 : Infinity;
-    const proporcionB = minimoB > 0 ? cantidadB / minimoB : cantidadB === 0 ? 0 : Infinity;
-    return proporcionA - proporcionB;
-  });
-
-  const producto = inventario[0];
-  const cantidad = Number(producto.cantidad);
-  const minimo = Number(producto.stockMinimo);
-  const unidad = producto.unidad || "unidades";
-  let descripcion;
-
-  if (cantidad <= 0) {
-    descripcion = "Existencias agotadas. Revisa el abastecimiento.";
-  } else if (minimo > 0 && cantidad <= minimo) {
-    descripcion = `Stock crítico: ${formato.format(cantidad)} ${unidad}. Mínimo: ${formato.format(minimo)} ${unidad}.`;
-  } else {
-    descripcion = `Menor nivel de existencias: ${formato.format(cantidad)} ${unidad}.`;
-  }
-
-  return { valor: producto.nombre || "Producto sin nombre", descripcion };
-}
-
-export function obtenerIndicadoresDashboard() {
-  return {
-    ventas: {
-      valor: String(ventasPrevistas),
-      descripcion: "Tacos para hoy"
-    },
-    consumo: consumoEsperado(),
-    merma: mermaSemanal(),
-    inventario: inventarioCritico()
+    dias,
+    promedio,
+    consumo,
+    kg: consumo.some((item) => item.unidad === "kg") ? kg : null,
+    recetasSinFicha,
+    reporte,
+    criticos,
+    inventarioValido,
+    alertas,
+    pedidos: agruparPedidos(
+      ventas.filter((venta) => venta.fecha === hoy)
+    ).slice(0, 5)
   };
 }

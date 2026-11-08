@@ -1,69 +1,85 @@
-import { useMemo } from "react";
 import TarjetaIndicador from "./TarjetaIndicador.jsx";
-import { obtenerIndicadoresDashboard } from "../datosIndicadores.js";
-
-function IndicadoresDashboard() {
-  const indicadores = useMemo(() => obtenerIndicadoresDashboard(), []);
-
+const numero = (valor) =>
+  valor.toLocaleString("es-SV", { maximumFractionDigits: 2 });
+export default function IndicadoresDashboard({ resumen }) {
+  const {
+    promedio,
+    kg,
+    consumo,
+    recetasSinFicha,
+    reporte,
+    criticos,
+    inventarioValido
+  } = resumen;
   return (
     <section className="row g-3">
-
       <div className="col-12 col-sm-6 col-xl-3">
         <TarjetaIndicador
           titulo="Ventas previstas"
-          valor={indicadores.ventas.valor}
-          descripcion={indicadores.ventas.descripcion}
+          valor={promedio === null ? "Sin datos" : numero(promedio)}
+          descripcion="Estimación diaria: promedio de ventas reales de los últimos 7 días."
         />
       </div>
-
       <div className="col-12 col-sm-6 col-xl-3">
         <TarjetaIndicador
           titulo="Consumo esperado"
-          valor={indicadores.consumo.valor}
-          descripcion={indicadores.consumo.descripcion}
+          valor={kg === null ? "Sin datos" : `${numero(kg)} kg`}
+          descripcion="Promedio diario según ventas y fichas actuales. Solo peso en el total."
         >
-          <button className="dashboard-consumo-boton" type="button" data-bs-toggle="collapse"
-            data-bs-target="#detalle-consumo-insumos" aria-expanded="false"
-            aria-controls="detalle-consumo-insumos">
-            Ver detalle por insumo
-          </button>
-          <div className="collapse" id="detalle-consumo-insumos">
-            <div className="dashboard-consumo-detalle">
-              <p className="mb-2">{indicadores.consumo.nota}</p>
-              <ul className="list-unstyled mb-0" aria-label="Consumo estimado por insumo">
-                {indicadores.consumo.insumos.map(insumo => (
-                  <li className="dashboard-consumo-insumo" key={insumo.id}>
-                    <span>{insumo.nombre}</span>
-                    <strong>{insumo.valor}</strong>
-                  </li>
-                ))}
-                {indicadores.consumo.sinIngredientes && (
-                  <li>Las recetas no tienen ingredientes válidos registrados.</li>
-                )}
-              </ul>
-            </div>
-          </div>
+          <details className="small mt-3">
+            <summary>Ver detalle por insumo</summary>
+            <p className="mt-2">
+              Estimación con las porciones de las recetas actuales; los precios
+              históricos de las ventas se conservan.
+            </p>
+            {recetasSinFicha > 0 && (
+              <p>
+                Hay ventas o ingredientes sin ficha válida. La estimación es
+                parcial.
+              </p>
+            )}
+            <ul className="list-unstyled">
+              {consumo.map((item) => (
+                <li key={item.id}>
+                  {item.nombre}: {numero(item.cantidad)} {item.unidad}
+                </li>
+              ))}
+            </ul>
+            {!consumo.length && (
+              <p>
+                Registra ventas y recetas con ingredientes para estimar el
+                consumo.
+              </p>
+            )}
+          </details>
         </TarjetaIndicador>
       </div>
-
       <div className="col-12 col-sm-6 col-xl-3">
         <TarjetaIndicador
           titulo="Merma semanal"
-          valor={indicadores.merma.valor}
-          descripcion={indicadores.merma.descripcion}
+          valor={
+            reporte.indicadores.mermaKg === null
+              ? "Sin peso registrado"
+              : `${numero(reporte.indicadores.mermaKg)} kg`
+          }
+          descripcion={
+            reporte.indicadores.sinPeso
+              ? "Hay mermas en otras unidades; consulta su costo en Reportes."
+              : "Últimos siete días, convertido a kg cuando la unidad lo permite."
+          }
         />
       </div>
-
       <div className="col-12 col-sm-6 col-xl-3">
         <TarjetaIndicador
           titulo="Inventario crítico"
-          valor={indicadores.inventario.valor}
-          descripcion={indicadores.inventario.descripcion}
+          valor={!inventarioValido.length ? "Sin datos" : criticos.length}
+          descripcion={
+            !inventarioValido.length
+              ? "Registra existencias y mínimos en Inventario."
+              : "Productos agotados o en su mínimo de existencias."
+          }
         />
       </div>
-
     </section>
   );
 }
-
-export default IndicadoresDashboard;
