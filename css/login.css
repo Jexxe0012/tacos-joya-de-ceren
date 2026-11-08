@@ -3,16 +3,21 @@
    Depende de las variables de :root definidas en main.css
    ============================================ */
 
-/* Reset mínimo: quita el margen que el navegador
-   pone por default en <body> y hace que padding
-   y border cuenten dentro del ancho del elemento
-   (box-sizing), no fuera. Sin esto, 100vw + padding
-   causa scroll horizontal. */
-* {
+/* Reset mínimo: quita el margen que el navegador pone por default en
+   <body> y hace que padding y border cuenten dentro del ancho del
+   elemento (box-sizing), no fuera. Sin esto, 100vw + padding causa
+   scroll horizontal.
+
+   Van sobre .login-page y dentro de .login-layout, no sobre body y *,
+   porque ahora esta hoja se carga en la aplicación completa: el <body>
+   lo comparten todas las pantallas y solo el login debe verse así. La
+   clase .login-page la pone la ruta del login. */
+.login-layout,
+.login-layout * {
   box-sizing: border-box;
 }
 
-body {
+.login-page {
   margin: 0;
   font-family: system-ui, sans-serif;
   background: var(--bg);
@@ -356,7 +361,8 @@ body {
   opacity: 0.8;
 }
 
-.toggle-link button {
+.toggle-link button,
+.toggle-link a {
   background: none;
   border: none;
   padding: 0;
@@ -368,12 +374,52 @@ body {
   text-decoration: underline;
 }
 
-.toggle-link button:hover {
+.toggle-link button:hover,
+.toggle-link a:hover {
   color: var(--color-rojo);
 }
 
-.toggle-link button:focus-visible {
+.toggle-link button:focus-visible,
+.toggle-link a:focus-visible {
   outline: 2px solid var(--color-maiz);
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+/* ============================================
+   LOGIN — Mensajes de error por campo
+   ============================================ */
+
+/* Los formularios de React guardan sus errores en el estado y los
+   escriben en un <p class="campo-error">. Antes el mensaje lo insertaba
+   Valida.marcar con la clase de Bootstrap, que esta pantalla no carga. */
+.login-card .campo-error {
+  color: var(--color-rojo);
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 1;
+  margin: 0.35rem 0 0 0;
+}
+
+/* El campo marcado se ve en rojo, con el mismo halo del foco. */
+.login-card input[aria-invalid="true"] {
+  border-color: var(--color-rojo);
+}
+
+.login-card input[aria-invalid="true"]:focus {
+  border-color: var(--color-rojo);
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.2);
+}
+
+/* Aviso general del formulario, cuando el error no es de un campo. */
+.login-card .aviso-formulario {
+  background: rgba(198, 40, 40, 0.08);
+  border: 1.5px solid var(--color-rojo);
+  border-radius: 0.5rem;
+  color: var(--color-rojo);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 1rem 0 0 0;
+  opacity: 1;
+  padding: 0.6rem 0.8rem;
 }

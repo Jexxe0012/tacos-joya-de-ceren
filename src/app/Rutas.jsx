@@ -22,6 +22,8 @@ import { useAuth } from "../auth/useAuth.js";
 import AppLayout from "../components/layout/AppLayout.jsx";
 import ModuloPendiente from "../components/ModuloPendiente.jsx";
 import Dashboard from "../dashboard/Dashboard.jsx";
+import Login from "../modulos/auth/Login.jsx";
+import Registro from "../modulos/auth/Registro.jsx";
 import { ROL_ADMIN } from "../services/authService.js";
 import { moduloDeRuta } from "./modulos.js";
 
@@ -47,8 +49,8 @@ function Rutas() {
     <Routes>
       {/* Público. Quien ya entró no vuelve a ver el login. */}
       <Route element={<RutaPublica />}>
-        <Route path="/login" element={<Pendiente responsable="Diego" />} />
-        <Route path="/registro" element={<Pendiente responsable="Diego" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
       </Route>
 
       {/* Con sesión: el menú, la barra y el contenido del módulo. */}
