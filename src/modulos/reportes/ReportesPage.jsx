@@ -6,6 +6,7 @@ import FiltrosReporte from "./FiltrosReporte.jsx";
 import ConexionesReporte from "./ConexionesReporte.jsx";
 import IndicadoresReporte from "./IndicadoresReporte.jsx";
 import GraficasReporte from "./GraficasReporte.jsx";
+import ClimaOperativo from "../../components/ClimaOperativo.jsx";
 
 export default function ReportesPage() {
   const { registros, recargar, problemas } = useRegistrosReporte();
@@ -23,6 +24,7 @@ export default function ReportesPage() {
       {!!reporte.avisos.length && <p className="small mb-4" role="status">{reporte.avisos.join(" ")}</p>}
       <section aria-labelledby="titulo-indicadores"><IndicadoresReporte reporte={reporte} /></section>
       <div className="row g-3 mt-2"><GraficasReporte reporte={reporte} /></div>
+      <ClimaOperativo />
     </>
   );
 }
