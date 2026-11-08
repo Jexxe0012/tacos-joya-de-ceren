@@ -40,7 +40,20 @@ export function useFormulario(valoresIniciales, reglas = {}, { sinRecorte = [] }
   const [enviando, setEnviando] = useState(false);
   const tocados = useRef(new Set());
 
+  // Espejo de los valores actuales. Hace falta porque dos cambios
+  // seguidos pueden ocurrir antes de que React vuelva a renderizar: si
+  // cada uno partiera del valor que vio su render, el segundo borraría
+  // al primero. Es el caso de rellenar varios campos de golpe.
+  const ultimos = useRef(valoresIniciales);
+
   const conservaEspacios = nombre => sinRecorte.includes(nombre);
+
+  /** Guarda el nuevo juego de valores y lo devuelve ya actualizado. */
+  const aplicar = useCallback(siguientes => {
+    ultimos.current = siguientes;
+    setValores(siguientes);
+    return siguientes;
+  }, []);
 
   const validarCampo = useCallback((nombre, todos) => {
     const regla = reglas[nombre];
@@ -60,19 +73,18 @@ export function useFormulario(valoresIniciales, reglas = {}, { sinRecorte = [] }
   /** Cambia un valor. Si el campo ya estaba marcado, lo revisa de nuevo. */
   const cambiar = useCallback((nombre, valor) => {
     tocados.current.add(nombre);
-    const siguientes = { ...valores, [nombre]: valor };
-    setValores(siguientes);
+    const siguientes = aplicar({ ...ultimos.current, [nombre]: valor });
     if (errores[nombre]) fijarError(nombre, validarCampo(nombre, siguientes));
-  }, [valores, errores, fijarError, validarCampo]);
+  }, [aplicar, errores, fijarError, validarCampo]);
 
   /** Al salir del campo: recorta y revisa, si el usuario escribió algo. */
   const alSalir = useCallback(nombre => {
     if (!tocados.current.has(nombre)) return;
-    const valor = conservaEspacios(nombre) ? valores[nombre] : recortar(valores[nombre]);
-    const siguientes = { ...valores, [nombre]: valor };
-    setValores(siguientes);
+    const previo = ultimos.current[nombre];
+    const valor = conservaEspacios(nombre) ? previo : recortar(previo);
+    const siguientes = aplicar({ ...ultimos.current, [nombre]: valor });
     fijarError(nombre, validarCampo(nombre, siguientes));
-  }, [valores, fijarError, validarCampo, sinRecorte]);
+  }, [aplicar, fijarError, validarCampo, sinRecorte]);
 
   /** Props listas para un <input>, <select> o <textarea>. */
   const campo = useCallback(nombre => ({
@@ -93,14 +105,14 @@ export function useFormulario(valoresIniciales, reglas = {}, { sinRecorte = [] }
    */
   const validarTodo = useCallback(() => {
     const listos = {};
-    for (const [nombre, valor] of Object.entries(valores)) {
+    for (const [nombre, valor] of Object.entries(ultimos.current)) {
       listos[nombre] = conservaEspacios(nombre) ? valor : recortar(valor);
     }
-    setValores(listos);
+    aplicar(listos);
     const encontrados = revisar(listos, reglas);
     setErrores(encontrados);
     return { ok: sinErrores(encontrados), valores: listos };
-  }, [valores, reglas, sinRecorte]);
+  }, [aplicar, reglas, sinRecorte]);
 
   /** Marca un error que no sale de las reglas, como los que vienen de los datos. */
   const marcarError = useCallback((nombre, mensaje) => fijarError(nombre, mensaje), [fijarError]);
@@ -109,14 +121,14 @@ export function useFormulario(valoresIniciales, reglas = {}, { sinRecorte = [] }
   /** Deja el formulario como al principio, o con los valores indicados. */
   const reiniciar = useCallback((nuevos = iniciales.current) => {
     tocados.current.clear();
-    setValores(nuevos);
+    aplicar(nuevos);
     setErrores({});
-  }, []);
+  }, [aplicar]);
 
   /** Cambia varios valores a la vez sin pasar por los eventos. */
   const fijar = useCallback(cambios => {
-    setValores(previos => ({ ...previos, ...cambios }));
-  }, []);
+    aplicar({ ...ultimos.current, ...cambios });
+  }, [aplicar]);
 
   /**
    * Envoltorio del submit: evita el envío por defecto, revisa todo y
