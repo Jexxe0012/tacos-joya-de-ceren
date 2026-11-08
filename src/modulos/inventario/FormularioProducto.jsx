@@ -10,7 +10,7 @@ import { useMemo, useRef } from "react";
 import { useFormulario } from "../../hooks/useFormulario.js";
 import { aviso, error as mostrarError } from "../../services/dialogos.js";
 import { fechaHoyLocal } from "../../utils/fechas.js";
-import CapaModal from "./CapaModal.jsx";
+import CapaModal from "../../components/CapaModal.jsx";
 import { reglasProducto } from "./reglasInventario.js";
 import {
   CATEGORIAS,

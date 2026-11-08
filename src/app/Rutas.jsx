@@ -26,6 +26,7 @@ import Registro from "../modulos/auth/Registro.jsx";
 import Inventario from "../modulos/inventario/Inventario.jsx";
 import Mermas from "../modulos/mermas/Mermas.jsx";
 import Recetas from "../modulos/recetas/Recetas.jsx";
+import Turnos from "../modulos/turnos/Turnos.jsx";
 import { ROL_ADMIN } from "../services/authService.js";
 import { moduloDeRuta } from "./modulos.js";
 
@@ -59,7 +60,7 @@ function Rutas() {
           <Route path="/recetas" element={<Recetas />} />
           <Route path="/inventario" element={<Inventario />} />
           <Route path="/mermas" element={<Mermas />} />
-          <Route path="/turnos" element={<Pendiente responsable="Diego" />} />
+          <Route path="/turnos" element={<Turnos />} />
           <Route path="/ventas" element={<Pendiente responsable="Josué" />} />
 
           {/* Solo administrador. */}

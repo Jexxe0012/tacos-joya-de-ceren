@@ -87,7 +87,10 @@ export function registrarMerma({
   responsable,
   observaciones = "",
   usuario,
-  reportadoPor
+  reportadoPor,
+  // La merma rápida de Turnos deja elegir el día; la pantalla de Mermas
+  // siempre registra la de hoy.
+  fecha = fechaHoyLocal()
 }) {
   const numero = Number(cantidad);
   if (!Number.isFinite(numero) || numero <= 0) {
@@ -121,7 +124,7 @@ export function registrarMerma({
       productoId: producto.id,
       unidad: producto.unidad,
       cantidad: numero,
-      fecha: fechaHoyLocal(),
+      fecha,
       motivo,
       responsable,
       observaciones,

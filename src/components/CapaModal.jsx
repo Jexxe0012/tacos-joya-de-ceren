@@ -1,9 +1,11 @@
 /**
- * CapaModal — la ventana propia de Inventario.
+ * CapaModal — la ventana de Inventario y de Turnos.
  *
- * No usa el Modal de Bootstrap: Inventario tiene su propio diseño de
- * modal en css/inventario.css (.modal-overlay y .modal-card), y se
- * conserva tal cual para que la pantalla no cambie de aspecto.
+ * No usa el Modal de Bootstrap: esas dos pantallas tienen su propio
+ * diseño de modal en css/inventario.css y css/turnos.css
+ * (.modal-overlay y .modal-card), y se conserva tal cual para que no
+ * cambien de aspecto. La clase del <body> que pone AppLayout decide
+ * cuál de los dos estilos se aplica.
  *
  * Igual que el otro Modal, se dibuja desde el estado: cierra con Escape
  * y con el fondo, y devuelve el foco al cerrarse.
