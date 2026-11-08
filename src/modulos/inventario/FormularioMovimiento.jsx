@@ -13,7 +13,7 @@
 import { useMemo, useRef } from "react";
 import { useFormulario } from "../../hooks/useFormulario.js";
 import { aviso, error as mostrarError } from "../../services/dialogos.js";
-import CapaModal from "./CapaModal.jsx";
+import CapaModal from "../../components/CapaModal.jsx";
 import { cambioGrande, reglasMovimiento } from "./reglasInventario.js";
 import {
   MOTIVOS,
