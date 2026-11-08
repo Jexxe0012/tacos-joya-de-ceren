@@ -17,6 +17,10 @@
     <div class="app-area flex-grow-1">
       <header class="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom" id="barra-superior"></header>
       <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1">
+        <div id="dashboard-react"></div>
+
+        <!-- Respaldo visual temporal: React controla la vista visible en esta etapa. -->
+        <div hidden>
         <section class="mb-4" aria-labelledby="titulo-dashboard">
           <h1 class="h3 fw-bold mb-2" id="titulo-dashboard">Resumen de operación</h1>
           <p class="text-body-secondary mb-0">Indicadores de ventas, consumo, mermas y cobertura.</p>
@@ -186,6 +190,7 @@
             </article>
           </section>
         </div>
+        </div>
       </main>
     </div>
   </div>
@@ -198,7 +203,7 @@
   <script src="../js/validacion.js"></script>
   <script type="module" src="../src/plantilla.jsx"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
- <script src="../js/dashboard.js"></script>
+  <script type="module" src="../src/dashboard/main.jsx"></script>
 
 </body>
 </html>
