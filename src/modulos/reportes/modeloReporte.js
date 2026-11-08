@@ -1,12 +1,16 @@
-"use strict";
+import { fechaRegistroReporte } from "./fechasReporte.js";
+import { numeroReporte, unidadReporte, pesoEnKgReporte, volumenEnLitrosReporte } from "./medidas.js";
+import { fecha as validarFecha } from "../../utils/validaciones.js";
+import { fechaHoyLocal, aTextoLocal as textoFechaReporte, aFechaLocal as fechaLocalReporte, diasEntre } from "../../utils/fechas.js";
+import { calcularEficienciaReporte } from "./eficiencia.js";
+import { prepararSeriesReportes } from "./series.js";
+
 
 const periodosPermitidos = ["7", "30"];
-const productosPermitidosReporte = new Map();
-const recetasPermitidasReporte = new Map();
 
 // Incluye el día actual. Por ejemplo, 7 días del 10 al 16, ambos incluidos.
 // Se usan fechas locales para evitar cambios de día por conversiones a UTC.
-function calcularRangoPeriodo(dias, fechaActual = new Date()) {
+export function calcularRangoPeriodo(dias, fechaActual = new Date()) {
   if (!periodosPermitidos.includes(String(dias))) {
     throw new RangeError("El período debe ser de 7 o 30 días.");
   }
@@ -25,32 +29,17 @@ function calcularRangoPeriodo(dias, fechaActual = new Date()) {
 // El rango personalizado incluye ambos extremos: del 1 al 1 cuenta como un día.
 const maxDiasRango = 90;
 
-function textoFechaReporte(fecha) {
-  const anio = String(fecha.getFullYear()).padStart(4, "0");
-  const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-  const dia = String(fecha.getDate()).padStart(2, "0");
-  return `${anio}-${mes}-${dia}`;
+export function diasEnRango(inicio, fin) {
+  return diasEntre(textoFechaReporte(inicio), textoFechaReporte(fin)) + 1;
 }
 
-function fechaLocalReporte(valor) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(valor)) return null;
-  const fecha = new Date(`${valor}T00:00:00`);
-  // Date puede normalizar días inexistentes, por ejemplo el 31 de febrero.
-  return Number.isFinite(fecha.getTime()) && textoFechaReporte(fecha) === valor ? fecha : null;
-}
-
-function diasEnRango(inicio, fin) {
-  // El redondeo mantiene el conteo de días aunque cambie el horario local.
-  return Math.round((fin - inicio) / 86400000) + 1;
-}
-
-function validarFechaRango(valor) {
-  const error = Valida.fecha(valor, { noFutura: true });
+export function validarFechaRango(valor) {
+  const error = validarFecha(valor, { noFutura: true });
   if (error) return error;
   return fechaLocalReporte(valor) ? "" : "Selecciona una fecha válida.";
 }
 
-function validarFinRango(valor, { periodo, fechaInicio }) {
+export function validarFinRango(valor, { periodo, fechaInicio }) {
   if (periodo !== "personalizado") return "";
   const error = validarFechaRango(valor);
   if (error) return error;
@@ -64,48 +53,7 @@ function validarFinRango(valor, { periodo, fechaInicio }) {
   return "";
 }
 
-function reglasFiltrosReporte(leerFiltros) {
-  return {
-    "filtro-periodo": (valor) => periodosPermitidos.includes(valor) || valor === "personalizado"
-      ? ""
-      : "Selecciona un período de la lista.",
-    "filtro-insumo": (valor) => valor === "todos" || productosPermitidosReporte.has(valor)
-      ? ""
-      : "Selecciona un producto de la lista.",
-    "filtro-receta": (valor) => valor === "todas" || recetasPermitidasReporte.has(valor)
-      ? ""
-      : "Selecciona una receta de la lista.",
-    "filtro-fecha-inicio": (valor) => leerFiltros().periodo === "personalizado" ? validarFechaRango(valor) : "",
-    "filtro-fecha-fin": valor => validarFinRango(valor, leerFiltros())
-  };
-}
-
-// Las fechas de ventas y mermas pueden ser días locales o marcas de tiempo ISO.
-function fechaRegistroReporte(valor) {
-  if (typeof valor !== "string" || !fechaLocalReporte(valor.slice(0, 10))) return null;
-  if (valor.length === 10) return fechaLocalReporte(valor);
-  if (valor[10] !== "T") return null;
-  const instante = new Date(valor);
-  return Number.isFinite(instante.getTime())
-    ? new Date(instante.getFullYear(), instante.getMonth(), instante.getDate()) : null;
-}
-
-function numeroReporte(valor) {
-  if (!["string", "number"].includes(typeof valor) || String(valor).trim() === "") return null;
-  const numero = Number(valor);
-  return Number.isFinite(numero) ? numero : null;
-}
-
-function unidadReporte(valor) {
-  const unidad = String(valor || "").trim().toLowerCase();
-  const alias = { litros: "l", litro: "l", unidades: "unidad" };
-  return Object.hasOwn(alias, unidad) ? alias[unidad] : unidad;
-}
-
-const pesoEnKgReporte = { kg: 1, g: 0.001, lb: 0.45359237 };
-const volumenEnLitrosReporte = { l: 1, ml: 0.001 };
-
-function cantidadMermaReporte(merma, producto) {
+export function cantidadMermaReporte(merma, producto) {
   // Compatibilidad con registros antiguos de Turnos, por ejemplo "0.5 kg".
   const partes = typeof merma.cantidad === "string"
     ? merma.cantidad.trim().match(/^(\d+(?:[.,]\d+)?)\s*([a-zA-Z]+)?$/) : null;
@@ -116,7 +64,7 @@ function cantidadMermaReporte(merma, producto) {
   return { cantidad, unidad };
 }
 
-function costoMermaReporte(cantidad, unidad, producto) {
+export function costoMermaReporte(cantidad, unidad, producto) {
   const precio = numeroReporte(producto?.costoUnitario);
   if (precio === null || precio < 0 || !unidad) return null;
   const destino = unidadReporte(producto.unidad);
@@ -130,11 +78,11 @@ function costoMermaReporte(cantidad, unidad, producto) {
   return null;
 }
 
-function obtenerDatos(rango) {
-  const productos = new Map(DB.getAll("inventario")
+export function obtenerDatos(registros, rango) {
+  const productos = new Map(registros.inventario
     .filter(producto => producto?.id != null && typeof producto.nombre === "string")
     .map(producto => [String(producto.id), producto]));
-  const recetas = new Map(DB.getAll("recetas")
+  const recetas = new Map(registros.recetas
     .filter(receta => receta?.id != null)
     .map(receta => [String(receta.id), receta]));
   const catalogo = new Map([...productos].map(([id, producto]) => [id, producto.nombre]));
@@ -149,7 +97,7 @@ function obtenerDatos(rango) {
   const mermas = [];
   let descartados = 0;
 
-  for (const venta of DB.getAll("ventas")) {
+  for (const venta of registros.ventas) {
     const fecha = fechaRegistroReporte(venta?.fecha);
     if (!fecha) { descartados++; continue; }
     const cantidad = numeroReporte(venta.cantidad);
@@ -167,7 +115,7 @@ function obtenerDatos(rango) {
       ejemplo: venta.ejemplo === true });
   }
 
-  for (const merma of DB.getAll("mermas")) {
+  for (const merma of registros.mermas) {
     const fecha = fechaRegistroReporte(merma?.fecha);
     if (!fecha) { descartados++; continue; }
     // Los registros antiguos solo tienen nombre: se acepta únicamente coincidencia exacta y única.
@@ -186,10 +134,10 @@ function obtenerDatos(rango) {
       costo: costoMermaReporte(medida.cantidad, medida.unidad, producto) });
   }
   return { ventas, mermas, catalogo, catalogoRecetas, descartados,
-    productos, recetas, movimientos: DB.getAll("movimientos"), vinculos: DB.getAll("vinculosInsumos") };
+    productos, recetas, movimientos: registros.movimientos, vinculos: registros.vinculosInsumos };
 }
 
-function calcularIndicadores(datos, productoSeleccionado) {
+export function calcularIndicadores(datos, productoSeleccionado) {
   const mermas = datos.mermas.filter(merma => productoSeleccionado === "todos" || merma.productoId === productoSeleccionado);
   const conPeso = mermas.filter(merma => merma.kg !== null);
   const conCosto = mermas.filter(merma => merma.costo !== null);
@@ -206,7 +154,7 @@ function calcularIndicadores(datos, productoSeleccionado) {
   };
 }
 
-function presentarIndicadoresReporte(indicadores, dias) {
+export function presentarIndicadoresReporte(indicadores, dias) {
   const enteros = new Intl.NumberFormat("es-SV", { maximumFractionDigits: 0 });
   const decimales = new Intl.NumberFormat("es-SV", { maximumFractionDigits: 3 });
   const moneda = new Intl.NumberFormat("es-SV", { style: "currency", currency: "USD" });
@@ -230,7 +178,7 @@ function presentarIndicadoresReporte(indicadores, dias) {
   return { ventas, detalleVentas, mermas, detalleMermas, eficiencia, detalleEficiencia, filas };
 }
 
-function calcularHallazgoOperativo(series) {
+export function calcularHallazgoOperativo(series) {
   const mermas = series.mermas.filter(merma => merma.kg !== null);
   if (!series.mermas.length) return { titulo: "Sin registros para analizar",
     detalle: "No hay mermas del producto y período seleccionados.", sugerencia: "Selecciona otro período o registra las mermas para analizarlas." };
@@ -246,53 +194,43 @@ function calcularHallazgoOperativo(series) {
     sugerencia: "Revisa los registros de preparación y porcionado de estos productos antes de ajustar la producción." };
 }
 
-// Los catálogos conservan las selecciones históricas durante la consulta.
-function incorporarCatalogoReporte(destino, origen) {
-  for (const [id, nombre] of origen) destino.set(id, nombre);
+export function opcionesFiltroReporte(catalogo, inicial) {
+  return [inicial, ...[...catalogo].sort((a, b) => a[1].localeCompare(b[1], "es"))];
 }
 
-function opcionesFiltroReporte(catalogo, opcionInicial) {
-  return [opcionInicial, ...[...catalogo].sort((a, b) => a[1].localeCompare(b[1], "es"))];
+export function catalogosReporte(registros) {
+  const hoy = fechaLocalReporte(fechaHoyLocal());
+  const datos = obtenerDatos(registros, calcularRangoPeriodo(30, hoy));
+  return {
+    productos: opcionesFiltroReporte(datos.catalogo, ["todos", "Todos los productos"]),
+    recetas: opcionesFiltroReporte(datos.catalogoRecetas, ["todas", "Todas las recetas"])
+  };
 }
 
-function opcionesProductosReporte() {
-  return opcionesFiltroReporte(productosPermitidosReporte, ["todos", "Todos los productos"]);
+export function validarFiltrosReporte(filtros, catalogos) {
+  const errores = {};
+  if (![...periodosPermitidos, "personalizado"].includes(filtros.periodo)) errores.periodo = "Selecciona un período de la lista.";
+  if (!catalogos.productos.some(([id]) => id === filtros.insumo)) errores.insumo = "Selecciona un producto de la lista.";
+  if (!catalogos.recetas.some(([id]) => id === filtros.receta)) errores.receta = "Selecciona una receta de la lista.";
+  if (filtros.periodo === "personalizado") {
+    errores.fechaInicio = validarFechaRango(filtros.fechaInicio);
+    errores.fechaFin = validarFinRango(filtros.fechaFin, filtros);
+  }
+  return Object.fromEntries(Object.entries(errores).filter(([, mensaje]) => mensaje));
 }
 
-function opcionesRecetasReporte() {
-  return opcionesFiltroReporte(recetasPermitidasReporte, ["todas", "Todas las recetas"]);
-}
-
-function refrescarRecetasReporte(rango) {
-  incorporarCatalogoReporte(recetasPermitidasReporte, obtenerDatos(rango).catalogoRecetas);
-  return opcionesRecetasReporte();
-}
-
-function filtrosInicialesReporte() {
-  const { inicio, fin } = calcularRangoPeriodo(7, fechaLocalReporte(UI.fechaHoy()));
+export function filtrosInicialesReporte() {
+  const { inicio, fin } = calcularRangoPeriodo(7, fechaLocalReporte(fechaHoyLocal()));
   return { periodo: "7", insumo: "todos", receta: "todas",
     fechaInicio: textoFechaReporte(inicio), fechaFin: textoFechaReporte(fin) };
 }
 
-function leerFiltrosReporte(formulario) {
-  return Object.fromEntries(new FormData(formulario));
-}
-
-function revalidarFinReporte(campo, filtros) {
-  if (!campo.classList.contains("is-invalid")) return;
-  const error = validarFinRango(campo.value, filtros);
-  if (error) Valida.marcar(campo, error);
-  else Valida.limpiar(campo);
-}
-
-function calcularReporte({ periodo, insumo, receta, fechaInicio, fechaFin }) {
-  const fechaActual = fechaLocalReporte(UI.fechaHoy());
+export function calcularReporte({ periodo, insumo, receta, fechaInicio, fechaFin }, registros) {
+  const fechaActual = fechaLocalReporte(fechaHoyLocal());
   const rango = periodo === "personalizado"
     ? { inicio: fechaLocalReporte(fechaInicio), fin: fechaLocalReporte(fechaFin) }
     : calcularRangoPeriodo(periodo, fechaActual);
-  const datos = obtenerDatos(rango);
-  incorporarCatalogoReporte(productosPermitidosReporte, datos.catalogo);
-  incorporarCatalogoReporte(recetasPermitidasReporte, datos.catalogoRecetas);
+  const datos = obtenerDatos(registros, rango);
   // Los indicadores, las gráficas y el PDF comparten las mismas ventas filtradas.
   const datosFiltrados = { ...datos,
     ventas: datos.ventas.filter(venta => receta === "todas" || venta.recetaId === receta) };
@@ -302,8 +240,8 @@ function calcularReporte({ periodo, insumo, receta, fechaInicio, fechaFin }) {
   const series = prepararSeriesReportes(datosFiltrados, rango, insumo);
   const hallazgo = calcularHallazgoOperativo(series);
   const formatoFecha = new Intl.DateTimeFormat("es-SV", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const nombreProducto = productosPermitidosReporte.get(insumo) ?? "Todos los productos";
-  const nombreReceta = recetasPermitidasReporte.get(receta) ?? "Todas las recetas";
+  const nombreProducto = datos.catalogo.get(insumo) ?? "Todos los productos";
+  const nombreReceta = datos.catalogoRecetas.get(receta) ?? "Todas las recetas";
   const resumen = `Período seleccionado: ${formatoFecha.format(rango.inicio)} al ${formatoFecha.format(rango.fin)} · Receta: ${nombreReceta} · Merma: ${nombreProducto}.`;
   const alcance = `Ventas, ingresos y demanda: ${nombreReceta}. Las mermas se filtran por producto de forma independiente; no se atribuyen a la receta.`;
   const avisos = [...indicadores.comparacion.avisos];

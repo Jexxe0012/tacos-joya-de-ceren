@@ -33,45 +33,6 @@
       <main class="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal" tabindex="-1">
         <div id="reportes-react"></div>
 
-        <details class="app-panel p-3 p-md-4 mb-4" id="conexiones-inventario">
-          <summary class="fw-semibold">Conectar ingredientes de Recetas con Inventario</summary>
-          <p class="small text-body-secondary mt-3">
-            Elige qué producto corresponde a cada ingrediente. Guarda las equivalencias de bolsas o cajas según su contenido real.
-            No se cambian las recetas ni las existencias. La eficiencia necesita todos los ingredientes de peso de las recetas vendidas.
-          </p>
-          <form id="formulario-vinculo" novalidate>
-            <div class="row g-3 align-items-start">
-              <div class="col-12 col-lg-4">
-                <label class="form-label" for="vinculo-ingrediente">Ingrediente de Recetas</label>
-                <select class="form-select" id="vinculo-ingrediente" required></select>
-              </div>
-              <div class="col-12 col-lg-4">
-                <label class="form-label" for="vinculo-producto">Producto de Inventario</label>
-                <select class="form-select" id="vinculo-producto" required></select>
-              </div>
-              <div class="col-12 col-lg-4">
-                <label class="form-label" for="vinculo-factor">Equivalencia por unidad de inventario</label>
-                <input class="form-control" id="vinculo-factor" type="number" step="any" min="0.000001" max="1000000"
-                  aria-describedby="ayuda-equivalencia" required disabled>
-              </div>
-            </div>
-            <p class="small text-body-secondary mt-3" id="ayuda-equivalencia"></p>
-            <div class="d-flex flex-wrap gap-2">
-              <button class="btn btn-app-primary" type="submit" id="btn-guardar-vinculo">Guardar vínculo</button>
-              <button class="btn btn-app-secondary" type="button" id="btn-quitar-vinculo" hidden>Quitar vínculo</button>
-            </div>
-          </form>
-          <p class="small mt-3 mb-2" id="estado-vinculos" role="status" aria-live="polite"></p>
-          <div class="table-responsive">
-            <table class="table table-sm mb-0">
-              <caption>Correspondencias guardadas para calcular el consumo</caption>
-              <thead><tr><th scope="col">Ingrediente</th><th scope="col">Producto</th><th scope="col">Equivalencia</th></tr></thead>
-              <tbody id="tabla-vinculos"></tbody>
-            </table>
-          </div>
-        </details>
-
-        <div id="resultados-reportes"></div>
       </main>
     </div>
   </div>
@@ -92,18 +53,6 @@
   <!-- Primero el diseño común, después la lógica propia del módulo. -->
   <script src="../js/storage.js"></script>
   <script type="module" src="../src/plantilla.jsx"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
-  <script src="../js/catalogo-insumos.js"></script>
-  <script src="../js/reportes-vinculos.js"></script>
-  <script src="../js/reportes-eficiencia.js"></script>
-  <script src="../js/reportes-graficas.js"></script>
-  <script src="../js/reportes.js"></script>
   <script type="module" src="../src/reportes/Reportes.jsx"></script>
-  <script
-    src="https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js"
-    integrity="sha384-qovJwSBbRDPP5cEjCp8S0UP66wrvnjaa60XMOGzTNanrThcrGfXfnZkvgY8N1KT3"
-    crossorigin="anonymous"
-  ></script>
-  <script src="../js/reportes-pdf.js"></script>
 </body>
 </html>

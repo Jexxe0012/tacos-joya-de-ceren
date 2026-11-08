@@ -2,7 +2,7 @@
  * AppLayout — la estructura que comparten todas las pantallas con sesión.
  *
  * Dibuja el menú lateral, la barra superior y el contenido de la ruta
- * activa en <Outlet />. El login y el registro no pasan por aquí: tienen
+ * activa en <Suspense fallback={<p role="status">Cargando pantalla…</p>}><Outlet /></Suspense>. El login y el registro no pasan por aquí: tienen
  * su propia distribución.
  *
  * Mantiene el mismo marcado de las páginas anteriores (app-layout,
@@ -10,7 +10,7 @@
  * de cada módulo sigan aplicándose sin cambios.
  */
 
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Offcanvas } from "bootstrap";
 import { moduloDeRuta } from "../../app/modulos.js";
@@ -82,7 +82,7 @@ function AppLayout() {
 
           <main className="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal"
             tabIndex={-1} ref={principal}>
-            <Outlet />
+            <Suspense fallback={<p role="status">Cargando pantalla…</p>}><Outlet /></Suspense>
           </main>
         </div>
       </div>

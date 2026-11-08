@@ -1,7 +1,11 @@
-"use strict";
+import { obtenerInsumo, normalizarUnidad, resolverVinculo, equivalenciaAutomatica } from "../../services/insumosService.js";
+import { numeroReporte, pesoEnKgReporte } from "./medidas.js";
+import { fechaRegistroReporte } from "./fechasReporte.js";
+
+
 
 // Se comparan pesos, no se suman kg con litros o unidades. Las fichas son las actuales.
-function calcularEficienciaReporte(datos, rango, productoId, recetaId) {
+export function calcularEficienciaReporte(datos, rango, productoId, recetaId) {
   const filas = new Map();
   const problemas = new Set();
   const avisos = [];
@@ -18,16 +22,16 @@ function calcularEficienciaReporte(datos, rango, productoId, recetaId) {
     }
     const usados = new Set();
     for (const linea of receta.ingredientes) {
-      const insumo = CatalogoInsumos.obtener(linea?.insumoId);
+      const insumo = obtenerInsumo(linea?.insumoId);
       const cantidad = numeroReporte(linea?.cantidad);
       if (!insumo || cantidad === null || cantidad <= 0 || usados.has(insumo.id)) {
         problemas.add(`Revisa los ingredientes de ${receta.nombre}`);
         continue;
       }
       usados.add(insumo.id);
-      const unidad = InsumosInventario.unidad(insumo.unidad);
+      const unidad = normalizarUnidad(insumo.unidad);
       if (!Object.hasOwn(pesoEnKgReporte, unidad)) continue;
-      const enlace = InsumosInventario.resolver(insumo.id, datos.productos, vinculos);
+      const enlace = resolverVinculo(insumo.id, datos.productos, vinculos);
       if (enlace.error) {
         if (productoId === "todos") problemas.add(`${insumo.nombre}: ${enlace.error}`);
         continue;
@@ -55,12 +59,12 @@ function calcularEficienciaReporte(datos, rango, productoId, recetaId) {
     if (fecha < rango.inicio || fecha > rango.fin) continue;
     const cantidad = numeroReporte(movimiento.cantidad);
     if (cantidad === null || cantidad <= 0) { problemas.add(`Salida con cantidad inválida de ${fila.nombre}`); continue; }
-    const unidad = InsumosInventario.unidad(movimiento.unidad || fila.unidadProducto);
-    const aIngrediente = InsumosInventario.equivalenciaAutomatica(unidad, fila.unidadInsumo);
-    const aProducto = InsumosInventario.equivalenciaAutomatica(unidad, fila.unidadProducto);
+    const unidad = normalizarUnidad(movimiento.unidad || fila.unidadProducto);
+    const aIngrediente = equivalenciaAutomatica(unidad, fila.unidadInsumo);
+    const aProducto = equivalenciaAutomatica(unidad, fila.unidadProducto);
     const factor = aIngrediente ?? (aProducto === null ? null : aProducto * fila.factor);
     if (factor === null) { problemas.add(`Salida sin equivalencia de ${fila.nombre}`); continue; }
-    const kg = cantidad * factor * pesoEnKgReporte[InsumosInventario.unidad(fila.unidadInsumo)];
+    const kg = cantidad * factor * pesoEnKgReporte[normalizarUnidad(fila.unidadInsumo)];
     if (!Number.isFinite(kg)) { problemas.add(`Salida con cantidad inválida de ${fila.nombre}`); continue; }
     if (!movimiento.unidad) unidadesAntiguas++;
     fila.realKg = (fila.realKg ?? 0) + kg;

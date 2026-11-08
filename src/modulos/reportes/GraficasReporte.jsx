@@ -1,4 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { crearGraficaReporte } from "./graficaService.js";
+import { datosGraficasReporte, datosGraficaMermasReporte } from "./series.js";
 
 function LienzoGrafica({ grafica }) {
   const canvas = useRef(null);
@@ -51,7 +53,6 @@ function TablaGrafica({ tipo, filas, columnas, etiqueta, abierta }) {
 }
 
 function TarjetaGrafica({ grafica, columnas, etiqueta, controles, children }) {
-  const disponible = typeof Chart !== "undefined";
   const hayDatos = grafica.valores.some(valor => valor !== null);
   return (
     <div className="col-12 col-xl-6">
@@ -59,10 +60,10 @@ function TarjetaGrafica({ grafica, columnas, etiqueta, controles, children }) {
         <h2 className="h6 fw-semibold mb-2" id={`titulo-grafica-${grafica.tipo}`}>{grafica.titulo}</h2>
         {controles}
         <p className="small text-body-secondary" id={`descripcion-${grafica.tipo}`}>{grafica.descripcion}</p>
-        {disponible && hayDatos && <LienzoGrafica grafica={grafica} />}
+        {hayDatos && <LienzoGrafica grafica={grafica} />}
         {!hayDatos && <p className="reportes-vacio p-3 mt-3" id={`vacio-${grafica.tipo}`}>Sin datos en este período</p>}
         <TablaGrafica tipo={grafica.tipo} filas={grafica.filas} columnas={columnas} etiqueta={etiqueta}
-          abierta={!disponible && grafica.filas.length > 0} />
+           />
         {children}
       </section>
     </div>
@@ -112,7 +113,6 @@ export default function GraficasReportes({ reporte }) {
   const { ventas, ingresos, demanda } = datosGraficasReporte(reporte.series, reporte.rango);
   return (
     <>
-      {typeof Chart === "undefined" && <p className="col-12 small mb-0" id="aviso-graficas" role="status">{avisoGraficaReporte}</p>}
       <TarjetaGrafica grafica={ventas} columnas={["Fecha", "Unidades vendidas"]} etiqueta="Ventas registradas por día" />
       <TarjetaGrafica grafica={ingresos} columnas={["Receta", "Ingresos (USD)"]} etiqueta="Ingresos registrados por receta" />
       <GraficaMermas mermas={reporte.series.mermas} />
