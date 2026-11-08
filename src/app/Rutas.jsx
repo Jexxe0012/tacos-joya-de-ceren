@@ -23,6 +23,7 @@ import ModuloPendiente from "../components/ModuloPendiente.jsx";
 import Dashboard from "../dashboard/Dashboard.jsx";
 import Login from "../modulos/auth/Login.jsx";
 import Registro from "../modulos/auth/Registro.jsx";
+import Recetas from "../modulos/recetas/Recetas.jsx";
 import { ROL_ADMIN } from "../services/authService.js";
 import { moduloDeRuta } from "./modulos.js";
 
@@ -53,7 +54,7 @@ function Rutas() {
       {/* Con sesión: el menú, la barra y el contenido del módulo. */}
       <Route element={<RutaProtegida />}>
         <Route element={<AppLayout />}>
-          <Route path="/recetas" element={<Pendiente responsable="Diego" />} />
+          <Route path="/recetas" element={<Recetas />} />
           <Route path="/inventario" element={<Pendiente responsable="Diego" />} />
           <Route path="/mermas" element={<Pendiente responsable="Diego" />} />
           <Route path="/turnos" element={<Pendiente responsable="Diego" />} />
