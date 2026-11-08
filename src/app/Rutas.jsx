@@ -27,6 +27,7 @@ import Registro from "../modulos/auth/Registro.jsx";
 import { ROL_ADMIN } from "../services/authService.js";
 import { moduloDeRuta } from "./modulos.js";
 
+const VentasPage = lazy(() => import("../modulos/ventas/VentasPage.jsx"));
 const ReportesPage = lazy(() => import("../modulos/reportes/ReportesPage.jsx"));
 
 /** La raíz manda a la pantalla de inicio del rol, o al login si no hay sesión. */
@@ -60,7 +61,7 @@ function Rutas() {
           <Route path="/inventario" element={<Pendiente responsable="Diego" />} />
           <Route path="/mermas" element={<Pendiente responsable="Diego" />} />
           <Route path="/turnos" element={<Pendiente responsable="Diego" />} />
-          <Route path="/ventas" element={<Pendiente responsable="Josué" />} />
+          <Route path="/ventas" element={<VentasPage />} />
 
           {/* Solo administrador. */}
           <Route element={<RutaProtegida rol={ROL_ADMIN} />}>
