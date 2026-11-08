@@ -7,20 +7,14 @@
  * monta la que corresponde.
  */
 
-import { useEffect } from "react";
 import { useAuth } from "../../auth/useAuth.js";
 import { ROL_ADMIN } from "../../services/authService.js";
 import InventarioAdmin from "./InventarioAdmin.jsx";
 import InventarioEmpleado from "./InventarioEmpleado.jsx";
-import sembrarInventario from "./semillaInventario.js";
 
 function Inventario() {
   const { sesion } = useAuth();
 
-  // Los productos de ejemplo se siembran una sola vez.
-  useEffect(() => {
-    sembrarInventario();
-  }, []);
 
   return sesion.rol === ROL_ADMIN
     ? <InventarioAdmin usuario={sesion.nombre} />

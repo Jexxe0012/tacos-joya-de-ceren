@@ -1,28 +1,22 @@
-/**
- * inicializar — arranque controlado de los datos de la aplicación.
- *
- * Antes cada página sembraba lo suyo al cargarse, así que los datos de
- * prueba aparecían o no según por dónde entrara el usuario. Con una sola
- * entrada, la siembra ocurre una vez, aquí, antes del primer render.
- *
- * Todo lo que se llama es idempotente: inicializar dos veces deja el
- * mismo resultado y no borra nada de lo que el usuario ya creó.
- */
-
+/** Arranque único. Los datos de ejemplo solo se añaden si falta su colección. */
 import { sembrarCuentasPrueba } from "../services/authService.js";
+import sembrarRecetas from "../modulos/recetas/semillaRecetas.js";
+import sembrarInventario from "../modulos/inventario/semillaInventario.js";
+import sembrarTurnos from "../modulos/turnos/semillaTurnos.js";
 
 let hecho = false;
-
 export function inicializarDatos() {
   if (hecho) return;
-  hecho = true;
-
-  // Las cuentas con las que se entra a la demostración.
   sembrarCuentasPrueba();
-
-  // Los demás módulos siembran sus propios datos de ejemplo cuando se
-  // migran; cada uno se agrega a esta lista para que el arranque sea
-  // siempre el mismo.
+  // Una lista vacía guardada por el usuario también es un estado válido.
+  // No reemplazamos registros existentes, vacíos ni contenido ilegible.
+  for (const [clave, sembrar] of [
+    ["recetas", sembrarRecetas],
+    ["inventario", sembrarInventario],
+    ["turnos", sembrarTurnos]
+  ]) {
+    if (localStorage.getItem(clave) === null) sembrar();
+  }
+  hecho = true;
 }
-
 export default inicializarDatos;

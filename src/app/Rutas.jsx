@@ -16,11 +16,10 @@ import { lazy } from "react";
  *                           acciones se muestran dentro de la pantalla.
  */
 
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { RutaProtegida, RutaPublica } from "../auth/RutaProtegida.jsx";
 import { useAuth } from "../auth/useAuth.js";
 import AppLayout from "../components/layout/AppLayout.jsx";
-import ModuloPendiente from "../components/ModuloPendiente.jsx";
 import Dashboard from "../dashboard/Dashboard.jsx";
 import Login from "../modulos/auth/Login.jsx";
 import Registro from "../modulos/auth/Registro.jsx";
@@ -29,25 +28,17 @@ import Mermas from "../modulos/mermas/Mermas.jsx";
 import Recetas from "../modulos/recetas/Recetas.jsx";
 import Turnos from "../modulos/turnos/Turnos.jsx";
 import { ROL_ADMIN } from "../services/authService.js";
-import { moduloDeRuta } from "./modulos.js";
 
 const VentasPage = lazy(() => import("../modulos/ventas/VentasPage.jsx"));
-const AbastecimientosPage = lazy(() => import("../modulos/abastecimientos/AbastecimientosPage.jsx"));
+const AbastecimientosPage = lazy(
+  () => import("../modulos/abastecimientos/AbastecimientosPage.jsx")
+);
 const ReportesPage = lazy(() => import("../modulos/reportes/ReportesPage.jsx"));
 
 /** La raíz manda a la pantalla de inicio del rol, o al login si no hay sesión. */
 function Inicio() {
   const { inicio } = useAuth();
   return <Navigate to={inicio} replace />;
-}
-
-/**
- * Pantalla todavía no migrada. Toma el módulo de la ruta activa, así que
- * una sola entrada sirve para todas las rutas pendientes.
- */
-function Pendiente({ responsable }) {
-  const { pathname } = useLocation();
-  return <ModuloPendiente modulo={moduloDeRuta(pathname)} responsable={responsable} />;
 }
 
 function Rutas() {

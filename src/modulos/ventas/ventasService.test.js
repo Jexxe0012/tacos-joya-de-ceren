@@ -63,3 +63,14 @@ test("solo un administrador puede eliminar las ventas del día", () => {
   eliminarVentasDia(fechaHoyLocal());
   assert.equal(db.getAll("ventas").length, 0);
 });
+
+
+test("Ventas también inicia sin randomUUID en una previsualización HTTP", () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, "crypto");
+  try {
+    Object.defineProperty(globalThis, "crypto", { value: undefined, configurable: true });
+    const nuevo = pedidoInicial();
+    assert.ok(nuevo.pedidoId); assert.ok(nuevo.lineas[0].id);
+    assert.notEqual(nuevo.pedidoId, nuevo.lineas[0].id);
+  } finally { Object.defineProperty(globalThis, "crypto", original); }
+});

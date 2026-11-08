@@ -9,7 +9,7 @@
  * sola cuando algo escribe en "recetas", incluso desde otra pestaña.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "../../auth/useAuth.js";
 import Modal from "../../components/Modal.jsx";
 import { useColeccion } from "../../hooks/useColeccion.js";
@@ -19,7 +19,6 @@ import FichaReceta from "./FichaReceta.jsx";
 import FormularioReceta from "./FormularioReceta.jsx";
 import TarjetaReceta from "./TarjetaReceta.jsx";
 import { reglaBusqueda } from "./reglasReceta.js";
-import sembrarRecetas from "./semillaRecetas.js";
 import {
   CATEGORIAS,
   COLECCION,
@@ -47,10 +46,6 @@ function Recetas() {
   const [enFormulario, setEnFormulario] = useState(null); // { receta } o { receta: null }
   const [eliminando, setEliminando] = useState("");
 
-  // Las recetas de ejemplo se siembran una sola vez, al abrir el módulo.
-  useEffect(() => {
-    sembrarRecetas();
-  }, []);
 
   // El texto con error no cambia el listado: se conserva el último válido.
   const [textoAplicado, setTextoAplicado] = useState("");

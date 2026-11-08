@@ -2,7 +2,7 @@
  * AppLayout — la estructura que comparten todas las pantallas con sesión.
  *
  * Dibuja el menú lateral, la barra superior y el contenido de la ruta
- * activa en <Suspense fallback={<p role="status">Cargando pantalla…</p>}><Outlet /></Suspense>. El login y el registro no pasan por aquí: tienen
+ * activa en Outlet. El login y el registro no pasan por aquí: tienen
  * su propia distribución.
  *
  * Mantiene el mismo marcado de las páginas anteriores (app-layout,
@@ -40,7 +40,9 @@ function AppLayout() {
   useEffect(() => {
     const clases = ["app-page", CLASE_POR_MODULO[modulo?.id]].filter(Boolean);
     document.body.classList.add(...clases);
-    document.title = modulo ? `${modulo.nombre} | Tacos Joya de Cerén` : "Tacos Joya de Cerén";
+    document.title = modulo
+      ? `${modulo.nombre} | Tacos Joya de Cerén`
+      : "Tacos Joya de Cerén";
     return () => {
       document.body.classList.remove(...clases);
       document.title = "Tacos Joya de Cerén";
@@ -64,25 +66,42 @@ function AppLayout() {
 
   return (
     <>
-      <a className="visually-hidden-focusable app-salto" href="#contenido-principal">
+      <button
+        type="button"
+        className="visually-hidden-focusable app-salto"
+        onClick={() => principal.current?.focus()}
+      >
         Saltar al contenido principal
-      </a>
+      </button>
 
       <div className="app-layout d-lg-flex">
-        <aside className="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column"
-          tabIndex={-1} id="menu-lateral" aria-labelledby="titulo-menu" ref={menu}>
+        <aside
+          className="app-sidebar offcanvas-lg offcanvas-start d-lg-flex flex-lg-column"
+          tabIndex={-1}
+          id="menu-lateral"
+          aria-labelledby="titulo-menu"
+          ref={menu}
+        >
           <Sidebar alNavegar={cerrarMenuEnMovil} />
         </aside>
 
         <div className="app-area flex-grow-1">
-          <header className="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom"
-            id="barra-superior">
+          <header
+            className="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom"
+            id="barra-superior"
+          >
             <Header modulo={modulo} />
           </header>
 
-          <main className="container-fluid p-3 p-md-4 p-xl-5" id="contenido-principal"
-            tabIndex={-1} ref={principal}>
-            <Suspense fallback={<p role="status">Cargando pantalla…</p>}><Outlet /></Suspense>
+          <main
+            className="container-fluid p-3 p-md-4 p-xl-5"
+            id="contenido-principal"
+            tabIndex={-1}
+            ref={principal}
+          >
+            <Suspense fallback={<p role="status">Cargando pantalla…</p>}>
+              <Outlet />
+            </Suspense>
           </main>
         </div>
       </div>

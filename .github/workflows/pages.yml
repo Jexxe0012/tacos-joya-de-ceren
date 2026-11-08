@@ -1,10 +1,8 @@
 name: Compilar y publicar GitHub Pages
 
 on:
-  # La compilación también revisa los PR dirigidos a la rama de integración,
-  # donde se juntan las entregas antes de llevarlas a main.
   pull_request:
-    branches: [main, integracion-react]
+    branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
@@ -24,6 +22,7 @@ jobs:
           node-version: "24"
           cache: npm
       - run: npm ci
+      - run: npm test
       - run: npm run build
       - name: Conservar el enlace del PDF de entrega
         run: |
