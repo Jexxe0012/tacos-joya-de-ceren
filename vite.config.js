@@ -29,7 +29,14 @@ export default defineConfig({
   ],
   build: {
     rolldownOptions: {
-      input: [ruta("index.html"), ...paginas.map(archivo => ruta(`pages/${archivo}`))]
+      // app.html es la entrada única de la aplicación React. index.html y
+      // pages/ siguen compilándose mientras queden pantallas sin migrar;
+      // se retiran al completar la migración.
+      input: [
+        ruta("index.html"),
+        ruta("app.html"),
+        ...paginas.map(archivo => ruta(`pages/${archivo}`))
+      ]
     }
   }
 });
