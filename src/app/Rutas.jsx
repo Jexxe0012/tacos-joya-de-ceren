@@ -24,6 +24,7 @@ import Dashboard from "../dashboard/Dashboard.jsx";
 import Login from "../modulos/auth/Login.jsx";
 import Registro from "../modulos/auth/Registro.jsx";
 import Inventario from "../modulos/inventario/Inventario.jsx";
+import Mermas from "../modulos/mermas/Mermas.jsx";
 import Recetas from "../modulos/recetas/Recetas.jsx";
 import { ROL_ADMIN } from "../services/authService.js";
 import { moduloDeRuta } from "./modulos.js";
@@ -57,7 +58,7 @@ function Rutas() {
         <Route element={<AppLayout />}>
           <Route path="/recetas" element={<Recetas />} />
           <Route path="/inventario" element={<Inventario />} />
-          <Route path="/mermas" element={<Pendiente responsable="Diego" />} />
+          <Route path="/mermas" element={<Mermas />} />
           <Route path="/turnos" element={<Pendiente responsable="Diego" />} />
           <Route path="/ventas" element={<Pendiente responsable="Josué" />} />
 
