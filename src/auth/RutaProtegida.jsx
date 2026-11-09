@@ -31,8 +31,8 @@ export function RutaProtegida({ rol, children }) {
 }
 
 /**
- * Para el login y el registro: quien ya tiene sesión no vuelve a verlos,
- * se va a su pantalla de inicio.
+ * Para el registro: quien ya tiene sesión vuelve al inicio de su rol.
+ * El login se muestra siempre para permitir identificar otra cuenta.
  */
 export function RutaPublica({ children }) {
   const { sesion } = useAuth();

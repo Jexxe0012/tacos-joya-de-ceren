@@ -28,8 +28,8 @@ En el Foro 2 de la Etapa 3, la aplicación migra a **React con Vite y Bootstrap*
 
 ## Cómo funciona
 
-1. Inicia sesión con correo, contraseña y perfil. El registro de administrador solicita una clave de demostración adicional.
-2. El administrador entra a **Dashboard**; el empleado a **Mis turnos**. Las rutas comprueban la sesión y el rol.
+1. El enlace principal abre el login, incluso si hay una sesión guardada. Inicia sesión con correo, contraseña y perfil. El registro de administrador solicita una clave de demostración adicional.
+2. Después de validar las credenciales, el administrador entra a **Dashboard** y el empleado a **Mis turnos**. Las rutas comprueban la sesión y el rol.
 3. La plantilla `AppLayout` comparte Sidebar, Header y contenido. La navegación cambia de módulo dentro de React y el menú se adapta a móvil.
 4. Los formularios muestran sus validaciones junto a los campos. SweetAlert2 centraliza las confirmaciones, errores y avisos.
 5. Los módulos guardan mediante `db`; `useColeccion` recibe sus cambios y los de otras pestañas. Las operaciones de varias escrituras se agrupan con `db.enLote`.
