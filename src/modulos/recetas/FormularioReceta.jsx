@@ -30,6 +30,13 @@ import { reglasFormularioReceta, revisarIngredientes } from "./reglasReceta.js";
 
 const INSUMOS = catalogoInsumos();
 
+/**
+ * El formulario es el cuerpo del modal, y los botones viven en su pie.
+ * Como quedan fuera del <form>, el de guardar lo envía por su atributo
+ * "form", que apunta a este id.
+ */
+const ID_FORMULARIO = "formulario-receta";
+
 /** Los valores del formulario son texto: así el input controla su contenido. */
 function valoresDe(receta) {
   return {
@@ -219,9 +226,17 @@ function FormularioReceta({ receta, autor, alCerrar, alGuardar }) {
       idTitulo="titulo-modal-receta"
       alCerrar={alCerrar}
       enfocarAlAbrir={primerCampo}
+      pie={
+        <>
+          <button className="btn btn-app-secondary" type="button" onClick={alCerrar}>Cancelar</button>
+          <button className="btn btn-app-primary" type="submit" form={ID_FORMULARIO} disabled={guardando}>
+            {editando ? "Guardar cambios" : "Guardar receta"}
+          </button>
+        </>
+      }
     >
-      <form onSubmit={alEnviar} noValidate>
-        <div className="modal-body">
+      <form id={ID_FORMULARIO} className="modal-body" onSubmit={alEnviar} noValidate>
+        <div>
           <div className="row g-3">
             <div className="col-12 col-md-6">
               <label className="form-label" htmlFor="receta-nombre">Nombre de la receta</label>
@@ -390,13 +405,6 @@ function FormularioReceta({ receta, autor, alCerrar, alGuardar }) {
             {form.valores.preparacion.length} de {LIMITES.preparacionMax} caracteres
             (mínimo {LIMITES.preparacionMin}).
           </p>
-        </div>
-
-        <div className="modal-footer">
-          <button className="btn btn-app-secondary" type="button" onClick={alCerrar}>Cancelar</button>
-          <button className="btn btn-app-primary" type="submit" disabled={guardando}>
-            {editando ? "Guardar cambios" : "Guardar receta"}
-          </button>
         </div>
       </form>
     </Modal>

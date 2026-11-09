@@ -9,6 +9,14 @@
  * Hace lo mismo que hacía aquella: cierra con Escape y con el fondo,
  * bloquea el desplazamiento de la página, pone el foco dentro al abrir
  * y lo devuelve al cerrar.
+ *
+ * Importante: "children" tiene que ser el .modal-body y nada más, y los
+ * botones van en "pie". El diálogo es scrollable, y Bootstrap solo hace
+ * scroll del cuerpo cuando este es hijo directo de .modal-content: si se
+ * envuelve el cuerpo y el pie en otro elemento, el pie queda recortado
+ * fuera del modal y no se puede pulsar. Un formulario largo pone la
+ * clase modal-body en el propio <form> y su botón de envío usa el
+ * atributo form="<id>" desde el pie.
  */
 
 import { useEffect, useRef } from "react";
