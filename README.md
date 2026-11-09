@@ -11,6 +11,15 @@
 | Josué Israel Sandoval Alfaro | SA260082 |
 | Nicolas Alejandro Trigueros Molina | TM253158 |
 
+## Entrega de la Etapa 3 Foro 2
+
+Segundo avance: integración de React, componentes y manejo de estado, módulos funcionales y consumo de la API externa Open-Meteo.
+
+- **[Documento de entrega e investigación en PDF](docs/Entrega_Foro2_TacosJoya.pdf)**
+- **[Video de demostración del Foro 2](https://youtu.be/EclpMeqNtr8)**
+- [Documento original en Word](docs/Entrega_Foro2_TacosJoya.docx)
+- [Aplicación web publicada](https://jexxe0012.github.io/tacos-joya-de-ceren/)
+
 ## Descripción del proyecto
 
 Aplicación web de gestión interna para un restaurante mexicano de origen familiar. Apoya la estandarización de recetas, la organización de turnos, el registro de ventas y el seguimiento de existencias, consumo y desperdicios. La paleta compartida de crema, azul, rojo, amarillo maíz y verde representa tradición, familia y responsabilidad.
@@ -146,11 +155,9 @@ Abre la dirección de Vite. En producción, GitHub Pages sirve `dist/` mediante 
 
 Son cuentas de prueba y se crean si la colección de usuarios está vacía.
 
-## Entregas académicas
+## Entregas anteriores
 
-La investigación APA 7 y el video del **Foro 2** corresponden a la entrega grupal. La migración de código y la consulta de API no sustituyen esos documentos.
-
-Material conservado del **Foro 1**:
+### Etapa 3 Foro 1
 
 - [Video de demostración del Foro 1](https://youtu.be/ShDF-nkBVLs)
 - [Documento de entrega e investigación del Foro 1](docs/Entrega_Foro1_TacosJoya.pdf)

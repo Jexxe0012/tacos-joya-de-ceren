@@ -24,10 +24,10 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - name: Conservar el enlace del PDF de entrega
+      - name: Publicar documentos de entrega
         run: |
           mkdir -p dist/docs
-          cp docs/Entrega_Foro1_TacosJoya.pdf dist/docs/
+          cp -R docs/. dist/docs/
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
