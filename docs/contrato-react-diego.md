@@ -1,69 +1,86 @@
-> Documento de entrega original de Diego, conservado como referencia de contratos. La migración integrada ya usa `index.html`; consulta el README para el estado actual.
+# Contratos de la base React
 
-# Base React: lo que queda listo para integrar
+Referencia de los servicios, hooks y contratos de datos compartidos de la
+aplicación. Nació como la entrega de Diego para Josué y está actualizada al
+estado integrado del 8 de noviembre de 2026.
 
-Entrega de Diego para Josué. Rama `diego-login-turnos`, actualizada con
-`main` (9d76628) antes de empezar.
+Para la descripción general del proyecto y de cada módulo, el README.
 
-La aplicación React de una sola página vive en **`app.html`**. `index.html`
-y `pages/*.html` siguen compilándose y funcionando mientras quede alguna
-pantalla sin migrar; se retiran en la fase final.
+## Cómo se ejecuta
 
 ```bash
 npm ci
-npm run dev     # http://localhost:5173/app.html
-npm run build   # compila index.html, app.html y pages/*.html
+npm test        # pruebas con el runner de Node
+npm run dev     # http://localhost:5173/
+npm run build
 ```
+
+La entrada es **`index.html`**, con el único `createRoot` del proyecto en
+`src/main.jsx`. `app.html` y cada `pages/*.html` quedaron como redirecciones
+de una línea a la ruta correspondiente, para que los enlaces publicados antes
+de la migración sigan funcionando.
 
 ## Estructura
 
 ```text
-app.html                     entrada única de la aplicación React
+index.html                   entrada única de la aplicación React
+app.html                     redirección a la raíz (enlace antiguo)
+pages/*.html                 redirecciones a #/<modulo> (enlaces antiguos)
+css/                         estilos compartidos y por módulo
 src/
-  main.jsx                   el único createRoot del proyecto
+  main.jsx                   estilos, siembra y el único createRoot
   App.jsx                    HashRouter + AuthProvider
   app/
     Rutas.jsx                composición de rutas y acceso por rol
     modulos.js               solo datos de navegación
     inicializar.js           siembra controlada, antes del primer render
-  auth/                      AuthProvider, useAuth, RutaProtegida
+  auth/
+    AuthProvider.jsx  useAuth.js  RutaProtegida.jsx
   components/
     Modal.jsx                ventana con el diseño de Bootstrap
     CapaModal.jsx            ventana con el diseño de Inventario y Turnos
-    layout/                  AppLayout, Sidebar, Header
+    ClimaOperativo.jsx       pronóstico de Open-Meteo
+    GraficaBarras.jsx
+    layout/
+      AppLayout.jsx  Sidebar.jsx  Header.jsx
   hooks/
     useColeccion.js          datos de una colección, siempre al día
     useFormulario.js         estado, errores y envío de un formulario
-  services/                  storage, authService, dialogos, insumosService
-  utils/                     fechas, validaciones
-  compat/                    adaptador temporal de globales
+  services/
+    storage.js  authService.js  dialogos.js
+    insumosService.js  climaService.js
+  utils/
+    fechas.js  validaciones.js
+  dashboard/                 Dashboard y sus componentes
   modulos/
-    auth, recetas, inventario, mermas, turnos
+    auth/  recetas/  inventario/  mermas/  turnos/
+    reportes/  ventas/  abastecimientos/
 ```
+
+Cada carpeta de `src/modulos/` guarda sus propias pantallas, sus reglas de
+formulario (`reglas*.js`), su servicio de datos (`*Service.js`) y su semilla
+(`semilla*.js`) cuando la necesita.
+
+Dos diferencias respecto al boceto del plan, las dos deliberadas:
+
+- **Dashboard vive en `src/dashboard/`**, no en `src/modulos/dashboard/`. Ya
+  estaba ahí desde antes de la migración y moverlo no aportaba nada.
+- **Las redirecciones están en `pages/`**, no en `public/pages/`. Conservan
+  la ruta exacta de los enlaces antiguos, que es justo lo que se buscaba.
 
 ## Rutas y acceso
 
-| Ruta | Acceso | Estado |
-| --- | --- | --- |
-| `/login`, `/registro` | Público; con sesión va al inicio del rol | React (Diego) |
-| `/dashboard` | Administrador | React (tu componente, montado en la ruta) |
-| `/recetas` | Sesión activa | React (Diego) |
-| `/inventario` | Sesión activa | React (Diego) |
-| `/mermas` | Sesión activa | React (Diego) |
-| `/turnos` | Sesión activa | React (Diego) |
-| `/reportes` | Administrador | pendiente (tuyo) |
-| `/ventas` | Sesión activa | pendiente (tuyo) |
-| `/abastecimientos` | Administrador | pendiente (tuyo) |
+| Ruta | Acceso |
+| --- | --- |
+| `/login`, `/registro` | Público; con sesión va al inicio del rol |
+| `/dashboard`, `/reportes`, `/abastecimientos` | Solo administrador |
+| `/recetas`, `/inventario`, `/mermas`, `/turnos`, `/ventas` | Sesión activa |
 
-La raíz y cualquier ruta desconocida llevan al inicio del rol. El
-administrador inicia en `/dashboard` y el empleado en `/turnos`, que en su
-menú se llama "Mis turnos".
+La raíz y cualquier ruta desconocida llevan al inicio del rol: `/dashboard`
+para el administrador, `/turnos` para el empleado, que en su menú se llama
+"Mis turnos". Reportes, Ventas y Abastecimiento se cargan de forma diferida.
 
-Para conectar una pantalla tuya basta con cambiar una línea en
-`src/app/Rutas.jsx`: donde hoy dice `<Pendiente responsable="Josué" />`,
-poner tu componente. No hace falta tocar nada más.
-
-## Lo que puedes importar
+## Lo que se puede importar
 
 ### `src/services/storage.js`
 
@@ -81,8 +98,8 @@ db.enLote([colecciones], fn)    // deshace todo si algo falla
 db.problema(coleccion)          // causa de una lectura inválida, o ""
 ```
 
-Las claves y la forma de los registros no cambian. Una escritura que falla
-lanza un error con causa legible: no informes éxito sin atraparlo.
+Una escritura que falla lanza un error con causa legible: hay que atraparlo
+antes de informar éxito.
 
 ### `src/hooks/useColeccion.js`
 
@@ -92,7 +109,7 @@ const { registros, problema, recargar, crear, actualizar, eliminar } =
 ```
 
 Se actualiza con las escrituras de `db` y con el evento `storage` de otras
-pestañas. No hace falta llamar a ningún `render()`.
+pestañas.
 
 ### `src/auth/useAuth.js`
 
@@ -112,13 +129,11 @@ import { exito, error, aviso, confirmar } from "../services/dialogos.js";
 await confirmar({ titulo, texto, boton, peligro });  // true o false
 ```
 
-SweetAlert2 ahora se importa desde npm, no del CDN.
-
 ### `src/utils/fechas.js`
 
 `fechaHoyLocal()`, `aTextoLocal(date)`, `aFechaLocal(texto)` (validada,
 `null` si no existe el día), `esFechaValida`, `haceDias`, `enDias`,
-`diasEntre`, `fechaLegible`, `horaAMinutos`.
+`diasEntre`, `fechaLegible`, `horaAMinutos`. Nunca pasan por UTC.
 
 ### `src/utils/validaciones.js`
 
@@ -135,23 +150,19 @@ const form = useFormulario({ correo: "" }, { correo: validaciones.correo });
 <form onSubmit={form.enviar(async valores => { ... })}>
 ```
 
-Hace lo que hacía `Valida.enVivo`, con los errores en el estado.
+Revisa al salir del campo si el usuario escribió algo, mientras escribe solo
+si ese campo ya estaba marcado, y todo al enviar.
 
-### `src/services/insumosService.js` — el que pediste para Reportes
+### `src/services/insumosService.js`
 
 ```js
-import {
-  listarInsumos, obtenerInsumo, normalizarUnidad,
-  equivalenciaAutomatica, resolverVinculo
-} from "../services/insumosService.js";
-
+listarInsumos()  obtenerInsumo(id)  normalizarUnidad(valor)
+equivalenciaAutomatica(origen, destino)
 resolverVinculo(insumoId, productosMap, vinculos)
 // { insumo, producto, factor } o { error: "causa" }
 ```
 
-Son funciones puras: no leen ni escriben la base de datos. Reemplazan a los
-globales `CatalogoInsumos` e `InsumosInventario` con el mismo comportamiento.
-El formulario y las escrituras de vínculos siguen siendo tuyos.
+Funciones puras: no leen ni escriben la base de datos.
 
 ### `src/modulos/inventario/inventarioService.js`
 
@@ -165,24 +176,10 @@ movimiento en un mismo lote.
 usuario, reportadoPor, fecha })` escribe inventario, movimiento y merma en un
 solo lote. La usan la pantalla de Mermas y la merma rápida de Turnos.
 
-## Adaptador temporal
-
-`src/compat/globales.js` publica `DB`, `UI`, `Valida`, `Guard`,
-`CatalogoInsumos`, `InsumosInventario`, `Swal` y `Chart` en `window`,
-construidos sobre los servicios importados. Existe para que el código que
-todavía no se migró siga funcionando dentro de la aplicación React. Tu
-`Dashboard.jsx` se monta tal cual gracias a esto.
-
-Su `Guard` no redirige con `window.location`: las rutas protegidas ya deciden
-quién pasa. `requireLogin()` y `requireRole(rol)` solo responden `true` o
-`false`.
-
-El adaptador se retira cuando el último módulo importe lo que usa.
-
 ## Contratos de datos
 
-Las colecciones conservan sus claves: `usuarios`, `recetas`, `inventario`,
-`movimientos`, `ventas`, `mermas`, `turnos`, `solicitudes`,
+Las colecciones conservan las claves del prototipo: `usuarios`, `recetas`,
+`inventario`, `movimientos`, `ventas`, `mermas`, `turnos`, `solicitudes`,
 `vinculosInsumos`, `sesion`.
 
 - La sesión guarda `id`, `correo`, `nombre`, `rol` y `loginAt`.
@@ -194,25 +191,17 @@ Las colecciones conservan sus claves: `usuarios`, `recetas`, `inventario`,
   `precioUnitario`, `total`, `fecha` y `pedidoId`. Una receta eliminada sigue
   siendo identificable en su historial porque la venta guarda su nombre.
 
-## Comprobaciones hechas
+## Siembra
 
-- `npm run build` sin errores.
-- 74 comprobaciones de `storage`, `fechas`, `validaciones` y `authService`
-  pasando en Node con un `localStorage` simulado.
-- Recorrido en el navegador con el almacenamiento vacío: entra el empleado,
-  se siembran usuarios, recetas, inventario y turnos, y las nueve rutas
-  responden sin errores en consola con los dos roles.
-- El empleado no entra a `/dashboard` ni a `/reportes`: vuelve a sus turnos.
-- Alta, edición, ficha y baja de recetas; movimientos de inventario con sus
-  reglas; merma desde las dos pantallas con el mismo resultado; turnos con
-  cruce, recurrencia y solicitudes.
+`src/app/inicializar.js` siembra una sola vez, antes del primer render:
+cuentas de prueba, recetas, inventario y turnos. Solo actúa cuando la
+colección no existe todavía, así una lista que el usuario dejó vacía también
+es un estado válido y no se rellena sola.
 
-## Dependencias y siguiente paso
+## Lo que se retiró
 
-- npm: `react`, `react-dom`, `react-router-dom`, `bootstrap`, `chart.js`,
-  `sweetalert2`, todas con la versión fijada.
-- La compilación de GitHub también revisa los PR dirigidos a
-  `integracion-react`. La publicación sigue atada a `main`.
-- Falta decidir juntos cuándo `app.html` pasa a ser `index.html`, y retirar
-  `pages/` y la copia de scripts clásicos. Conviene hacerlo cuando Reportes,
-  Ventas y Abastecimiento estén montados en sus rutas.
+- `js/` completo: ya no queda JavaScript clásico.
+- `src/compat/`: el adaptador que publicaba `DB`, `UI`, `Valida`, `Guard`,
+  `CatalogoInsumos` e `InsumosInventario` en `window`. Existió solo mientras
+  hubo módulos sin migrar; ahora cada archivo importa lo que usa.
+- Las pantallas de `pages/`, sustituidas por redirecciones.
