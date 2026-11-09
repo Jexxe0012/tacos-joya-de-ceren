@@ -390,9 +390,8 @@
    LOGIN — Mensajes de error por campo
    ============================================ */
 
-/* Los formularios de React guardan sus errores en el estado y los
-   escriben en un <p class="campo-error">. Antes el mensaje lo insertaba
-   Valida.marcar con la clase de Bootstrap, que esta pantalla no carga. */
+/* Los formularios de React guardan sus errores en el estado y muestran
+   los mensajes junto a cada campo con la clase campo-error. */
 .login-card .campo-error {
   color: var(--color-rojo);
   font-size: 0.8rem;

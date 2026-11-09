@@ -103,7 +103,7 @@ function FormularioReceta({ receta, autor, alCerrar, alGuardar }) {
   const porPorcion = costoPorPorcion(recetaEnCurso);
   const margen = margenPorPorcion(recetaEnCurso);
 
-  /** Revisa solo las líneas que el usuario ya tocó, como hacía Valida.enVivo. */
+  /** Revisa solo las líneas que el usuario ya modificó. */
   function revisarTocadas(lista) {
     const { porLinea } = revisarIngredientes(lista);
     setErroresLinea(porLinea.map((errores, indice) => (tocadas.current.has(indice) ? errores : {})));

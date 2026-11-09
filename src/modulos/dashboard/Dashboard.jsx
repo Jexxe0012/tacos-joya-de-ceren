@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useRegistrosReporte } from "../modulos/reportes/useRegistrosReporte.js";
+import { useRegistrosReporte } from "../reportes/useRegistrosReporte.js";
 import { obtenerResumenDashboard } from "./datosIndicadores.js";
 import IndicadoresDashboard from "./componentes/IndicadoresDashboard.jsx";
 import GraficaVentas from "./componentes/GraficaVentas.jsx";

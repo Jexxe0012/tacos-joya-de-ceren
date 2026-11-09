@@ -256,9 +256,7 @@
   color: var(--danger);
 }
 
-/* Errores de formulario (js/validacion.js).
-   Bootstrap solo pinta el borde rojo en .form-control y .form-select, y login
-   no carga Bootstrap: estas reglas dan el mismo aspecto en todas las páginas. */
+/* Aspecto compartido de los errores de validación en todos los formularios. */
 .app-page {
   --bs-form-invalid-color: var(--color-rojo);
   --bs-form-invalid-border-color: var(--color-rojo);

@@ -1,14 +1,13 @@
 /**
  * Login — entrar al sistema.
  *
- * Conserva todo lo que hacía js/login.js: el formato se revisa mientras
+ * El formato se revisa mientras
  * se escribe, lo que depende de los datos guardados se revisa al enviar,
  * cada error marca el campo que lo causó y a los cinco intentos fallidos
  * seguidos el acceso se bloquea un minuto, aunque se recargue la página.
  *
- * Lo que cambia: los errores viven en el estado del formulario en vez de
- * escribirse en el DOM, y al entrar no se redirige a mano. Al quedar la
- * sesión activa, RutaPublica lleva al usuario a su pantalla de inicio.
+ * Los errores viven en el estado del formulario. Con la sesión activa,
+ * RutaPublica lleva al usuario a su pantalla de inicio.
  */
 
 import { useEffect, useRef, useState } from "react";

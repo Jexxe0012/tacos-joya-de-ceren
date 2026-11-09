@@ -1,8 +1,8 @@
 /**
  * Recetas — catálogo de recetas y fichas técnicas.
  *
- * Reemplaza a pages/recetas.html con js/recetas.js. Conserva el listado
- * con sus filtros, el resumen del catálogo, la ficha de consulta y, para
+ * Presenta el listado con sus filtros, el resumen del catálogo y la ficha
+ * de consulta. Permite, para
  * el administrador, la creación, la edición y la baja.
  *
  * Los datos salen de useColeccion, así que la pantalla se actualiza
