@@ -6,19 +6,20 @@
  * cada error marca el campo que lo causó y a los cinco intentos fallidos
  * seguidos el acceso se bloquea un minuto, aunque se recargue la página.
  *
- * Los errores viven en el estado del formulario. Con la sesión activa,
- * RutaPublica lleva al usuario a su pantalla de inicio.
+ * Los errores viven en el estado del formulario. Al validar las credenciales,
+ * el usuario pasa al inicio correspondiente a su rol.
  */
 
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth.js";
 import { useFormulario } from "../../hooks/useFormulario.js";
 import {
   ErrorAcceso,
   SEGUNDOS_BLOQUEO,
   limpiarBloqueo,
-  msDeBloqueo
+  msDeBloqueo,
+  rutaInicio
 } from "../../services/authService.js";
 import { aviso, error as mostrarError } from "../../services/dialogos.js";
 import { correo as reglaCorreo, texto } from "../../utils/validaciones.js";
@@ -36,8 +37,9 @@ const REGLAS = {
 };
 
 function Login() {
-  const { iniciarSesion } = useAuth();
+  const { iniciarSesion, cerrarSesion } = useAuth();
   const { state } = useLocation();
+  const navegar = useNavigate();
 
   // Al volver del registro, el correo y el perfil ya vienen puestos.
   const form = useFormulario(
@@ -88,6 +90,7 @@ function Login() {
       });
       // El aviso vive fuera del árbol de React, así que sigue en pantalla
       // mientras la ruta cambia a la pantalla de inicio del rol.
+      navegar(rutaInicio(sesion.rol), { replace: true });
       aviso(`Bienvenido, ${sesion.nombre}`);
     } catch (fallo) {
       if (!(fallo instanceof ErrorAcceso)) throw fallo;
@@ -149,7 +152,7 @@ function Login() {
 
       <p className="toggle-link">
         ¿No tienes cuenta?{" "}
-        <Link to="/registro">Regístrate</Link>
+        <Link to="/registro" onClick={cerrarSesion}>Regístrate</Link>
       </p>
     </MarcoAuth>
   );

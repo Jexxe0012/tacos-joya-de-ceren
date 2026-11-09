@@ -7,7 +7,8 @@ import { lazy } from "react";
  * menú y las rutas se importen en círculo.
  *
  * El acceso queda declarado aquí, en un solo lugar:
- *   /login y /registro      públicos; con sesión, van al inicio del rol.
+ *   /login                  formulario de acceso, incluso con sesión guardada.
+ *   /registro               público; con sesión, va al inicio del rol.
  *   /dashboard, /reportes,
  *   /abastecimientos        solo administrador.
  *   /recetas, /inventario,
@@ -35,7 +36,7 @@ const AbastecimientosPage = lazy(
 );
 const ReportesPage = lazy(() => import("../modulos/reportes/ReportesPage.jsx"));
 
-/** La raíz manda a la pantalla de inicio del rol, o al login si no hay sesión. */
+/** Las rutas desconocidas llevan al inicio del rol, o al login sin sesión. */
 function Inicio() {
   const { inicio } = useAuth();
   return <Navigate to={inicio} replace />;
@@ -44,9 +45,9 @@ function Inicio() {
 function Rutas() {
   return (
     <Routes>
-      {/* Público. Quien ya entró no vuelve a ver el login. */}
+      {/* El acceso principal siempre permite identificar al usuario. */}
+      <Route path="/login" element={<Login />} />
       <Route element={<RutaPublica />}>
-        <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
       </Route>
 
@@ -68,8 +69,8 @@ function Rutas() {
         </Route>
       </Route>
 
-      {/* La raíz y cualquier ruta desconocida llevan al inicio del rol. */}
-      <Route path="/" element={<Inicio />} />
+      {/* El enlace principal muestra login; el formulario decide el destino al entrar. */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Inicio />} />
     </Routes>
   );
