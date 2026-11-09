@@ -1,4 +1,4 @@
-import GraficaBarras from "../../components/GraficaBarras.jsx";
+import GraficaBarras from "../../../components/GraficaBarras.jsx";
 export default function GraficaVentas({ dias }) {
   return (
     <article className="app-panel h-100 p-3 p-md-4">

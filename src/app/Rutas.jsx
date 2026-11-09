@@ -20,7 +20,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { RutaProtegida, RutaPublica } from "../auth/RutaProtegida.jsx";
 import { useAuth } from "../auth/useAuth.js";
 import AppLayout from "../components/layout/AppLayout.jsx";
-import Dashboard from "../dashboard/Dashboard.jsx";
+import Dashboard from "../modulos/dashboard/Dashboard.jsx";
 import Login from "../modulos/auth/Login.jsx";
 import Registro from "../modulos/auth/Registro.jsx";
 import Inventario from "../modulos/inventario/Inventario.jsx";

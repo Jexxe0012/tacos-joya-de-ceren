@@ -1,4 +1,4 @@
-import { moneda } from "../../modulos/ventas/ventasService.js";
+import { moneda } from "../../ventas/ventasService.js";
 export default function PedidosActivos({ pedidos }) {
   return (
     <article className="app-panel h-100 p-3 p-md-4">

@@ -5,9 +5,6 @@
  * necesitan para dibujar el menú, y Rutas.jsx importa los componentes. Si
  * las dos cosas vivieran juntas, el menú y las rutas se importarían en
  * círculo.
- *
- * Reemplaza al catálogo que estaba en src/navegacion.js, donde el orden
- * del menú y la página activa se leían de atributos del <body>.
  */
 
 import { ROL_ADMIN } from "../services/authService.js";

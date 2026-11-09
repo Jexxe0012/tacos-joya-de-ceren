@@ -1,15 +1,12 @@
 /**
  * insumosService — catálogo de insumos y resolvedor de equivalencias.
  *
- * Un solo catálogo para las fichas de Recetas y para sus conexiones con
- * Inventario. Antes vivía en dos globales (CatalogoInsumos en
- * js/catalogo-insumos.js e InsumosInventario en js/reportes-vinculos.js);
- * aquí quedan juntos y como funciones sin efectos sobre la interfaz, para
- * que Recetas, Inventario y Reportes importen lo mismo.
+ * Catálogo compartido por las fichas de Recetas y sus conexiones con
+ * Inventario. Expone funciones puras para las conversiones de unidades.
  *
  * Nada de este archivo lee ni escribe en la base de datos: los vínculos y
- * los productos llegan como argumentos. Josué sigue a cargo del formulario
- * y de las escrituras de vínculos dentro de Reportes.
+ * los productos llegan como argumentos. El formulario y las escrituras de
+ * vínculos pertenecen al módulo Reportes.
  */
 
 /** Catálogo fijo de insumos. Los ids no cambian: las recetas los guardan. */

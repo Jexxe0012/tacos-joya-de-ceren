@@ -3,10 +3,10 @@ import {
   aTextoLocal,
   fechaHoyLocal,
   fechaLegible
-} from "../utils/fechas.js";
-import { listarInsumos } from "../services/insumosService.js";
-import { calcularReporte } from "../modulos/reportes/modeloReporte.js";
-import { agruparPedidos } from "../modulos/ventas/ventasService.js";
+} from "../../utils/fechas.js";
+import { listarInsumos } from "../../services/insumosService.js";
+import { calcularReporte } from "../reportes/modeloReporte.js";
+import { agruparPedidos } from "../ventas/ventasService.js";
 
 export function obtenerResumenDashboard(registros, hoy = fechaHoyLocal()) {
   const fechas = Array.from({ length: 7 }, (_, indice) => {

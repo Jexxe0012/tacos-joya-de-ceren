@@ -5,8 +5,7 @@
  * porque todavía no hay sesión y no hay menú que mostrar. El panel
  * izquierdo presenta la marca y el derecho recibe el formulario.
  *
- * Conserva el marcado y las clases de pages/login.html, así css/login.css
- * sigue sirviendo sin cambios de diseño.
+ * Los estilos compartidos del login y del registro viven en css/login.css.
  */
 
 import { useEffect } from "react";

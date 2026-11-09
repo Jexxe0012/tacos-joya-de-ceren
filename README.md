@@ -112,10 +112,8 @@ Fuentes: [documentación de Open-Meteo](https://open-meteo.com/en/docs) y [ubica
 | `src/hooks/` | Colecciones reactivas y formularios. |
 | `src/services/` | Persistencia, autenticación, diálogos, catálogo y API. |
 | `src/utils/` | Fechas locales y validaciones importables. |
-| `src/modulos/` | Auth, Recetas, Ventas, Inventario, Mermas, Turnos, Reportes y Abastecimiento. |
-| `src/dashboard/` | Resumen de operación y funciones de cálculo. |
+| `src/modulos/` | Auth, Dashboard, Recetas, Ventas, Inventario, Mermas, Turnos, Reportes y Abastecimiento. |
 | `css/main.css`, `css/` | Paleta común y estilos de módulos. |
-| `pages/*.html`, `app.html` | Redirecciones para conservar enlaces anteriores, sin montar React adicional. |
 
 Las claves siguen siendo `usuarios`, `recetas`, `inventario`, `movimientos`, `ventas`, `mermas`, `turnos`, `solicitudes`, `vinculosInsumos` y `sesion`. El arranque añade ejemplos de recetas, inventario y turnos solo cuando falta su colección; conserva las listas guardadas, incluso vacías. No genera ventas ni mermas al abrir las vistas.
 
@@ -137,7 +135,7 @@ npm run build
 npm run preview
 ```
 
-Abre la dirección de Vite. En producción, GitHub Pages sirve `dist/` mediante `.github/workflows/pages.yml`; el flujo ejecuta pruebas y compilación. Las rutas de HashRouter admiten recarga en la subcarpeta del repositorio. Los HTML antiguos redirigen a esas rutas.
+Abre la dirección de Vite. En producción, GitHub Pages sirve `dist/` mediante `.github/workflows/pages.yml`; el flujo ejecuta pruebas y compilación. Las rutas de HashRouter admiten recarga en la subcarpeta del repositorio. La entrada es `index.html`; las pantallas se abren con rutas como `/#/reportes`.
 
 ### Cuentas de demostración
 

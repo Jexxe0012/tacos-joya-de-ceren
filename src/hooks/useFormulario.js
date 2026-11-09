@@ -1,9 +1,8 @@
 /**
  * useFormulario — estado, errores y envío de un formulario.
  *
- * Es el equivalente en React de Valida.enVivo: la misma forma de
- * acompañar al usuario mientras llena el formulario, pero guardando los
- * errores en el estado en vez de escribirlos en el DOM.
+ * Valida los campos mientras se completa el formulario y mantiene
+ * sus valores y errores en el estado de React.
  *
  * Las reglas son las mismas de utils/validaciones.js: reciben el valor
  * (y el resto de valores) y devuelven el mensaje o "".
@@ -12,7 +11,7 @@
  *   <input id="correo" {...form.campo("correo")} />
  *   {form.errores.correo && <p id="correo-error">{form.errores.correo}</p>}
  *
- * Cuándo avisa de un error, igual que en la versión anterior:
+ * Cuándo avisa de un error:
  *   - al salir del campo, solo si el usuario escribió algo (pasar con
  *     Tab no regaña);
  *   - mientras escribe, solo si ese campo ya estaba marcado, para que el

@@ -1,9 +1,8 @@
 /**
  * RutaProtegida y RutaPublica — quién puede ver cada ruta.
  *
- * Reemplazan a Guard.requireLogin() y Guard.requireRole(): en vez de
- * esconder la página y redirigir con window.location, se decide durante
- * el render y React Router cambia la ruta.
+ * Comprueban la sesión y el rol durante el render. React Router dirige
+ * al login o al inicio correspondiente cuando el acceso no está permitido.
  *
  * Se usan como envoltorio de un grupo de rutas (con Outlet) o de una
  * sola pantalla (con children).

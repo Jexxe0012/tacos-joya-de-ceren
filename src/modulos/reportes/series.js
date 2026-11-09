@@ -84,5 +84,3 @@ export function datosGraficaMermasReporte(mermas, unidad) {
     etiquetas: datos.map(dato => dato.nombre), valores: datos.map(dato => dato[medida]), filas
   };
 }
-
-export const avisoGraficaReporte = "No se pudieron cargar las gráficas. Puedes consultar los valores en las tablas; revisa tu conexión y recarga la página.";
