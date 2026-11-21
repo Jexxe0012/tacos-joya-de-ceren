@@ -4,7 +4,7 @@ export default function PedidosActivos({ pedidos }) {
     <article className="app-panel h-100 p-3 p-md-4">
       <h2 className="h5 fw-semibold mb-1">Pedidos de hoy</h2>
       <p className="small text-body-secondary">
-        Últimos cinco pedidos registrados, sin incluir ejemplos.
+        Últimos cinco pedidos de la operación.
       </p>
       <div className="table-responsive">
         <table className="table align-middle mb-0">

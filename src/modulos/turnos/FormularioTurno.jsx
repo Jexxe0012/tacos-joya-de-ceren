@@ -82,7 +82,7 @@ function FormularioTurno({ turno, previos = {}, empleados, turnos, alCerrar }) {
       texto: turno?.esRecurrenteSemanal
         ? "Este turno se repite cada semana: se borrará de todas las semanas."
         : "Esta acción no se puede deshacer.",
-      boton: "Sí, borrar",
+      boton: "Eliminar turno",
       peligro: true
     });
     if (!confirmado) return;
@@ -90,11 +90,11 @@ function FormularioTurno({ turno, previos = {}, empleados, turnos, alCerrar }) {
     try {
       eliminarTurno(turno.id);
     } catch (fallo) {
-      await mostrarError("No se pudo borrar el turno", fallo.message);
+      await mostrarError("No se pudo eliminar el turno", fallo.message);
       return;
     }
     alCerrar();
-    aviso("Turno borrado");
+    aviso("Turno eliminado");
   }
 
   const error = nombre => (form.errores[nombre]

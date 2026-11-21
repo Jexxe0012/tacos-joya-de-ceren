@@ -1,3 +1,4 @@
+import AyudaContextual from "../../components/AyudaContextual.jsx";
 /**
  * TurnosAdmin — calendario semanal y gestión de turnos.
  *
@@ -72,10 +73,7 @@ function TurnosAdmin() {
   return (
     <section>
       <div className="admin-header">
-        <div>
-          <h1>Turnos y días libres</h1>
-          <p className="subtitle">Organiza los turnos de los empleados durante la semana.</p>
-        </div>
+        <h1 className="mb-0">Turnos y días libres</h1>
         <button type="button" className="btn btn-app-primary"
           onClick={() => setEnFormulario({ turno: null, previos: {} })}>
           + Crear turno
@@ -116,7 +114,13 @@ function TurnosAdmin() {
       </div>
 
       <div className="admin-calendar-container">
-        <h2 className="section-title">Calendario semanal</h2>
+        <AyudaContextual
+          tema="Calendario semanal"
+          className="mb-3"
+          encabezado={<h2 className="section-title mb-0">Calendario semanal</h2>}
+        >
+          <p>Selecciona una celda para crear o editar un turno. Los turnos con ↻ se repiten cada semana.</p>
+        </AyudaContextual>
         <div className="admin-calendar-scroll">
           <table className="admin-calendar">
             {empleados.length === 0
@@ -179,9 +183,6 @@ function TurnosAdmin() {
               )}
           </table>
         </div>
-        <p className="calendar-hint">
-          Haz clic en una celda para crear o editar el turno. Los turnos con ↻ se repiten cada semana.
-        </p>
       </div>
 
       <div className="admin-solicitudes-container">

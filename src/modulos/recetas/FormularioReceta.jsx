@@ -1,3 +1,4 @@
+import AyudaContextual from "../../components/AyudaContextual.jsx";
 /**
  * FormularioReceta — crear o editar una receta.
  *
@@ -171,7 +172,7 @@ function FormularioReceta({ receta, autor, alCerrar, alGuardar }) {
     ultimas.current.forEach((_, indice) => tocadas.current.add(indice));
 
     if (!revisionCampos.ok || !revision.ok) {
-      aviso("Revisa los campos marcados en rojo.", "warning");
+      aviso("Revisa los mensajes de los campos antes de guardar.", "warning");
       return;
     }
 
@@ -195,7 +196,7 @@ function FormularioReceta({ receta, autor, alCerrar, alGuardar }) {
         titulo: "Esta receta deja margen negativo. ¿Guardar de todas formas?",
         texto: `Cada porción cuesta ${moneda.format(costoPorPorcion(datos))} y se vende a `
           + `${moneda.format(datos.precioVenta)}: se pierden ${moneda.format(-margenGuardado)} por porción.`,
-        boton: "Sí, guardar",
+        boton: "Guardar receta",
         peligro: true
       });
       if (!seguir) return;
@@ -315,7 +316,12 @@ function FormularioReceta({ receta, autor, alCerrar, alGuardar }) {
           <hr className="my-4" />
 
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-            <h3 className="h6 fw-semibold mb-0" id="titulo-ingredientes">Ingredientes de la receta</h3>
+            <AyudaContextual
+              tema="Ingredientes de la receta completa"
+              encabezado={<h3 className="h6 fw-semibold mb-0" id="titulo-ingredientes">Ingredientes de la receta completa</h3>}
+            >
+              <p>Si la receta rinde 5 porciones, anota aquí la cantidad que usas para preparar las 5. La ficha calcula el consumo y el costo por porción.</p>
+            </AyudaContextual>
             <button className="btn btn-app-secondary btn-sm" type="button" onClick={agregarLinea}
               disabled={lineas.length >= LIMITES.ingredientesMax}
               title={lineas.length >= LIMITES.ingredientesMax
@@ -324,9 +330,6 @@ function FormularioReceta({ receta, autor, alCerrar, alGuardar }) {
               Agregar ingrediente
             </button>
           </div>
-          <p className="small text-body-secondary">
-            Anota la cantidad que lleva la receta completa, no la de una sola porción.
-          </p>
 
           <div role="group" aria-labelledby="titulo-ingredientes">
             {lineas.map((linea, indice) => {

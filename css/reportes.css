@@ -1,3 +1,7 @@
+.reportes-titulo-indicador {
+  min-block-size: 1.875rem;
+}
+
 /* Los colores y paneles se reutilizan desde main.css. */
 .reportes-page .reportes-indicador-valor {
   font-size: clamp(1.75rem, 2.5vw, 2.25rem);

@@ -17,28 +17,20 @@ export default function IndicadoresDashboard({ resumen }) {
         <TarjetaIndicador
           titulo="Ventas previstas"
           valor={promedio === null ? "Sin datos" : numero(promedio)}
-          descripcion="Estimación diaria: promedio de ventas reales de los últimos 7 días."
+          descripcion="Unidades por día"
+          ayuda="Promedio de las ventas registradas para la operación en los últimos 7 días."
         />
       </div>
       <div className="col-12 col-sm-6 col-xl-3">
         <TarjetaIndicador
           titulo="Consumo esperado"
           valor={kg === null ? "Sin datos" : `${numero(kg)} kg`}
-          descripcion="Promedio diario según ventas y fichas actuales. Solo peso en el total."
+          descripcion={recetasSinFicha > 0 ? "Estimación parcial: faltan fichas válidas." : "Peso por día"}
+          ayuda="Promedio diario según las ventas y las fichas actuales. El total incluye solo peso. Consulta las otras unidades en el detalle por insumo."
         >
           <details className="small mt-3">
             <summary>Ver detalle por insumo</summary>
-            <p className="mt-2">
-              Estimación con las porciones de las recetas actuales; los precios
-              históricos de las ventas se conservan.
-            </p>
-            {recetasSinFicha > 0 && (
-              <p>
-                Hay ventas o ingredientes sin ficha válida. La estimación es
-                parcial.
-              </p>
-            )}
-            <ul className="list-unstyled">
+            <ul className="list-unstyled mt-2 mb-0">
               {consumo.map((item) => (
                 <li key={item.id}>
                   {item.nombre}: {numero(item.cantidad)} {item.unidad}
@@ -65,7 +57,7 @@ export default function IndicadoresDashboard({ resumen }) {
           descripcion={
             reporte.indicadores.sinPeso
               ? "Hay mermas en otras unidades; consulta su costo en Reportes."
-              : "Últimos siete días, convertido a kg cuando la unidad lo permite."
+              : "Últimos 7 días"
           }
         />
       </div>
@@ -76,7 +68,7 @@ export default function IndicadoresDashboard({ resumen }) {
           descripcion={
             !inventarioValido.length
               ? "Registra existencias y mínimos en Inventario."
-              : "Productos agotados o en su mínimo de existencias."
+              : "Agotados o en el mínimo"
           }
         />
       </div>

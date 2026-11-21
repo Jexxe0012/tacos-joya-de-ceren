@@ -15,12 +15,7 @@ export default function Dashboard() {
   );
   return (
     <>
-      <section className="mb-4">
-        <h1 className="h3 fw-bold mb-2">Resumen de operación</h1>
-        <p className="text-body-secondary mb-0">
-          Ventas, consumo estimado, mermas y existencias del sistema.
-        </p>
-      </section>
+      <h1 className="h3 fw-bold mb-4">Resumen de operación</h1>
       {problemas?.map((mensaje) => (
         <p className="alert alert-warning" key={mensaje}>
           {mensaje}

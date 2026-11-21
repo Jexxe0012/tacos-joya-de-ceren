@@ -1,3 +1,4 @@
+import AyudaContextual from "../../components/AyudaContextual.jsx";
 /**
  * InventarioEmpleado — consultar qué hay en bodega.
  *
@@ -58,19 +59,20 @@ function InventarioEmpleado() {
 
   return (
     <section>
-      <div className="emp-header">
-        <h1>¿Qué hay en bodega?</h1>
-        <p className="subtitle">
-          Busca un producto y mira si todavía queda. El administrador es quien registra las entradas y salidas.
-        </p>
-      </div>
+      <AyudaContextual
+        tema="Inventario de bodega"
+        className="emp-header"
+        encabezado={<h1 className="mb-0">¿Qué hay en bodega?</h1>}
+      >
+        <p>El administrador registra entradas y salidas. Consulta aquí las existencias por producto.</p>
+      </AyudaContextual>
 
       {problema && <p className="alert alert-warning" role="status">{problema}</p>}
 
       <div className="emp-buscador">
         <label className="visually-hidden" htmlFor="emp-buscar">Buscar producto</label>
         <input type="search" id="emp-buscar" autoComplete="off"
-          placeholder="Buscar un producto… por ejemplo: tomate"
+          placeholder="Buscar por producto o ubicación"
           value={filtros.texto}
           onChange={evento => setFiltros({ ...filtros, texto: evento.target.value })} />
       </div>
@@ -125,9 +127,8 @@ function InventarioEmpleado() {
         {visibles.length === 0 && (
           <p className="emp-vacio">
             {filtros.texto
-              ? `No encontramos "${filtros.texto.trim()}" en el inventario. `
-                + "Prueba con otro nombre o pregúntale al administrador."
-              : "No hay productos que coincidan con lo que elegiste."}
+              ? `No hay coincidencias para «${filtros.texto.trim()}». Busca con otro nombre o cambia los filtros.`
+              : "No hay productos con los filtros seleccionados."}
           </p>
         )}
 

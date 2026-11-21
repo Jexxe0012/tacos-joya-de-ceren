@@ -248,7 +248,7 @@ export function calcularReporte({ periodo, insumo, receta, fechaInicio, fechaFin
   if (datos.descartados) avisos.push(`Se omitieron ${datos.descartados} registros con fechas, cantidades o importes inválidos.`);
   if (indicadores.sinPeso) avisos.push(`${indicadores.sinPeso} ${indicadores.sinPeso === 1 ? "merma no se suma" : "mermas no se suman"} en kg por tener otras unidades o no indicar su unidad.`);
   if (indicadores.sinCosto) avisos.push(`${indicadores.sinCosto} ${indicadores.sinCosto === 1 ? "merma no tiene" : "mermas no tienen"} un costo comparable en Inventario; el total disponible es parcial.`);
-  if (indicadores.ejemplos) avisos.push(`El período incluye ${indicadores.ejemplos} ${indicadores.ejemplos === 1 ? "venta marcada" : "ventas marcadas"} como ejemplo.`);
+  if (indicadores.ejemplos) avisos.push(`El período incluye ${indicadores.ejemplos} ${indicadores.ejemplos === 1 ? "venta simulada" : "ventas simuladas"}.`);
   const sinDatos = !datosFiltrados.ventas.length && !indicadores.cantidadMermas;
   return { rango, producto: nombreProducto, receta: nombreReceta, alcance, indicadores,
     series, hallazgo, avisos, resumen, sinDatos };

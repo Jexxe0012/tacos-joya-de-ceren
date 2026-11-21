@@ -61,7 +61,7 @@ function MermaRapida({ productos, sesion, alCerrar }) {
     } catch (fallo) {
       // El lote dejó inventario, movimientos y mermas como estaban.
       form.marcarError("cantidad", fallo.message);
-      await mostrarError("No se pudo registrar", fallo.message);
+      await mostrarError("No se pudo registrar la merma", fallo.message);
     }
   });
 

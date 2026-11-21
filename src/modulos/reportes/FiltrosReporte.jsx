@@ -1,3 +1,4 @@
+import AyudaContextual from "../../components/AyudaContextual.jsx";
 import { useState } from "react";
 import { fechaHoyLocal } from "../../utils/fechas.js";
 import { aviso, error } from "../../services/dialogos.js";
@@ -53,7 +54,14 @@ export default function FiltrosReporte({ iniciales, catalogos, resumen, onAplica
 
   return (
     <section className="reportes-filtros app-panel p-3 p-md-4 mb-4" aria-labelledby="titulo-filtros">
-      <h2 className="h6 fw-semibold mb-3" id="titulo-filtros">Filtrar reportes</h2>
+      <AyudaContextual
+        tema="Filtros de reportes"
+        className="mb-3"
+        encabezado={<h2 className="h6 fw-semibold mb-0" id="titulo-filtros">Filtrar reportes</h2>}
+      >
+        <p>El filtro de receta usa el catálogo de Recetas y se aplica a ventas, ingresos y demanda.</p>
+        <p>Filtra las mermas por producto de Inventario. Se registran de forma independiente de la receta.</p>
+      </AyudaContextual>
       <form id="formulario-filtros" noValidate onSubmit={enviar}>
         <div className="row g-3 align-items-end">
           <div className="col-12 col-md-6 col-xl-3">
@@ -80,7 +88,7 @@ export default function FiltrosReporte({ iniciales, catalogos, resumen, onAplica
         </div>
         <fieldset className="mt-3" hidden={!personalizado} disabled={!personalizado}>
           <legend className="h6">Fechas del reporte</legend>
-          <p className="small text-body-secondary">Selecciona hasta 90 días, incluyendo ambas fechas. La fecha final no puede ser posterior a hoy.</p>
+          <p className="small text-body-secondary">Hasta 90 días, contando ambas fechas. La fecha final debe ser hoy o anterior.</p>
           <div className="row g-3">
             {[["fechaInicio", "inicio", "Fecha inicial"], ["fechaFin", "fin", "Fecha final"]].map(([nombre, sufijo, etiqueta]) => (
               <div className="col-12 col-md-6" key={nombre}>
@@ -92,7 +100,6 @@ export default function FiltrosReporte({ iniciales, catalogos, resumen, onAplica
           </div>
         </fieldset>
       </form>
-      <p className="small text-body-secondary mt-3 mb-0">Las recetas vendibles se toman de Recetas. Crear una receta no registra una venta.</p>
       <p className="small text-body-secondary mt-3 mb-0" id="resumen-filtros" role="status">{resumen}</p>
     </section>
   );

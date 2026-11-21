@@ -55,7 +55,7 @@ function InventarioAdmin({ usuario }) {
       titulo: `¿Eliminar "${producto.nombre}"?`,
       texto: `Tiene ${formatoCantidad(producto.cantidad)} ${producto.unidad} en existencia. `
         + "También se borran sus movimientos del historial. Esta acción no se puede deshacer.",
-      boton: "Sí, eliminar",
+      boton: "Eliminar producto",
       peligro: true
     });
     if (!confirmado) return false;
@@ -78,12 +78,7 @@ function InventarioAdmin({ usuario }) {
   return (
     <section>
       <div className="inv-header">
-        <div>
-          <h1>Inventario</h1>
-          <p className="subtitle">
-            Controla las existencias de la taquería: qué hay, qué falta y qué está por vencer.
-          </p>
-        </div>
+        <h1 className="mb-0">Inventario</h1>
         <div className="inv-header-acciones">
           <button type="button" className="btn btn-app-secondary"
             onClick={() => setEnMovimiento({ productoId: "", tipo: "entrada" })}>
