@@ -116,16 +116,7 @@ function Recetas() {
 
   return (
     <>
-      <div className="row mb-4">
-        <div className="col-12">
-          <h1 className="h3 fw-bold mb-2">Recetas y fichas técnicas</h1>
-          <p className="text-body-secondary mb-0">
-            {esAdmin
-              ? "Cantidad estándar de cada ingrediente por receta. Es la base para calcular consumo, costo y merma."
-              : "Consulta los ingredientes, las cantidades y los pasos de cada receta del menú."}
-          </p>
-        </div>
-      </div>
+      <h1 className="h3 fw-bold mb-4">Recetas y fichas técnicas</h1>
 
       {problema && (
         <p className="alert alert-warning" role="status">{problema}</p>

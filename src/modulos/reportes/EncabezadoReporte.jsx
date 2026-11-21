@@ -21,8 +21,7 @@ export default function EncabezadoReporte({ reporte }) {
   }
   return (
     <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
-      <div><h1 className="h3 fw-bold mb-2">Reportes de operación</h1>
-        <p className="text-body-secondary mb-0">Ventas, consumo, mermas y proyecciones para tomar decisiones.</p></div>
+      <h1 className="h3 fw-bold mb-0">Reportes de operación</h1>
       <button className="btn btn-app-secondary" type="button" onClick={exportar} id="btn-descargar-pdf"
         disabled={exportando} aria-busy={exportando || undefined}>
         {exportando ? "Generando PDF…" : "Descargar reporte PDF"}

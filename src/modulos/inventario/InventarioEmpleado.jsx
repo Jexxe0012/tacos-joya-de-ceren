@@ -1,3 +1,4 @@
+import AyudaContextual from "../../components/AyudaContextual.jsx";
 /**
  * InventarioEmpleado — consultar qué hay en bodega.
  *
@@ -58,12 +59,13 @@ function InventarioEmpleado() {
 
   return (
     <section>
-      <div className="emp-header">
-        <h1>¿Qué hay en bodega?</h1>
-        <p className="subtitle">
-          Busca un producto y mira si todavía queda. El administrador es quien registra las entradas y salidas.
-        </p>
-      </div>
+      <AyudaContextual
+        tema="Inventario de bodega"
+        className="emp-header"
+        encabezado={<h1 className="mb-0">¿Qué hay en bodega?</h1>}
+      >
+        <p>El administrador registra entradas y salidas. Consulta aquí las existencias por producto.</p>
+      </AyudaContextual>
 
       {problema && <p className="alert alert-warning" role="status">{problema}</p>}
 

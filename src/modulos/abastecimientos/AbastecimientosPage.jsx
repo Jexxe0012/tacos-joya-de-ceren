@@ -1,3 +1,4 @@
+import AyudaContextual from "../../components/AyudaContextual.jsx";
 import { useState } from "react";
 import { useColeccion } from "../../hooks/useColeccion.js";
 import { fechaHoyLocal, haceDias, fechaLegible } from "../../utils/fechas.js";
@@ -63,20 +64,19 @@ export default function AbastecimientosPage() {
   }
   return (
     <>
-      <h1 className="h3 fw-bold mb-2">Abastecimiento previsto</h1>
-      <p className="text-body-secondary mb-3">
-        Estima la cobertura y la fecha de recompra de tus insumos.
-      </p>
-      <p className="alert alert-info small">
-        Ingresa la cantidad comprada y la porción por unidad. Los valores
-        precargados son ilustrativos. El cálculo es una proyección y no
-        registra compras ni modifica el inventario.
-      </p>
+      <h1 className="h3 fw-bold mb-4">Abastecimiento previsto</h1>
       {problema && <p className="alert alert-warning">{problema}</p>}
       <div className="row g-3 mb-3">
         <section className="col-12 col-xl-6">
           <article className="app-panel h-100 p-3 p-md-4">
-            <h2 className="h5">Datos del pedido</h2>
+            <AyudaContextual
+              tema="Datos del pedido"
+              encabezado={<h2 className="h5 mb-0">Datos del pedido</h2>}
+            >
+              <p>Consumo diario = promedio de unidades vendidas × consumo por unidad. Ajusta este último si cambia la mezcla de productos.</p>
+              <p>El cálculo estima la cobertura y la fecha de recompra sin registrar una compra ni cambiar las existencias.</p>
+            </AyudaContextual>
+            <p className="small text-body-secondary mt-2 mb-3">Los valores iniciales son ilustrativos.</p>
             <form id="formulario-pedido" noValidate onSubmit={calcular}>
               <div className="row g-3">
                 <div className="col-12 col-md-6">
@@ -162,10 +162,6 @@ export default function AbastecimientosPage() {
                 </div>
               </div>
             </form>
-            <p className="small text-body-secondary mt-3 mb-0">
-              Consumo diario = promedio de todas las unidades vendidas × porción
-              indicada. Ajusta la porción si cambia la mezcla de productos.
-            </p>
           </article>
         </section>
         <section className="col-12 col-xl-6">

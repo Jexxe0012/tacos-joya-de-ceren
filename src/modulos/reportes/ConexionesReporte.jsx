@@ -1,3 +1,4 @@
+import AyudaContextual from "../../components/AyudaContextual.jsx";
 import { useState } from "react";
 import { listarInsumos, obtenerInsumo, equivalenciaAutomatica, resolverVinculo } from "../../services/insumosService.js";
 import { aviso, error, confirmar } from "../../services/dialogos.js";
@@ -66,20 +67,29 @@ export default function ConexionesReporte({ registros }) {
   const filas = insumos.filter(item => registros.vinculosInsumos.some(vinculo => vinculo?.insumoId === item.id));
 
   return (
-    <details className="app-panel p-3 p-md-4 mb-4" id="conexiones-inventario">
+    <details className="app-panel p-3 p-md-4 my-4" id="conexiones-inventario">
       <summary className="fw-semibold">Conectar ingredientes de Recetas con Inventario</summary>
-      <p className="small text-body-secondary mt-3">Relaciona cada ingrediente con su producto para calcular el consumo estándar y compararlo con las salidas de cocina.</p>
-      <form id="formulario-vinculo" noValidate onSubmit={guardar}>
-        <div className="row g-3">
+      <form className="mt-3" id="formulario-vinculo" noValidate onSubmit={guardar}>
+        <div className="row g-3 align-items-end">
           {campos.map(([nombre, id, etiqueta]) => {
             const props = { id, name: nombre, value: valores[nombre], onChange: cambiar, disabled: ocupado,
               className: `form-${nombre === "factor" ? "control" : "select"}${errores[nombre] ? " is-invalid" : ""}`,
               "aria-invalid": errores[nombre] ? true : undefined, "aria-describedby": `${id}-error` };
             return (
               <div className="col-12 col-lg-4" key={nombre}>
-                <label className="form-label" htmlFor={id}>{etiqueta}</label>
+                {nombre === "factor" ? (
+                  <AyudaContextual
+                    tema="Vincular ingredientes"
+                    className="mb-2"
+                    encabezado={<label className="form-label mb-0" htmlFor={id}>{etiqueta}</label>}
+                  >
+                    <p>El vínculo permite calcular el consumo estándar y compararlo con las salidas de cocina.</p>
+                    <p>Si las unidades se pueden convertir, la equivalencia se completa sola. Si compras por caja o paquete, indica cuánto contiene una unidad de Inventario.</p>
+                  </AyudaContextual>
+                ) : <label className="form-label" htmlFor={id}>{etiqueta}</label>}
                 {nombre === "factor" ? <input {...props} type="number" min="0.000001" max="1000000" step="any"
-                  readOnly={automatico !== null} disabled={ocupado || !insumo || !producto} /> : (
+                  readOnly={automatico !== null} disabled={ocupado || !insumo || !producto}
+                  aria-describedby={insumo && producto ? id + "-error ayuda-equivalencia" : id + "-error"} /> : (
                   <select {...props}><option value="">Selecciona {nombre === "insumoId" ? "un ingrediente" : "un producto"}</option>
                     {(nombre === "insumoId" ? insumos : [...productos.values()]).map(item =>
                       <option key={item.id} value={item.id}>{item.nombre} ({item.unidad})</option>)}
@@ -90,12 +100,12 @@ export default function ConexionesReporte({ registros }) {
             );
           })}
         </div>
-        <p className="small text-body-secondary mt-3" id="ayuda-equivalencia">
-          {insumo && producto ? `1 ${producto.unidad} de ${producto.nombre} equivale a esta cantidad en ${insumo.unidad} de ${insumo.nombre}.`
-            : "Selecciona el ingrediente y su producto."}
-          {automatico !== null ? " La conversión es automática." : " Indica el contenido real cuando las unidades requieren una equivalencia."}
-        </p>
-        <div className="d-flex gap-2">
+        {insumo && producto && (
+          <p className="small text-body-secondary mt-2 mb-0" id="ayuda-equivalencia">
+            1 {producto.unidad} de {producto.nombre} se expresa en {insumo.unidad} de {insumo.nombre}.
+          </p>
+        )}
+        <div className="d-flex flex-wrap gap-2 mt-3">
           <button className="btn btn-app-primary" disabled={ocupado} id="btn-guardar-vinculo">Guardar vínculo</button>
           {actual && <button className="btn btn-app-secondary" type="button" disabled={ocupado} onClick={quitar}>Quitar vínculo</button>}
         </div>

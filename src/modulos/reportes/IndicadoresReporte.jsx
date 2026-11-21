@@ -1,10 +1,18 @@
+import AyudaContextual from "../../components/AyudaContextual.jsx";
 import { presentarIndicadoresReporte, diasEnRango } from "./modeloReporte.js";
 
-function Indicador({ id, titulo, valor, detalle, claseValor = "", children }) {
+function Indicador({ id, titulo, valor, detalle, claseValor = "", ayuda, children }) {
+  const encabezado = <h3 className="h6 text-body-secondary mb-0" id={`titulo-${id}`}>{titulo}</h3>;
   return (
     <div className="col-12 col-md-6 col-xl-4">
       <article className="app-panel h-100 p-3 p-md-4" aria-labelledby={`titulo-${id}`}>
-        <h3 className="h6 text-body-secondary mb-3" id={`titulo-${id}`}>{titulo}</h3>
+        <div className="mb-2">
+          {ayuda ? (
+            <AyudaContextual tema="Eficiencia de porción" encabezado={encabezado}>
+              {ayuda}
+            </AyudaContextual>
+          ) : <div className="app-ayuda-encabezado reportes-titulo-indicador">{encabezado}</div>}
+        </div>
         <p className={`reportes-indicador-valor fw-bold mb-2 ${claseValor}`} id={`valor-${id}`}>{valor}</p>
         <p className="small text-body-secondary mb-0" id={`detalle-${id}`}>{detalle}</p>
         {children}
@@ -14,23 +22,31 @@ function Indicador({ id, titulo, valor, detalle, claseValor = "", children }) {
 }
 
 export default function Indicadores({ reporte }) {
-  const { indicadores, rango, alcance } = reporte;
+  const { indicadores, rango } = reporte;
   const valores = presentarIndicadoresReporte(indicadores, diasEnRango(rango.inicio, rango.fin));
   return (
     <>
       <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
         <h2 className="h5 fw-semibold mb-0" id="titulo-indicadores">Resumen del período</h2>
-        <span className="badge rounded-pill app-estado app-estado-atencion" id="estado-datos">
-          {indicadores.ejemplos ? "Incluye ventas simuladas" : "Registros del sistema"}
-        </span>
+        {indicadores.ejemplos > 0 && (
+          <span className="badge rounded-pill app-estado app-estado-atencion" id="estado-datos">
+            Incluye ventas simuladas
+          </span>
+        )}
       </div>
-      <p className="small text-body-secondary mb-3" id="alcance-reportes">Datos guardados en este navegador. {alcance}</p>
+      <p className="small text-body-secondary mb-3">Datos guardados en este navegador</p>
       <div className="row g-3">
         <Indicador id="ventas" titulo="Ventas" valor={valores.ventas} detalle={valores.detalleVentas} />
         <Indicador id="mermas" titulo="Mermas" valor={valores.mermas} detalle={valores.detalleMermas}
           claseValor="reportes-valor-merma" />
         <Indicador id="eficiencia" titulo="Eficiencia de porción (peso)" valor={valores.eficiencia}
-          detalle={valores.detalleEficiencia}>
+          detalle={valores.detalleEficiencia}
+          ayuda={
+            <>
+              <p>Divide el peso estándar de las ventas entre el peso de las salidas por «Consumo en cocina» y multiplica por 100.</p>
+              <p>Selecciona «Todas las recetas» para compararlos. El cálculo usa las fichas actuales y los ingredientes de peso vinculados. Excluye mermas, litros y unidades. Interpreta el resultado como una comparación de pesos.</p>
+            </>
+          }>
           <details className="small mt-3" id="datos-eficiencia" hidden={!valores.filas.length}>
             <summary>Ver comparación por producto</summary>
             <div className="table-responsive mt-2">
@@ -49,11 +65,6 @@ export default function Indicadores({ reporte }) {
           </details>
         </Indicador>
       </div>
-      <p className="small text-body-secondary mt-3 mb-0">
-        Eficiencia en peso = kg estándar de las ventas ÷ kg de salidas por Consumo en cocina × 100.
-        Usa las fichas actuales y los ingredientes de peso vinculados usados en esas ventas; excluye mermas, litros y unidades.
-        Para compararla, selecciona Todas las recetas. No representa por sí sola la calidad de la porción.
-      </p>
     </>
   );
 }

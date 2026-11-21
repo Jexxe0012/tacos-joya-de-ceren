@@ -112,10 +112,7 @@ function Mermas() {
 
   return (
     <>
-      <div className="container-fluid">
-        <h2 className="text-left pt-4">Mermas</h2>
-        <p>Indicadores de ventas, consumo, mermas y cobertura.</p>
-      </div>
+      <h1 className="h3 fw-bold mb-4">Mermas</h1>
 
       {problema && <p className="alert alert-warning" role="status">{problema}</p>}
 

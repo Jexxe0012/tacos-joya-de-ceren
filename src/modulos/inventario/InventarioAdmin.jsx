@@ -78,12 +78,7 @@ function InventarioAdmin({ usuario }) {
   return (
     <section>
       <div className="inv-header">
-        <div>
-          <h1>Inventario</h1>
-          <p className="subtitle">
-            Controla las existencias de la taquería: qué hay, qué falta y qué está por vencer.
-          </p>
-        </div>
+        <h1 className="mb-0">Inventario</h1>
         <div className="inv-header-acciones">
           <button type="button" className="btn btn-app-secondary"
             onClick={() => setEnMovimiento({ productoId: "", tipo: "entrada" })}>
