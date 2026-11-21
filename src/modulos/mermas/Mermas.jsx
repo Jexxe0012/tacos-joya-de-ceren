@@ -67,8 +67,8 @@ function Mermas() {
     const confirmado = await confirmar({
       titulo: "¿Registrar la merma?",
       texto: `Se descontarán ${numeroLegible.format(cantidad)} ${producto.unidad} de ${producto.nombre} `
-        + "del inventario. ¿Registrar la merma?",
-      boton: "Sí, registrar"
+        + "del inventario.",
+      boton: "Registrar merma"
     });
     if (!confirmado) return;
 
@@ -87,7 +87,7 @@ function Mermas() {
     } catch (fallo) {
       // El lote ya devolvió inventario, movimientos y mermas a su estado.
       form.marcarError("cantidad", fallo.message);
-      await mostrarError("No se pudo registrar", fallo.message);
+      await mostrarError("No se pudo registrar la merma", fallo.message);
       return;
     }
 
@@ -141,7 +141,7 @@ function Mermas() {
                 COSTO ESTIMADO
               </span>
               <span className="fs-2 fw-bold">{moneda.format(indicadores.costo)}</span>
-              <span className="text-muted small">según precios de referencia</span>
+              <span className="text-muted small">Según el costo unitario en Inventario</span>
             </div>
           </div>
 
@@ -177,7 +177,7 @@ function Mermas() {
                       <label className="login-title mb-1 item-name" htmlFor="input-ingrediente">Ingrediente</label>
                       <select className={clase("form-select", "productoId")} id="input-ingrediente"
                         {...form.campo("productoId")}>
-                        <option value="">— Seleccioná —</option>
+                        <option value="">Selecciona un ingrediente</option>
                         {ordenados.map(producto => (
                           <option key={producto.id} value={producto.id}>
                             {producto.categoria} · {producto.nombre}
@@ -198,7 +198,7 @@ function Mermas() {
                   <div className="mb-3">
                     <label className="login-title mb-1 item-name" htmlFor="input-motivo">Motivo</label>
                     <select className={clase("form-select", "motivo")} id="input-motivo" {...form.campo("motivo")}>
-                      <option value="">— Seleccioná —</option>
+                      <option value="">Selecciona un motivo</option>
                       {MOTIVOS.map(motivo => <option key={motivo} value={motivo}>{motivo}</option>)}
                     </select>
                     {error("motivo")}

@@ -144,7 +144,7 @@ export function agruparPedidos(ventas) {
     const grupo = grupos.get(id);
     grupo.total += Number(venta.total) || 0;
     grupo.productos.push(
-      `${venta.cantidad} × ${venta.recetaNombre || "Receta"}${venta.ejemplo ? " (ejemplo)" : ""}`
+      `${venta.cantidad} × ${venta.recetaNombre || "Receta"}${venta.ejemplo ? " (simulada)" : ""}`
     );
   });
   return [...grupos.values()].reverse();

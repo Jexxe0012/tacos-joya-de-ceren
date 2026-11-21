@@ -33,7 +33,7 @@ export function unidadEsEntera(producto) {
  */
 export function reglaCantidad(valor, producto) {
   const limpio = String(valor ?? "").trim();
-  if (limpio === "") return "Escribí la cantidad perdida.";
+  if (limpio === "") return "Escribe la cantidad perdida.";
 
   const mensaje = numero(limpio, { min: CANTIDAD_MINIMA, entero: unidadEsEntera(producto) });
   if (mensaje) return mensaje;
@@ -50,11 +50,11 @@ export function reglaCantidad(valor, producto) {
  */
 export function reglasMerma(buscarProducto) {
   return {
-    productoId: valor => (valor ? "" : "Elegí el ingrediente que se perdió."),
+    productoId: valor => (valor ? "" : "Selecciona el ingrediente que se perdió."),
 
     cantidad: (valor, valores) => reglaCantidad(valor, buscarProducto(valores.productoId)),
 
-    motivo: valor => (valor ? "" : "Elegí un motivo de la lista."),
+    motivo: valor => (valor ? "" : "Selecciona un motivo de la lista."),
 
     responsable: valor => texto(valor, {
       min: MIN_RESPONSABLE,
@@ -66,10 +66,10 @@ export function reglasMerma(buscarProducto) {
     observaciones: (valor, valores) => {
       const limpio = String(valor ?? "").trim();
       if (limpio.length > MAX_OBSERVACIONES) {
-        return `Máximo ${MAX_OBSERVACIONES} caracteres (llevás ${limpio.length}).`;
+        return `Máximo ${MAX_OBSERVACIONES} caracteres (llevas ${limpio.length}).`;
       }
       if (valores.motivo === MOTIVO_OTRO && limpio === "") {
-        return 'Si el motivo es "Otro", explicalo en las observaciones.';
+        return 'Si el motivo es "Otro", explica lo ocurrido en las observaciones.';
       }
       return "";
     }

@@ -125,7 +125,7 @@ export function revisarIngredientes(lineas) {
   });
 
   const ok = porLinea.every(errores => Object.keys(errores).length === 0);
-  return { porLinea, grupo: ok ? "" : "Revisa los ingredientes marcados en rojo.", ok };
+  return { porLinea, grupo: ok ? "" : "Revisa los mensajes junto a los ingredientes.", ok };
 }
 
 /** Texto de búsqueda del catálogo. */

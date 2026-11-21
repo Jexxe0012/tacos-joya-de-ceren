@@ -70,7 +70,7 @@ function InventarioEmpleado() {
       <div className="emp-buscador">
         <label className="visually-hidden" htmlFor="emp-buscar">Buscar producto</label>
         <input type="search" id="emp-buscar" autoComplete="off"
-          placeholder="Buscar un producto… por ejemplo: tomate"
+          placeholder="Buscar por producto o ubicación"
           value={filtros.texto}
           onChange={evento => setFiltros({ ...filtros, texto: evento.target.value })} />
       </div>
@@ -125,9 +125,8 @@ function InventarioEmpleado() {
         {visibles.length === 0 && (
           <p className="emp-vacio">
             {filtros.texto
-              ? `No encontramos "${filtros.texto.trim()}" en el inventario. `
-                + "Prueba con otro nombre o pregúntale al administrador."
-              : "No hay productos que coincidan con lo que elegiste."}
+              ? `No hay coincidencias para «${filtros.texto.trim()}». Busca con otro nombre o cambia los filtros.`
+              : "No hay productos con los filtros seleccionados."}
           </p>
         )}
 

@@ -65,12 +65,12 @@ export default function AbastecimientosPage() {
     <>
       <h1 className="h3 fw-bold mb-2">Abastecimiento previsto</h1>
       <p className="text-body-secondary mb-3">
-        Simula cobertura y fechas de recompra con el promedio de ventas.
+        Estima la cobertura y la fecha de recompra de tus insumos.
       </p>
       <p className="alert alert-info small">
-        Las cantidades iniciales son referencias del simulador. Ajusta cantidad
-        y porción al insumo que planificas. Esta proyección no registra compras
-        ni modifica Inventario.
+        Ingresa la cantidad comprada y la porción por unidad. Los valores
+        precargados son ilustrativos. El cálculo es una proyección y no
+        registra compras ni modifica el inventario.
       </p>
       {problema && <p className="alert alert-warning">{problema}</p>}
       <div className="row g-3 mb-3">
@@ -204,7 +204,7 @@ export default function AbastecimientosPage() {
               Se reserva un día de seguridad.{" "}
               {demanda.real
                 ? "Calculado con ventas reales."
-                : "Calculado con la serie de referencia."}
+                : "Calculado con ventas ilustrativas."}
             </p>
           </article>
         </section>
@@ -215,11 +215,11 @@ export default function AbastecimientosPage() {
             <h2 className="h5">Demanda esperada</h2>
             <p className="small text-body-secondary" id="mensaje-demanda">
               {demanda.real
-                ? `Promedio real: ${numero(demanda.promedio)} unidades por día en los últimos 7 días; excluye ejemplos.`
-                : "Sin ventas reales en los últimos 7 días. Se muestra la serie de referencia del módulo."}
+                ? `Promedio de ventas de la operación en los últimos 7 días: ${numero(demanda.promedio)} unidades por día.`
+                : "No hay ventas registradas para la operación en los últimos 7 días. La gráfica muestra un escenario ilustrativo."}
             </p>
             <GraficaBarras
-              titulo="Demanda según ventas o serie de referencia"
+              titulo={demanda.real ? "Demanda según ventas registradas" : "Escenario ilustrativo de demanda"}
               etiquetas={demanda.etiquetas}
               valores={demanda.valores}
             />
@@ -229,7 +229,7 @@ export default function AbastecimientosPage() {
           <article className="app-panel h-100 p-3 p-md-4">
             <h2 className="h5">Cobertura por insumo</h2>
             <p className="small text-body-secondary">
-              Valores de referencia, salvo el pedido calculado.
+              Las filas usan cantidades ilustrativas, salvo el pedido que calculaste.
             </p>
             <div className="table-responsive">
               <table className="table">

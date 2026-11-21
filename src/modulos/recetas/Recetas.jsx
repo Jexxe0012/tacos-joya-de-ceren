@@ -100,7 +100,7 @@ function Recetas() {
         titulo: `¿Eliminar «${receta.nombre}»?`,
         texto: `${textoVentas}Los reportes dejarán de tomar en cuenta su consumo estándar. `
           + "Esta acción no se puede deshacer.",
-        boton: "Sí, eliminar",
+        boton: "Eliminar receta",
         peligro: true
       });
       if (!confirmado) return;
@@ -153,7 +153,7 @@ function Recetas() {
             <div className="col-12 col-xl-4">
               <label className="form-label" htmlFor="filtro-texto">Nombre o ingrediente</label>
               <input className={`form-control${errorBusqueda ? " is-invalid" : ""}`} type="search"
-                id="filtro-texto" placeholder="Por ejemplo: pastor" maxLength={LIMITES.busquedaMax}
+                id="filtro-texto" placeholder="Buscar por receta o ingrediente" maxLength={LIMITES.busquedaMax}
                 autoComplete="off" value={filtros.texto}
                 aria-describedby={errorBusqueda ? "error-filtro-texto" : undefined}
                 onChange={evento => cambiarBusqueda(evento.target.value)} />

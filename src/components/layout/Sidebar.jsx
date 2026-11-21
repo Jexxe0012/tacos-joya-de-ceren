@@ -33,7 +33,7 @@ function Sidebar({ alNavegar }) {
       const confirmado = await confirmar({
         titulo: "¿Quieres cerrar sesión?",
         texto: "Volverás al inicio de sesión. Los datos guardados se conservarán.",
-        boton: "Sí, cerrar sesión"
+        boton: "Cerrar sesión"
       });
       if (confirmado) cerrarSesion();
     } finally {

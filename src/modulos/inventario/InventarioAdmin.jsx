@@ -55,7 +55,7 @@ function InventarioAdmin({ usuario }) {
       titulo: `¿Eliminar "${producto.nombre}"?`,
       texto: `Tiene ${formatoCantidad(producto.cantidad)} ${producto.unidad} en existencia. `
         + "También se borran sus movimientos del historial. Esta acción no se puede deshacer.",
-      boton: "Sí, eliminar",
+      boton: "Eliminar producto",
       peligro: true
     });
     if (!confirmado) return false;

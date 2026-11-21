@@ -21,7 +21,7 @@ export default function Indicadores({ reporte }) {
       <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
         <h2 className="h5 fw-semibold mb-0" id="titulo-indicadores">Resumen del período</h2>
         <span className="badge rounded-pill app-estado app-estado-atencion" id="estado-datos">
-          {indicadores.ejemplos ? "Incluye ventas de ejemplo" : "Registros del sistema"}
+          {indicadores.ejemplos ? "Incluye ventas simuladas" : "Registros del sistema"}
         </span>
       </div>
       <p className="small text-body-secondary mb-3" id="alcance-reportes">Datos guardados en este navegador. {alcance}</p>

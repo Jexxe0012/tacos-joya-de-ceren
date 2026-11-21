@@ -50,7 +50,7 @@ export default function ConexionesReporte({ registros }) {
     if (ocupado || !insumo) return;
     setOcupado(true);
     try {
-      if (!await confirmar({ titulo: "¿Quieres quitar este vínculo?", texto: `Se quitará la correspondencia de ${insumo.nombre}.`, boton: "Sí, quitar vínculo", peligro: true })) return;
+      if (!await confirmar({ titulo: "¿Quitar el vínculo de inventario?", texto: `Se quitará la correspondencia de ${insumo.nombre}.`, boton: "Quitar vínculo", peligro: true })) return;
       quitarVinculo(insumo.id);
       setValores({ insumoId: insumo.id, productoId: "", factor: "" });
       await aviso("Vínculo eliminado");

@@ -171,7 +171,7 @@ function FormularioReceta({ receta, autor, alCerrar, alGuardar }) {
     ultimas.current.forEach((_, indice) => tocadas.current.add(indice));
 
     if (!revisionCampos.ok || !revision.ok) {
-      aviso("Revisa los campos marcados en rojo.", "warning");
+      aviso("Revisa los mensajes de los campos antes de guardar.", "warning");
       return;
     }
 
@@ -195,7 +195,7 @@ function FormularioReceta({ receta, autor, alCerrar, alGuardar }) {
         titulo: "Esta receta deja margen negativo. ¿Guardar de todas formas?",
         texto: `Cada porción cuesta ${moneda.format(costoPorPorcion(datos))} y se vende a `
           + `${moneda.format(datos.precioVenta)}: se pierden ${moneda.format(-margenGuardado)} por porción.`,
-        boton: "Sí, guardar",
+        boton: "Guardar receta",
         peligro: true
       });
       if (!seguir) return;
