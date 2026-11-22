@@ -1,4 +1,5 @@
 import AyudaContextual from "../../components/AyudaContextual.jsx";
+import DialogoConsulta from "../../components/DialogoConsulta.jsx";
 import { presentarIndicadoresReporte, diasEnRango } from "./modeloReporte.js";
 
 function Indicador({ id, titulo, valor, detalle, claseValor = "", ayuda, children }) {
@@ -47,9 +48,13 @@ export default function Indicadores({ reporte }) {
               <p>Selecciona «Todas las recetas» para compararlos. El cálculo usa las fichas actuales y los ingredientes de peso vinculados. Excluye mermas, litros y unidades. Interpreta el resultado como una comparación de pesos.</p>
             </>
           }>
-          <details className="small mt-3" id="datos-eficiencia" hidden={!valores.filas.length}>
-            <summary>Ver comparación por producto</summary>
-            <div className="table-responsive mt-2">
+          {valores.filas.length > 0 && (
+            <DialogoConsulta
+              id="datos-eficiencia"
+              titulo="Eficiencia por producto"
+              textoBoton="Ver comparación por producto"
+              ancho
+            >
               <table className="table table-sm mb-0">
                 <caption>Consumo estándar de las ventas y salidas de cocina del período, en kg</caption>
                 <thead><tr><th scope="col">Producto</th><th scope="col">Estándar</th><th scope="col">Real</th></tr></thead>
@@ -61,8 +66,8 @@ export default function Indicadores({ reporte }) {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </details>
+            </DialogoConsulta>
+          )}
         </Indicador>
       </div>
     </>

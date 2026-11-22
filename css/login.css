@@ -61,19 +61,6 @@
   justify-content: center;
 }
 
-/* Responsive: en pantallas angostas (celular), en vez
-   de dos columnas los paneles se apilan verticalmente.
-   Cambiamos flex-direction de row (default) a column. */
-@media (max-width: 768px) {
-  .login-layout {
-    flex-direction: column;
-  }
-  .login-left {
-
-    padding: 2rem;
-  }
-}
-
 /* ============================================
    LOGIN — Panel izquierdo (marca)
    ============================================ */
@@ -152,6 +139,50 @@
   position: absolute;         /* se ubica respecto al <li> (position: relative) */
   left: 0;                    /* pegado al borde izquierdo, dentro del padding */
 }
+@media (max-width: 768px) {
+  .login-layout {
+    flex-direction: column;
+  }
+
+  .login-left {
+    flex: none;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    justify-content: start;
+    gap: 0.25rem 0.875rem;
+    padding: 1.25rem;
+  }
+
+  .login-left .login-logo {
+    grid-row: span 2;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    font-size: 1rem;
+  }
+
+  .login-left h1 {
+    font-size: 1.25rem;
+  }
+
+  .login-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .login-features {
+    display: none;
+  }
+
+  .login-right {
+    align-items: flex-start;
+    padding: 1.5rem 1rem;
+  }
+
+  .login-right .login-card {
+    padding: 1.5rem;
+  }
+}
+
 /* ============================================
    LOGIN — Panel derecho (formulario)
    ============================================ */
@@ -205,8 +236,8 @@
 .login-card input[type="password"] {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1.5px solid #E0DDD3;
-  border-radius: 0.5rem;
+  border: 1px solid var(--borde-control);
+  border-radius: var(--radio-control);
   font-size: 1rem;
   font-family: inherit;   /* hereda la fuente del body, no la del navegador */
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -324,17 +355,30 @@
   background: var(--color-azul);
   color: #FFFFFF;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radio-control);
+  min-block-size: 2.75rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.05s ease;
+  transition: background-color 0.15s ease;
 }
 .login-card button[type="submit"]:hover {
-  background: #1a2860;   /* azul un pelo más claro */
+  background: color-mix(in srgb, var(--text) 85%, var(--surface));
 }
+
 .login-card button[type="submit"]:active {
-  transform: translateY(1px);   /* efecto "presionado" */
+  background: color-mix(in srgb, var(--text) 86%, black);
+}
+
+.login-card button[type="submit"]:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-card button[type="submit"] {
+    transition: none;
+  }
 }
 
 /* Desactivado (bloqueo por intentos o mientras redirige):
@@ -343,7 +387,6 @@
   background: var(--color-azul);
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
 /* ============================================

@@ -80,7 +80,7 @@ function TarjetaReceta({ receta, esAdmin, alVer, alEditar, alEliminar, ocupado }
               <button className="btn btn-app-secondary btn-sm" type="button" onClick={() => alEditar(receta)}>
                 Editar
               </button>
-              <button className="btn btn-app-primary btn-sm" type="button" disabled={ocupado}
+              <button className="btn btn-app-danger btn-sm" type="button" disabled={ocupado}
                 onClick={() => alEliminar(receta)}>
                 Eliminar
               </button>

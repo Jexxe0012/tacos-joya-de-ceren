@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 /**
  * InventarioAdmin — la vista de gestión del inventario.
  *
@@ -84,8 +85,9 @@ function InventarioAdmin({ usuario }) {
             onClick={() => setEnMovimiento({ productoId: "", tipo: "entrada" })}>
             Registrar movimiento
           </button>
-          <button type="button" className="btn btn-app-primary" onClick={() => setEnProducto({ producto: null })}>
-            + Nuevo producto
+          <button type="button" className="btn btn-app-primary app-btn-icono" onClick={() => setEnProducto({ producto: null })}>
+            <Plus size={16} aria-hidden="true" />
+            Nuevo producto
           </button>
         </div>
       </div>
@@ -237,7 +239,7 @@ function InventarioAdmin({ usuario }) {
                 <tr>
                   <td colSpan={9} className="inv-vacio">
                     {productos.length === 0
-                      ? 'Todavía no hay productos. Agrega el primero con "+ Nuevo producto".'
+                      ? 'Todavía no hay productos. Agrega el primero con "Nuevo producto".'
                       : "Ningún producto coincide con la búsqueda o los filtros aplicados."}
                   </td>
                 </tr>

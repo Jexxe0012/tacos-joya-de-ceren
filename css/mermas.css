@@ -28,40 +28,10 @@
     min-height: 100vh;
 }
 
-.pagina-mermas .indicadores .col {
-    border: 1px solid rgb(var(--bs-black-rgb));
-    border-radius: 0.375rem;
-    padding: 1rem;
-    /* Sin margen horizontal: las columnas de Bootstrap ya miden un
-       porcentaje del ancho y el margen extra las sacaba de la pantalla. */
-    margin-bottom: 1rem;
+.pagina-mermas .merma-critica {
+    color: var(--danger);
+}
 
-    background-color: rgb(var(--bs-light-rgb));
-
-    background-color: #f8f9fa;
-
-}
-.pagina-mermas .indicadores-row {
-    gap: 3rem;
-}
-.pagina-mermas .card {
-    border-radius: 12px;
-}
-.pagina-mermas .section-divider {
-    width: 50%;
-    height: 2px;
-    background: var(--mermas-acento);
-    margin: 6px 0 14px;
-    opacity: .85;
-}
-.pagina-mermas .btn-merma {
-    background-color: var(--mermas-acento);
-    color: var(--bs-white);
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-}
 .pagina-mermas .row {
     display: flex;
 }

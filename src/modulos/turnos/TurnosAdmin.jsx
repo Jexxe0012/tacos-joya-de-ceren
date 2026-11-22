@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import AyudaContextual from "../../components/AyudaContextual.jsx";
 /**
  * TurnosAdmin — calendario semanal y gestión de turnos.
@@ -74,9 +75,10 @@ function TurnosAdmin() {
     <section>
       <div className="admin-header">
         <h1 className="mb-0">Turnos y días libres</h1>
-        <button type="button" className="btn btn-app-primary"
+        <button type="button" className="btn btn-app-primary app-btn-icono"
           onClick={() => setEnFormulario({ turno: null, previos: {} })}>
-          + Crear turno
+          <Plus size={16} aria-hidden="true" />
+          Crear turno
         </button>
       </div>
 
