@@ -1,4 +1,5 @@
 import AyudaContextual from "../../components/AyudaContextual.jsx";
+import DialogoConsulta from "../../components/DialogoConsulta.jsx";
 import { useLayoutEffect, useRef, useState } from "react";
 import { crearGraficaReporte } from "./graficaService.js";
 import { datosGraficasReporte, datosGraficaMermasReporte } from "./series.js";
@@ -17,7 +18,7 @@ function LienzoGrafica({ grafica }) {
     <div className="reportes-grafica" style={{ minWidth: grafica.anchoMinimo }}>
       <canvas ref={canvas} id={`grafica-${grafica.tipo}`} role="img"
         aria-labelledby={`titulo-grafica-${grafica.tipo}`} aria-describedby={`descripcion-${grafica.tipo}`}>
-        Consulta los valores en la tabla de datos debajo de la gráfica.
+        Abre «Ver datos» para consultar los valores de la gráfica.
       </canvas>
     </div>
   );
@@ -31,25 +32,28 @@ function LienzoGrafica({ grafica }) {
   );
 }
 
-function TablaGrafica({ tipo, filas, columnas, etiqueta, abierta }) {
+function TablaGrafica({ tipo, filas, columnas, etiqueta }) {
   return (
-    <details className="reportes-datos mt-3" id={`datos-${tipo}`} open={abierta || undefined}>
-      <summary>Ver datos</summary>
-      <div className="table-responsive mt-2" tabIndex={0} role="region" aria-label={etiqueta}>
-        <table className="table table-sm mb-0">
-          <caption className="visually-hidden">{etiqueta}</caption>
-          <thead><tr>{columnas.map(columna => <th key={columna} scope="col">{columna}</th>)}</tr></thead>
-          <tbody id={`tabla-${tipo}`}>
-            {filas.length ? filas.map(([nombre, ...valores], indice) => (
-              <tr key={`${nombre}-${indice}`}>
-                <th scope="row">{nombre}</th>
-                {valores.map((valor, columna) => <td key={columnas[columna + 1]}>{valor}</td>)}
-              </tr>
-            )) : <tr><td colSpan={columnas.length}>Sin datos en este período</td></tr>}
-          </tbody>
-        </table>
-      </div>
-    </details>
+    <DialogoConsulta
+      id={`datos-${tipo}`}
+      titulo={etiqueta}
+      textoBoton="Ver datos"
+      etiquetaBoton={`Ver datos: ${etiqueta}`}
+      ancho
+    >
+      <table className="table table-sm mb-0">
+        <caption className="visually-hidden">{etiqueta}</caption>
+        <thead><tr>{columnas.map(columna => <th key={columna} scope="col">{columna}</th>)}</tr></thead>
+        <tbody id={`tabla-${tipo}`}>
+          {filas.length ? filas.map(([nombre, ...valores], indice) => (
+            <tr key={`${nombre}-${indice}`}>
+              <th scope="row">{nombre}</th>
+              {valores.map((valor, columna) => <td key={columnas[columna + 1]}>{valor}</td>)}
+            </tr>
+          )) : <tr><td colSpan={columnas.length}>Sin datos en este período</td></tr>}
+        </tbody>
+      </table>
+    </DialogoConsulta>
   );
 }
 
@@ -69,8 +73,7 @@ function TarjetaGrafica({ grafica, columnas, etiqueta, controles, children }) {
         {controles}
         {hayDatos && <LienzoGrafica grafica={grafica} />}
         {!hayDatos && <p className="reportes-vacio p-3 mt-3" id={`vacio-${grafica.tipo}`}>Sin datos en este período</p>}
-        <TablaGrafica tipo={grafica.tipo} filas={grafica.filas} columnas={columnas} etiqueta={etiqueta}
-           />
+        <TablaGrafica tipo={grafica.tipo} filas={grafica.filas} columnas={columnas} etiqueta={etiqueta} />
       </section>
     </div>
   );

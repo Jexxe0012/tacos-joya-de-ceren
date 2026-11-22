@@ -1,3 +1,4 @@
+import DialogoConsulta from "../../../components/DialogoConsulta.jsx";
 import TarjetaIndicador from "./TarjetaIndicador.jsx";
 const numero = (valor) =>
   valor.toLocaleString("es-SV", { maximumFractionDigits: 2 });
@@ -12,7 +13,7 @@ export default function IndicadoresDashboard({ resumen }) {
     inventarioValido
   } = resumen;
   return (
-    <section className="row g-3">
+    <section className="row g-3 app-metricas">
       <div className="col-12 col-sm-6 col-xl-3">
         <TarjetaIndicador
           titulo="Ventas previstas"
@@ -28,22 +29,23 @@ export default function IndicadoresDashboard({ resumen }) {
           descripcion={recetasSinFicha > 0 ? "Estimación parcial: faltan fichas válidas." : "Peso por día"}
           ayuda="Promedio diario según las ventas y las fichas actuales. El total incluye solo peso. Consulta las otras unidades en el detalle por insumo."
         >
-          <details className="small mt-3">
-            <summary>Ver detalle por insumo</summary>
-            <ul className="list-unstyled mt-2 mb-0">
-              {consumo.map((item) => (
-                <li key={item.id}>
-                  {item.nombre}: {numero(item.cantidad)} {item.unidad}
-                </li>
-              ))}
-            </ul>
-            {!consumo.length && (
-              <p>
-                Registra ventas y recetas con ingredientes para estimar el
-                consumo.
-              </p>
+          <DialogoConsulta titulo="Consumo diario por insumo" textoBoton="Ver detalle por insumo" ancho>
+            {consumo.length ? (
+              <table className="table table-sm mb-0">
+                <thead><tr><th scope="col">Insumo</th><th scope="col">Consumo diario</th></tr></thead>
+                <tbody>
+                  {consumo.map((item) => (
+                    <tr key={item.id}>
+                      <th scope="row">{item.nombre}</th>
+                      <td>{numero(item.cantidad)} {item.unidad}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="mb-0">Registra ventas y recetas con ingredientes para estimar el consumo.</p>
             )}
-          </details>
+          </DialogoConsulta>
         </TarjetaIndicador>
       </div>
       <div className="col-12 col-sm-6 col-xl-3">

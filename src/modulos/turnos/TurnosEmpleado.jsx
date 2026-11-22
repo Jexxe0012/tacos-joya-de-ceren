@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 /**
  * TurnosEmpleado — "Mis turnos".
  *
@@ -129,8 +130,9 @@ function TurnosEmpleado({ sesion }) {
 
       <div className="solicitud-actions-container">
         <h2 className="quick-actions-title" style={{ margin: 0 }}>Mis solicitudes</h2>
-        <button type="button" className="btn btn-app-primary" onClick={abrirSolicitud}>
-          + Nueva solicitud
+        <button type="button" className="btn btn-app-primary app-btn-icono" onClick={abrirSolicitud}>
+          <Plus size={16} aria-hidden="true" />
+          Nueva solicitud
         </button>
       </div>
 

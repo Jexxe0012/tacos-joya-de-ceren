@@ -59,9 +59,17 @@ function AppLayout() {
     principal.current?.focus();
   }, [pathname]);
 
-  /** En móvil el menú es un offcanvas: al elegir un módulo se cierra. */
   function cerrarMenuEnMovil() {
-    if (menu.current) Offcanvas.getInstance(menu.current)?.hide();
+    const elemento = menu.current;
+    if (!elemento?.matches(".show, .showing")) return undefined;
+    const offcanvas = Offcanvas.getInstance(elemento);
+    if (!offcanvas) return undefined;
+
+    // Una confirmación puede esperar a que Bootstrap devuelva el foco.
+    return new Promise(resolve => {
+      elemento.addEventListener("hidden.bs.offcanvas", resolve, { once: true });
+      offcanvas.hide();
+    });
   }
 
   return (
@@ -87,7 +95,7 @@ function AppLayout() {
 
         <div className="app-area flex-grow-1">
           <header
-            className="app-barra d-flex align-items-center flex-wrap gap-3 px-3 px-md-4 py-3 border-bottom"
+            className="app-barra d-flex align-items-center gap-2 gap-md-3 px-3 px-md-4 py-2 border-bottom"
             id="barra-superior"
           >
             <Header modulo={modulo} />

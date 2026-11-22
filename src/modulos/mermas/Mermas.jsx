@@ -116,15 +116,15 @@ function Mermas() {
 
       {problema && <p className="alert alert-warning" role="status">{problema}</p>}
 
-      <div className="container-fluid indicadores">
-        <div className="row indicadores-row row-cols-1 row-cols-md-2 row-cols-lg-4">
-          <div className="col mb-3">
-            <div className="card p-3 shadow-sm border-0">
-              <span className="texto text-uppercase text-secondary fw-bold" style={{ fontSize: "0.8rem" }}>
+      <div className="indicadores mb-4">
+        <div className="row g-3 app-metricas">
+          <div className="col-12 col-md-4">
+            <div className="app-panel h-100 p-3 p-md-4 d-flex flex-column">
+              <span className="h6 text-body-secondary mb-2">
                 MERMA SEMANAL
               </span>
-              <span className="fs-2 fw-bold text-danger">{unDecimal.format(indicadores.total)} kg</span>
-              <span className="text-muted small">
+              <span className="h4 fw-bold mb-1">{unDecimal.format(indicadores.total)} kg</span>
+              <span className="text-body-secondary small">
                 {indicadores.critico
                   ? `${indicadores.porcentaje}% del total corresponde a ${indicadores.critico.nombre}.`
                   : "Sin registros esta semana."}
@@ -132,25 +132,25 @@ function Mermas() {
             </div>
           </div>
 
-          <div className="col mb-3">
-            <div className="card p-3 shadow-sm border-0">
-              <span className="texto text-uppercase text-secondary fw-bold" style={{ fontSize: "0.8rem" }}>
+          <div className="col-12 col-md-4">
+            <div className="app-panel h-100 p-3 p-md-4 d-flex flex-column">
+              <span className="h6 text-body-secondary mb-2">
                 COSTO ESTIMADO
               </span>
-              <span className="fs-2 fw-bold">{moneda.format(indicadores.costo)}</span>
-              <span className="text-muted small">Según el costo unitario en Inventario</span>
+              <span className="h4 fw-bold mb-1">{moneda.format(indicadores.costo)}</span>
+              <span className="text-body-secondary small">Según el costo unitario en Inventario</span>
             </div>
           </div>
 
-          <div className="col mb-3">
-            <div className="card p-3 shadow-sm border-0">
-              <span className="texto text-uppercase text-secondary fw-bold" style={{ fontSize: "0.8rem" }}>
+          <div className="col-12 col-md-4">
+            <div className="app-panel h-100 p-3 p-md-4 d-flex flex-column">
+              <span className="h6 text-body-secondary mb-2">
                 INSUMO CRÍTICO
               </span>
-              <span className="fs-2 fw-bold text-danger">
+              <span className={"h4 fw-bold text-break mb-1" + (indicadores.critico ? " merma-critica" : "")}>
                 {indicadores.critico ? indicadores.critico.nombre : "Ninguno"}
               </span>
-              <span className="text-danger small">
+              <span className="text-body-secondary small">
                 {indicadores.critico
                   ? `${unDecimal.format(indicadores.critico.cantidad)} kg en los últimos 7 días.`
                   : "Sin mermas en los últimos 7 días."}
@@ -160,18 +160,17 @@ function Mermas() {
         </div>
       </div>
 
-      <section className="py-2">
-        <div className="container-fluid py-4">
-          <div className="row align-items-center">
-            <div className="col-12 col-lg-6">
-              <div className="card p-4 mt-3">
-                <h2 className="login-title mb-2">Registrar Mermas</h2>
-                <div className="section-divider" />
+      <section>
+        <div className="container-fluid">
+          <div className="row g-3 align-items-start">
+            <div className="col-12 col-xl-6">
+              <div className="app-panel p-3 p-md-4">
+                <h2 className="h5 fw-semibold mb-3">Registrar merma</h2>
 
                 <form className="mt-3" onSubmit={alEnviar} noValidate>
                   <div className="row">
                     <div className="col-md-6 mb-3">
-                      <label className="login-title mb-1 item-name" htmlFor="input-ingrediente">Ingrediente</label>
+                      <label className="form-label" htmlFor="input-ingrediente">Ingrediente</label>
                       <select className={clase("form-select", "productoId")} id="input-ingrediente"
                         {...form.campo("productoId")}>
                         <option value="">Selecciona un ingrediente</option>
@@ -185,7 +184,7 @@ function Mermas() {
                     </div>
 
                     <div className="col-md-6 mb-3">
-                      <label className="login-title mb-1 item-name" htmlFor="input-cantidad">Cantidad</label>
+                      <label className="form-label" htmlFor="input-cantidad">Cantidad</label>
                       <input className={clase("form-control", "cantidad")} id="input-cantidad" type="number"
                         placeholder="0.0" min="0.1" step="0.1" {...form.campo("cantidad")} />
                       {error("cantidad")}
@@ -193,7 +192,7 @@ function Mermas() {
                   </div>
 
                   <div className="mb-3">
-                    <label className="login-title mb-1 item-name" htmlFor="input-motivo">Motivo</label>
+                    <label className="form-label" htmlFor="input-motivo">Motivo</label>
                     <select className={clase("form-select", "motivo")} id="input-motivo" {...form.campo("motivo")}>
                       <option value="">Selecciona un motivo</option>
                       {MOTIVOS.map(motivo => <option key={motivo} value={motivo}>{motivo}</option>)}
@@ -202,23 +201,23 @@ function Mermas() {
                   </div>
 
                   <div className="mb-3">
-                    <label className="login-title mb-1 item-name" htmlFor="input-responsable">Responsable</label>
-                    <input className={clase("form-control login-title", "responsable")} id="input-responsable"
+                    <label className="form-label" htmlFor="input-responsable">Responsable</label>
+                    <input className={clase("form-control", "responsable")} id="input-responsable"
                       type="text" placeholder="Nombre del responsable" maxLength={60}
                       {...form.campo("responsable")} />
                     {error("responsable")}
                   </div>
 
                   <div>
-                    <label className="login-title mb-1 item-name" htmlFor="input-observaciones">Observaciones</label>
-                    <input className={clase("form-control login-title", "observaciones")} id="input-observaciones"
+                    <label className="form-label" htmlFor="input-observaciones">Observaciones</label>
+                    <input className={clase("form-control", "observaciones")} id="input-observaciones"
                       type="text" placeholder="Detalle (obligatorio si el motivo es Otro)" maxLength={200}
                       {...form.campo("observaciones")} />
                     {error("observaciones")}
                   </div>
 
                   <div className="d-grid mt-3">
-                    <button type="submit" className="btn btn-merma btn-lg" disabled={form.enviando}>
+                    <button type="submit" className="btn btn-app-primary" disabled={form.enviando}>
                       Guardar merma y actualizar inventario
                     </button>
                   </div>
@@ -226,13 +225,12 @@ function Mermas() {
               </div>
             </div>
 
-            <div className="col-12 col-lg-6">
-              <div className="card p-4 mt-3 historial-card">
-                <h2 className="login-title mb-2">Historial reciente</h2>
-                <div className="section-divider" />
+            <div className="col-12 col-xl-6">
+              <div className="app-panel p-3 p-md-4 historial-card">
+                <h2 className="h5 fw-semibold mb-3">Historial reciente</h2>
 
                 <div className="table-responsive">
-                  <table className="table table-striped table-hover">
+                  <table className="table table-hover mb-0">
                     <thead>
                       <tr>
                         <th scope="col">Fecha</th>
@@ -253,7 +251,7 @@ function Mermas() {
                           <td>{merma.producto}</td>
                           <td>{textoCantidad(merma)}</td>
                           <td>
-                            <span className="badge bg-warning text-dark" title={merma.motivo || ""}>
+                            <span className="badge rounded-pill app-estado app-estado-ok" title={merma.motivo || ""}>
                               Registrado
                             </span>
                           </td>

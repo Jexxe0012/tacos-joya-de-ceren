@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 /**
  * Recetas — catálogo de recetas y fichas técnicas.
  *
@@ -124,7 +125,7 @@ function Recetas() {
 
       <section className="mb-4" aria-labelledby="titulo-indicadores">
         <h2 className="h5 fw-semibold mb-3" id="titulo-indicadores">Resumen del catálogo</h2>
-        <div className="row g-3">
+        <div className="row g-3 app-metricas">
           {indicadores.map(indicador => (
             <div className="col-12 col-md-6 col-xl-3" key={indicador.titulo}>
               <article className="app-panel h-100 p-3 p-md-4">
@@ -204,7 +205,8 @@ function Recetas() {
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
           <h2 className="h5 fw-semibold mb-0" id="titulo-listado">Catálogo de recetas</h2>
           {esAdmin && (
-            <button className="btn btn-app-primary" type="button" onClick={() => abrirFormulario()}>
+            <button className="btn btn-app-primary app-btn-icono" type="button" onClick={() => abrirFormulario()}>
+              <Plus size={16} aria-hidden="true" />
               Nueva receta
             </button>
           )}

@@ -1,5 +1,6 @@
 import { useId, useLayoutEffect, useRef } from "react";
 import Chart from "chart.js/auto";
+import DialogoConsulta from "./DialogoConsulta.jsx";
 
 /** Lienzo y alternativa tabular compartidos por las vistas de operación. */
 export default function GraficaBarras({
@@ -48,31 +49,28 @@ export default function GraficaBarras({
       <div style={{ height: 230, position: "relative" }}>
         <canvas ref={lienzo} role="img" aria-labelledby={id} />
       </div>
-      <details className="small mt-2">
-        <summary>Ver datos de la gráfica</summary>
-        <div className="table-responsive">
-          <table className="table table-sm">
-            <thead>
-              <tr>
-                <th>Período o producto</th>
-                <th>{unidad}</th>
+      <DialogoConsulta titulo={titulo} textoBoton="Ver datos de la gráfica" ancho>
+        <table className="table table-sm mb-0">
+          <thead>
+            <tr>
+              <th scope="col">Período o producto</th>
+              <th scope="col">{unidad}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {etiquetas.map((etiqueta, indice) => (
+              <tr key={`${etiqueta}-${indice}`}>
+                <th scope="row">{etiqueta}</th>
+                <td>
+                  {valores[indice].toLocaleString("es-SV", {
+                    maximumFractionDigits: decimales
+                  })}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {etiquetas.map((etiqueta, indice) => (
-                <tr key={`${etiqueta}-${indice}`}>
-                  <th scope="row">{etiqueta}</th>
-                  <td>
-                    {valores[indice].toLocaleString("es-SV", {
-                      maximumFractionDigits: decimales
-                    })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </details>
+            ))}
+          </tbody>
+        </table>
+      </DialogoConsulta>
     </figure>
   );
 }

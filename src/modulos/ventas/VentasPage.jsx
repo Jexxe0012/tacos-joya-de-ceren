@@ -133,7 +133,7 @@ export default function VentasPage() {
           {mensaje}
         </p>
       ))}
-      <div className="row g-3 mb-4">
+      <div className="row g-3 app-metricas mb-4">
         {[
           ["Ingresos", moneda(ingresos)],
           ["Pedidos", pedidos.length],

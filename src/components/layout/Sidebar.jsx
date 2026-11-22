@@ -8,18 +8,29 @@
  * cambiar de módulo ya no recarga la página.
  */
 
+import { BookOpen, CalendarDays, ChartColumn, LayoutDashboard, LogOut, Package, Receipt, Trash2, Truck } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth.js";
 import { modulosDeRol, nombreRol } from "../../app/modulos.js";
 import { confirmar } from "../../services/dialogos.js";
 import { useState } from "react";
 
+const ICONOS_MODULOS = {
+  dashboard: LayoutDashboard,
+  recetas: BookOpen,
+  inventario: Package,
+  mermas: Trash2,
+  turnos: CalendarDays,
+  reportes: ChartColumn,
+  ventas: Receipt,
+  abastecimientos: Truck
+};
+
 function Sidebar({ alNavegar }) {
   const { sesion, cerrarSesion } = useAuth();
   const [cerrando, setCerrando] = useState(false);
   const modulos = modulosDeRol(sesion.rol);
   const rol = nombreRol(sesion.rol);
-  const perfil = sesion.nombre ? `${sesion.nombre} · ${rol}` : rol;
 
   /**
    * La confirmación es de la interfaz, no del servicio.
@@ -30,6 +41,7 @@ function Sidebar({ alNavegar }) {
     if (cerrando) return;
     setCerrando(true);
     try {
+      await alNavegar();
       const confirmado = await confirmar({
         titulo: "¿Quieres cerrar sesión?",
         texto: "Volverás al inicio de sesión. Los datos guardados se conservarán.",
@@ -56,29 +68,34 @@ function Sidebar({ alNavegar }) {
       </div>
 
       <div className="offcanvas-body d-flex flex-column p-3">
-        <nav aria-label="Navegación principal">
-          <ul className="nav nav-pills flex-column gap-2" id="enlaces-menu">
-            {modulos.map(modulo => (
-              <li className="nav-item" key={modulo.id}>
-                <NavLink
-                  to={modulo.ruta}
-                  className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-                  aria-current={undefined}
-                  onClick={alNavegar}
-                >
-                  <span className="app-nav-marca" aria-hidden="true" />
-                  <span>{modulo.nombre}</span>
-                </NavLink>
-              </li>
-            ))}
+        <nav className="mb-3" aria-label="Navegación principal">
+          <ul className="nav nav-pills flex-column gap-1" id="enlaces-menu">
+            {modulos.map(modulo => {
+              const Icono = ICONOS_MODULOS[modulo.id];
+              return (
+                <li className="nav-item" key={modulo.id}>
+                  <NavLink
+                    to={modulo.ruta}
+                    className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+                    onClick={alNavegar}
+                  >
+                    <Icono className="app-nav-icono" size={18} aria-hidden="true" />
+                    <span>{modulo.nombre}</span>
+                  </NavLink>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
-        <div className="app-perfil rounded-3 p-3 mt-auto">
-          <p className="small fw-semibold mb-1" id="rol-menu">{perfil}</p>
-          <p className="small app-texto-lateral mb-0">Tacos Joya de Cerén</p>
-          <button className="btn btn-app-primary w-100 mt-3" type="button" id="btn-cerrar-sesion"
+        <div className="app-perfil rounded-3 p-3">
+          <div id="rol-menu">
+            {sesion.nombre && <p className="small fw-semibold text-break mb-1">{sesion.nombre}</p>}
+            <p className="small app-texto-lateral mb-0">{rol}</p>
+          </div>
+          <button className="btn app-cerrar-sesion app-btn-icono w-100 mt-3" type="button" id="btn-cerrar-sesion"
             onClick={alCerrarSesion} disabled={cerrando} aria-busy={cerrando || undefined}>
+            <LogOut size={16} aria-hidden="true" />
             Cerrar sesión
           </button>
         </div>

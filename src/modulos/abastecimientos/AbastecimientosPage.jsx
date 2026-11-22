@@ -15,6 +15,7 @@ import {
 } from "./modeloAbastecimiento.js";
 const numero = (valor) =>
   valor.toLocaleString("es-SV", { maximumFractionDigits: 1 });
+const consumoDiario = new Intl.NumberFormat("es-SV", { maximumSignificantDigits: 3 });
 const dia = (valor) =>
   fechaLegible(valor, { day: "numeric", month: "short", year: "numeric" });
 export default function AbastecimientosPage() {
@@ -184,7 +185,7 @@ export default function AbastecimientosPage() {
               <div>
                 <dt>Consumo diario estimado</dt>
                 <dd>
-                  {numero(resultado.consumo)} {resultado.insumo.unidad}
+                  {consumoDiario.format(resultado.consumo)} {resultado.insumo.unidad}
                 </dd>
               </div>
               <div>
