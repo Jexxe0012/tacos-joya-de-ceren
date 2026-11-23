@@ -1,38 +1,100 @@
 # Tacos Joya de Cerén
 
-## Integrantes
+[![Licencia: CC BY-NC-SA 4.0](https://img.shields.io/badge/Licencia-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es)
+[![Despliegue en GitHub Pages](https://img.shields.io/badge/Despliegue-GitHub%20Pages-blue.svg)](https://jexxe0012.github.io/tacos-joya-de-ceren/)
 
-| Nombre completo | Carné |
+Aplicación web de gestión interna para Tacos Joya de Cerén, un restaurante mexicano de origen familiar en El Salvador. Proyecto de cátedra de **Desarrollo de Aplicaciones Web con Software Interpretados en el Cliente (DAW901)**, UDB Virtual, ciclo II 2026.
+
+**Aplicación publicada:** https://jexxe0012.github.io/tacos-joya-de-ceren/
+
+## Contenido
+
+- [Entrega final](#entrega-final)
+- [Problema que resuelve](#problema-que-resuelve)
+- [Mockups en Figma](#mockups-en-figma)
+- [Capturas de la aplicación](#capturas-de-la-aplicación)
+- [Cumplimiento de requisitos](#cumplimiento-de-requisitos)
+- [Descripción técnica](#descripción-técnica)
+- [Roles](#roles)
+- [Módulos](#módulos)
+- [Arquitectura y datos](#arquitectura-y-datos)
+- [Tecnologías y ejecución](#tecnologías-y-ejecución)
+- [Equipo y trabajo colaborativo](#equipo-y-trabajo-colaborativo)
+- [Licencia](#licencia)
+
+## Entrega final
+
+Etapa 3, entrega final: aplicación completa desplegada (domingo 22 de noviembre de 2026). Defensas en la semana del 23 al 27 de noviembre.
+
+- [Aplicación web publicada en GitHub Pages](https://jexxe0012.github.io/tacos-joya-de-ceren/)
+- [Repositorio público](https://github.com/Jexxe0012/tacos-joya-de-ceren)
+- [Mockups del proyecto](#mockups-en-figma)
+- [Licencia Creative Commons](LICENSE)
+
+## Problema que resuelve
+
+La aplicación reúne la operación del restaurante en un solo lugar: estandariza las recetas con fichas técnicas, organiza los turnos del personal, registra ventas y mermas, y convierte esos registros en reportes y en una proyección de abastecimiento.
+
+La paleta compartida de crema, azul, rojo, amarillo maíz y verde representa tradición, familia y responsabilidad.
+
+## Mockups en Figma
+
+Diseños elaborados en la Etapa 1 y usados como guía para la interfaz final.
+
+**Archivo de Figma:** [Ver mockups en Figma](https://www.figma.com/design/SQLfj8FCplVre7ZpxU2lRi/Tacos-Joya-de-Cer%C3%A9n-%E2%80%93-Mockups-web?node-id=0-1)
+
+| Inicio de sesión | Dashboard |
 | --- | --- |
-| Alexander Josué Menjívar | MG202784 |
-| Carlos Alexander Rosales Ascencio | RA262936 |
-| Diego Armando Henríquez Fuentes | HF261938 |
-| José Ricardo Sandoval Hernández | SH262272 |
-| Josué Israel Sandoval Alfaro | SA260082 |
-| Nicolas Alejandro Trigueros Molina | TM253158 |
+| ![Mockup de inicio de sesión](docs/mockups/login.png) | ![Mockup del dashboard](docs/mockups/dashboard.png) |
 
-## Entrega de la Etapa 3 Foro 2
+| Recetas | Abastecimiento |
+| --- | --- |
+| ![Mockup de recetas](docs/mockups/recetas.png) | ![Mockup de demanda y abastecimiento](docs/mockups/abastecimiento.png) |
 
-Segundo avance: integración de React, componentes y manejo de estado, módulos funcionales y consumo de la API externa Open-Meteo.
+| Turnos | Reportes |
+| --- | --- |
+| ![Mockup de turnos](docs/mockups/turnos.png) | ![Mockup de reportes](docs/mockups/reportes.png) |
 
-- **[Documento de entrega e investigación en PDF](docs/Entrega_Foro2_TacosJoya.pdf)**
-- **[Video de demostración del Foro 2](https://youtu.be/EclpMeqNtr8)**
-- [Documento original en Word](docs/Entrega_Foro2_TacosJoya.docx)
-- [Aplicación web publicada](https://jexxe0012.github.io/tacos-joya-de-ceren/)
+## Capturas de la aplicación
 
-## Descripción del proyecto
+Vista final implementada en React, para comparar con los mockups.
 
-Aplicación web de gestión interna para un restaurante mexicano de origen familiar. Apoya la estandarización de recetas, la organización de turnos, el registro de ventas y el seguimiento de existencias, consumo y desperdicios. La paleta compartida de crema, azul, rojo, amarillo maíz y verde representa tradición, familia y responsabilidad.
+| Inicio de sesión | Dashboard (administrador) |
+| --- | --- |
+| ![Captura de inicio de sesión](docs/capturas/login.png) | ![Captura del dashboard](docs/capturas/dashboard.png) |
 
-En el Foro 2 de la Etapa 3, la aplicación migra a **React con Vite y Bootstrap**: una entrada en `index.html`, un árbol React y navegación con `HashRouter`. Los módulos comparten las colecciones cargadas desde el JSON inicial.
+| Reportes con gráficas | Vista móvil |
+| --- | --- |
+| ![Captura de reportes](docs/capturas/reportes.png) | ![Captura en móvil](docs/capturas/movil.png) |
 
-## Cómo funciona
+## Cumplimiento de requisitos
+
+| Requisito del proyecto | Dónde se cumple |
+| --- | --- |
+| Mínimo 5 vistas navegables | Login, Registro, Dashboard, Recetas, Inventario, Mermas, Turnos, Ventas del día, Reportes y Abastecimiento (`src/app/Rutas.jsx`). |
+| Mínimo 2 roles con permisos diferenciados | Administrador y Empleado, con rutas protegidas por rol (`src/auth/RutaProtegida.jsx`). |
+| Consumo de API externa | Open-Meteo, pronóstico de 7 días en Reportes y Abastecimiento (`src/services/climaService.js`). |
+| Reportes con gráfica dinámica | Chart.js en Dashboard y Reportes, con filtros por período, receta y producto, y descarga en PDF. |
+| Framework JS | React con Vite y React Router en toda la aplicación. |
+| Mínimo 3 módulos con lógica de negocio | Costos y márgenes de recetas, movimientos de inventario, mermas con descuento de existencias, cruces de turnos, demanda proyectada y cobertura de abastecimiento. |
+| Validación de entradas | Todos los formularios validan junto a cada campo (`src/utils/validaciones.js`, `src/hooks/useFormulario.js`). |
+| Manejo de sesiones | Sesión y bloqueo por intentos fallidos en `localStorage` (`src/services/authService.js`). |
+| Sin credenciales ni API keys expuestas | Open-Meteo no requiere API key. El repositorio no contiene archivos `.env` ni llaves privadas. Las cuentas de este README son de demostración. |
+| Despliegue en hosting gratuito | GitHub Pages mediante GitHub Actions (`.github/workflows/pages.yml`). |
+| Mockups en el README | Sección [Mockups en Figma](#mockups-en-figma). |
+| Licencia Creative Commons | Archivo [LICENSE](LICENSE) y sección [Licencia](#licencia). |
+
+## Descripción técnica
+
+En la Etapa 3 la aplicación migró a **React con Vite y Bootstrap**: una entrada en `index.html`, un árbol React y navegación con `HashRouter`. Los módulos comparten las colecciones cargadas desde el JSON inicial.
+
+### Cómo funciona
 
 1. El enlace principal abre el login, incluso si hay una sesión guardada. Inicia sesión con correo, contraseña y perfil. El registro de administrador solicita una clave de demostración adicional.
 2. Después de validar las credenciales, el administrador entra a **Dashboard** y el empleado a **Mis turnos**. Las rutas comprueban la sesión y el rol.
 3. La plantilla `AppLayout` comparte Sidebar, Header y contenido. La navegación cambia de módulo dentro de React y el menú se adapta a móvil.
 4. Los formularios muestran sus validaciones junto a los campos. SweetAlert2 centraliza las confirmaciones, errores y avisos.
-5. Los módulos guardan mediante `db`; `useColeccion` recibe sus cambios y los de otras pestañas. Las operaciones de varias escrituras se agrupan con `db.enLote`.
+5. Los módulos guardan mediante `db`, y `useColeccion` recibe sus cambios y los de otras pestañas. Las operaciones de varias escrituras se agrupan con `db.enLote`.
 6. Cerrar sesión pide confirmación y conserva los registros del negocio.
 
 ## Roles
@@ -155,11 +217,23 @@ Abre la dirección de Vite. En producción, GitHub Pages sirve `dist/` mediante 
 
 Estas cuentas iniciales se crean si el navegador aún no tiene usuarios guardados.
 
-## Entregas anteriores
+## Equipo y trabajo colaborativo
 
-### Etapa 3 Foro 1
+Cada integrante trabaja en su propia rama y aparece como colaborador del repositorio. Los cambios se integran a `main` y cada integración vuelve a ejecutar pruebas, compilación y despliegue.
 
-- [Video de demostración del Foro 1](https://youtu.be/ShDF-nkBVLs)
-- [Documento de entrega e investigación del Foro 1](docs/Entrega_Foro1_TacosJoya.pdf)
-- [Aplicación publicada](https://jexxe0012.github.io/tacos-joya-de-ceren/)
-- [Repositorio](https://github.com/Jexxe0012/tacos-joya-de-ceren)
+| Nombre completo | Carné |
+| --- | --- |
+| Alexander Josué Menjívar | MG202784 |
+| Carlos Alexander Rosales Ascencio | RA262936 |
+| Diego Armando Henríquez Fuentes | HF261938 |
+| José Ricardo Sandoval Hernández | SH262272 |
+| Josué Israel Sandoval Alfaro | SA260082 |
+| Nicolas Alejandro Trigueros Molina | TM253158 |
+
+## Licencia
+
+Este proyecto se publica bajo la licencia [Creative Commons Atribución-NoComercial-CompartirIgual 4.0 Internacional (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es).
+
+Puedes copiar, adaptar y compartir el proyecto siempre que des crédito al equipo, no lo uses con fines comerciales y publiques tus adaptaciones con esta misma licencia. El texto completo está en el archivo [LICENSE](LICENSE).
+
+[![Licencia Creative Commons](https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es)
