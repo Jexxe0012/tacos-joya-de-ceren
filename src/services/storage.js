@@ -2,7 +2,7 @@
  * db — capa de datos de la aplicación, ahora como módulo ES.
  *
  * Reemplaza al objeto global DB conservando su interfaz: cada colección
- * se guarda como una lista JSON bajo su propia clave en localStorage.
+ * se guarda como una lista JSON por colección en el almacenamiento del modo activo.
  * Las claves no cambian, así los registros creados antes de la migración
  * se siguen leyendo igual.
  *
@@ -16,6 +16,8 @@
  *   db.create("usuarios", { nombre: "Diego", rol: "admin" });
  *   db.getAll("usuarios");
  */
+
+import { almacenDatos } from "./modoDatos.js";
 
 // Una lectura dañada se conserva bajo esta marca antes de sobreescribirla,
 // para que los datos originales puedan recuperarse a mano.
@@ -72,7 +74,7 @@ function notificar(coleccion) {
  * original queda intacto en localStorage hasta que algo escriba encima.
  */
 function leer(coleccion) {
-  const crudo = localStorage.getItem(coleccion);
+  const crudo = almacenDatos().getItem(coleccion);
   if (!crudo) {
     problemas.delete(coleccion);
     return [];
@@ -94,10 +96,10 @@ function leer(coleccion) {
 
 /** Copia el contenido dañado a su clave de respaldo antes de perderlo. */
 function resguardar(coleccion) {
-  const crudo = localStorage.getItem(coleccion);
+  const crudo = almacenDatos().getItem(coleccion);
   if (crudo == null) return;
   try {
-    localStorage.setItem(`${coleccion}${SUFIJO_RESPALDO}`, crudo);
+    almacenDatos().setItem(`${coleccion}${SUFIJO_RESPALDO}`, crudo);
   } catch (error) {
     console.warn(`db: no se pudo respaldar "${coleccion}".`, error);
   }
@@ -112,7 +114,7 @@ function resguardar(coleccion) {
 function escribir(coleccion, lista) {
   if (problemas.has(coleccion)) resguardar(coleccion);
   try {
-    localStorage.setItem(coleccion, JSON.stringify(lista));
+    almacenDatos().setItem(coleccion, JSON.stringify(lista));
   } catch (error) {
     throw new Error(
       `No se pudo guardar "${coleccion}". Libera espacio del navegador e intenta de nuevo.`,
@@ -208,14 +210,14 @@ export const db = {
    * Los avisos a las vistas salen una sola vez, al final.
    */
   enLote(colecciones, operacion) {
-    const respaldo = colecciones.map(coleccion => [coleccion, localStorage.getItem(coleccion)]);
+    const respaldo = colecciones.map(coleccion => [coleccion, almacenDatos().getItem(coleccion)]);
     lotesAbiertos += 1;
     try {
       return operacion();
     } catch (error) {
       for (const [coleccion, crudo] of respaldo) {
-        if (crudo === null) localStorage.removeItem(coleccion);
-        else localStorage.setItem(coleccion, crudo);
+        if (crudo === null) almacenDatos().removeItem(coleccion);
+        else almacenDatos().setItem(coleccion, crudo);
       }
       colecciones.forEach(coleccion => avisosPendientes.add(coleccion));
       throw error;

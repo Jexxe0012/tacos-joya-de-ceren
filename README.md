@@ -76,7 +76,7 @@ El administrador organiza turnos semanales, estaciones y recurrencias, comprueba
 
 ### Reportes de operación
 
-Disponible para administradores. Consulta las colecciones guardadas mediante `db` y `useColeccion`. Al primer arranque, los navegadores nuevos o que conservan las semillas anteriores intactas reciben [el conjunto de demostración](src/datos/operacion-demostracion.json). Reportes identifica las ventas simuladas del período. Incluye:
+Disponible para administradores. Consulta las colecciones guardadas mediante `db` y `useColeccion`. Al primer arranque, los navegadores nuevos o que conservan las semillas anteriores intactas reciben [el conjunto de demostración](src/datos/operacion-demostracion.json). Puedes usar **Abrir demostración** en el inicio de sesión o el menú para abrir el conjunto en una pestaña independiente. Esa sesión guarda sus cambios en la pestaña. Reportes identifica las ventas simuladas del período. Incluye:
 
 - Filtros de últimos 7 o 30 días, o rango personalizado de hasta 90 días inclusive. Valida fechas existentes, orden correcto y ausencia de fechas futuras.
 - Filtro de receta vendida obtenido del catálogo de Recetas: tacos, bebidas y complementos. También permite consultar recetas inactivas y ventas históricas de recetas eliminadas. Crear una receta no registra ventas.

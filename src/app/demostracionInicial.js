@@ -1,5 +1,6 @@
 import { CUENTAS_PRUEBA, ROL_EMPLEADO } from "../services/authService.js";
 import { db } from "../services/storage.js";
+import { almacenDatos } from "../services/modoDatos.js";
 import { inventarioInicial } from "../modulos/inventario/semillaInventario.js";
 import { recetasIniciales } from "../modulos/recetas/semillaRecetas.js";
 import { turnosIniciales } from "../modulos/turnos/semillaTurnos.js";
@@ -31,20 +32,31 @@ function coincideInventario(productos) {
   return coincideSemilla(productos, inventarioInicial(dias => trasladarFecha(primeraCaducidad, dias - primeraReferencia)));
 }
 
+function tieneActividad(clave) {
+  const guardado = almacenDatos().getItem(clave);
+  if (guardado === null) return false;
+  try {
+    const registros = JSON.parse(guardado);
+    return !Array.isArray(registros) || registros.length > 0;
+  } catch {
+    return true;
+  }
+}
+
 export function puedeCargarDemostracion() {
-  if (SIN_ACTIVIDAD.some(clave => localStorage.getItem(clave) !== null)) return false;
+  if (SIN_ACTIVIDAD.some(tieneActividad)) return false;
   const usuarios = db.getAll("usuarios");
   if (!coincideSemilla(usuarios, CUENTAS_PRUEBA)) return false;
 
   // Solo se sustituye un catálogo anterior si contiene exactamente el material
   // de ejemplo. Una lista vacía, editada o dañada se conserva tal como está.
-  if (localStorage.getItem("recetas") !== null) {
+  if (almacenDatos().getItem("recetas") !== null) {
     const recetas = db.getAll("recetas");
     const alta = recetas[0]?.creadaEn;
     if (!Number.isFinite(alta) || !coincideSemilla(recetas, recetasIniciales(alta))) return false;
   }
-  if (localStorage.getItem("inventario") !== null && !coincideInventario(db.getAll("inventario"))) return false;
-  if (localStorage.getItem("turnos") !== null) {
+  if (almacenDatos().getItem("inventario") !== null && !coincideInventario(db.getAll("inventario"))) return false;
+  if (almacenDatos().getItem("turnos") !== null) {
     const turnos = db.getAll("turnos");
     const inicio = aFechaLocal(turnos[0]?.fecha);
     const empleado = usuarios.find(usuario => usuario.rol === ROL_EMPLEADO);

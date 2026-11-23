@@ -1,4 +1,5 @@
 /** Prepara las colecciones antes de montar las vistas. */
+import { almacenDatos } from "../services/modoDatos.js";
 import { sembrarCuentasPrueba } from "../services/authService.js";
 import sembrarRecetas from "../modulos/recetas/semillaRecetas.js";
 import sembrarInventario from "../modulos/inventario/semillaInventario.js";
@@ -26,7 +27,7 @@ async function prepararDatos() {
     ["inventario", sembrarInventario],
     ["turnos", sembrarTurnos]
   ]) {
-    if (localStorage.getItem(clave) === null) sembrar();
+    if (almacenDatos().getItem(clave) === null) sembrar();
   }
 }
 export default inicializarDatos;

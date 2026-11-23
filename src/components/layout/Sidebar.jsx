@@ -13,6 +13,8 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth.js";
 import { modulosDeRol, nombreRol } from "../../app/modulos.js";
 import { confirmar } from "../../services/dialogos.js";
+import { esModoDemostracion } from "../../services/modoDatos.js";
+import EnlaceDemostracion from "../EnlaceDemostracion.jsx";
 import { useState } from "react";
 
 const ICONOS_MODULOS = {
@@ -92,12 +94,14 @@ function Sidebar({ alNavegar }) {
           <div id="rol-menu">
             {sesion.nombre && <p className="small fw-semibold text-break mb-1">{sesion.nombre}</p>}
             <p className="small app-texto-lateral mb-0">{rol}</p>
+            {esModoDemostracion() && <p className="small app-texto-lateral mt-1 mb-0">Sesión de demostración</p>}
           </div>
           <button className="btn app-cerrar-sesion app-btn-icono w-100 mt-3" type="button" id="btn-cerrar-sesion"
             onClick={alCerrarSesion} disabled={cerrando} aria-busy={cerrando || undefined}>
             <LogOut size={16} aria-hidden="true" />
             Cerrar sesión
           </button>
+          <EnlaceDemostracion className="d-block text-center small app-texto-lateral mt-2" />
         </div>
       </div>
     </>
