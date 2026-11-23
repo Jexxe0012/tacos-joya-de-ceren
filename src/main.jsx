@@ -30,10 +30,22 @@ import { inicializarDatos } from "./app/inicializar.js";
 
 const raiz = document.getElementById("raiz");
 
+const aplicacion = createRoot(raiz);
+
 inicializarDatos().then(() => {
-  createRoot(raiz).render(
+  aplicacion.render(
     <StrictMode>
       <App />
     </StrictMode>
+  );
+}).catch(error => {
+  console.error("No se pudieron cargar los datos iniciales.", error);
+  aplicacion.render(
+    <main className="container py-5">
+      <p className="alert alert-danger" role="alert">No se pudieron cargar los datos iniciales.</p>
+      <button type="button" className="btn btn-app-primary" onClick={() => window.location.reload()}>
+        Reintentar
+      </button>
+    </main>
   );
 });

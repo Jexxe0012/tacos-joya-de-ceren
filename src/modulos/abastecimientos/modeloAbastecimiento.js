@@ -60,9 +60,8 @@ export function cargarDemanda(ventas, hoy = fechaHoyLocal()) {
     sumarDias(hoy, indice - 6)
   );
   const valores = new Map(fechas.map((fecha) => [fecha, 0]));
-  const fuente = seleccionarVentasOperativas(ventas);
   let hayVentas = false;
-  fuente.ventas.forEach((venta) => {
+  seleccionarVentasOperativas(ventas).forEach((venta) => {
     if (typeof venta.fecha !== "string" || !valores.has(venta.fecha.slice(0, 10))) return;
     const cantidad = Number(venta.cantidad);
     if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 500) return;
@@ -79,8 +78,7 @@ export function cargarDemanda(ventas, hoy = fechaHoyLocal()) {
         )
       : ["Jue", "Vie", "Sáb", "Dom", "Lun"],
     promedio: serie.reduce((suma, valor) => suma + valor, 0) / serie.length,
-    real: hayVentas && !fuente.demostracion,
-    demostracion: hayVentas && fuente.demostracion
+    hayVentas
   };
 }
 function paso(valor, min, max, incremento) {

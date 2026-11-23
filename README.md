@@ -24,7 +24,7 @@ Segundo avance: integración de React, componentes y manejo de estado, módulos 
 
 Aplicación web de gestión interna para un restaurante mexicano de origen familiar. Apoya la estandarización de recetas, la organización de turnos, el registro de ventas y el seguimiento de existencias, consumo y desperdicios. La paleta compartida de crema, azul, rojo, amarillo maíz y verde representa tradición, familia y responsabilidad.
 
-En el Foro 2 de la Etapa 3, la aplicación migra a **React con Vite y Bootstrap**: una entrada en `index.html`, un árbol React y navegación con `HashRouter`. Los módulos conservan las colecciones y los IDs del prototipo anterior en `localStorage`.
+En el Foro 2 de la Etapa 3, la aplicación migra a **React con Vite y Bootstrap**: una entrada en `index.html`, un árbol React y navegación con `HashRouter`. Los módulos comparten las colecciones cargadas desde el JSON inicial.
 
 ## Cómo funciona
 
@@ -76,7 +76,7 @@ El administrador organiza turnos semanales, estaciones y recurrencias, comprueba
 
 ### Reportes de operación
 
-Disponible para administradores. Consulta las colecciones guardadas mediante `db` y `useColeccion`. Al primer arranque, los navegadores nuevos o que conservan las semillas anteriores intactas reciben [el conjunto de demostración](src/datos/operacion-demostracion.json). Puedes usar **Abrir demostración** en el inicio de sesión o el menú para abrir el conjunto en una pestaña independiente. Esa sesión guarda sus cambios en la pestaña. Reportes identifica las ventas simuladas del período. Incluye:
+Disponible para administradores. Consulta las colecciones de la app mediante `db` y `useColeccion`. Las consultas incluyen la base inicial y los registros agregados durante el uso de la página. Incluye:
 
 - Filtros de últimos 7 o 30 días, o rango personalizado de hasta 90 días inclusive. Valida fechas existentes, orden correcto y ausencia de fechas futuras.
 - Filtro de receta vendida obtenido del catálogo de Recetas: tacos, bebidas y complementos. También permite consultar recetas inactivas y ventas históricas de recetas eliminadas. Crear una receta no registra ventas.
@@ -87,7 +87,7 @@ Disponible para administradores. Consulta las colecciones guardadas mediante `db
 - Hallazgo operativo que identifica el producto con mayor merma conocida en kg y contempla empates, registros ausentes y unidades sin conversión.
 - Descarga PDF con marca, período, fecha local, usuario, filtros aplicados, indicadores, tablas y gráficas. Exporta el reporte aplicado, aunque los campos se hayan editado después; divide las series extensas en partes legibles. El nombre es `reporte-tjc-AAAA-MM-DD.pdf`.
 
-La receta seleccionada filtra ventas, ingresos y demanda. El producto seleccionado filtra las mermas y el hallazgo de forma independiente: las mermas todavía no se pueden atribuir a una receta. Los registros inválidos se omiten con aviso; los pesos o costos incompletos se indican como parciales y las ventas marcadas con `ejemplo: true` se identifican en pantalla y PDF.
+La receta seleccionada filtra ventas, ingresos y demanda. El producto seleccionado filtra las mermas y el hallazgo de forma independiente: las mermas todavía no se pueden atribuir a una receta. Los registros inválidos se omiten con aviso; los pesos o costos incompletos se indican como parciales y las cifras iniciales se identifican como estimaciones en pantalla y en el PDF.
 
 La eficiencia de porción en peso compara **kg estándar de las ventas ÷ kg de salidas por «Consumo en cocina» × 100**, con las fichas de recetas actuales. Usa únicamente los ingredientes de peso vinculados que intervienen en las ventas del período. No suma litros o unidades con kg, no utiliza las mermas como consumo de cocina y no interpreta una falta de registros como consumo de cero. Si falta una ficha, vínculo, equivalencia o salida necesaria, muestra «Sin datos» con la causa. Incluye una comparación por producto en pantalla y PDF.
 
@@ -97,7 +97,7 @@ Las salidas de Inventario identifican el producto y el motivo, pero no la receta
 
 ### Abastecimiento
 
-Simula consumo diario, cobertura, agotamiento y recompra con un día de seguridad. Usa el promedio de unidades vendidas en los últimos siete días, excluyendo ejemplos. Si no hay ventas reales, muestra la serie de referencia y lo indica. Valida fecha de compra no futura de hasta 30 días atrás, cantidad entre 0.1 y 5000 en incrementos de 0.1 y porción entre 0.001 y 10 en incrementos de 0.001. Una cobertura inferior a tres días muestra una alerta.
+Simula consumo diario, cobertura, agotamiento y recompra con un día de seguridad. Usa el promedio de unidades vendidas en los últimos siete días. Cuando el período está vacío, muestra una serie de referencia identificada en la gráfica. Valida fecha de compra no futura de hasta 30 días atrás, cantidad entre 0.1 y 5000 en incrementos de 0.1 y porción entre 0.001 y 10 en incrementos de 0.001. Una cobertura inferior a tres días muestra una alerta.
 
 Las cantidades y porciones iniciales del simulador son **referencias editables**. La pantalla lo aclara: no registra compras ni modifica las existencias de Inventario. El consumo por unidad vendida debe ajustarse a la mezcla de productos que se planifica.
 
@@ -124,11 +124,11 @@ Fuentes: [documentación de Open-Meteo](https://open-meteo.com/en/docs) y [ubica
 | `src/modulos/` | Auth, Dashboard, Recetas, Ventas, Inventario, Mermas, Turnos, Reportes y Abastecimiento. |
 | `css/main.css`, `css/` | Paleta común y estilos de módulos. |
 
-Las claves siguen siendo `usuarios`, `recetas`, `inventario`, `movimientos`, `ventas`, `mermas`, `turnos`, `solicitudes`, `vinculosInsumos` y `sesion`. El arranque añade ejemplos de recetas, inventario y turnos solo cuando falta su colección; conserva las listas guardadas, incluso vacías. No genera ventas ni mermas al abrir las vistas.
+Cada carga de la app parte del mismo [JSON inicial](src/datos/operacion-inicial.json). Contiene 14 días de ventas, recetas, inventario, movimientos, mermas y turnos, con cifras estimadas por el equipo. Las fechas del historial se trasladan al período que termina el día de la carga.
 
-Una venta guarda `fecha` local, `hora`, `pedidoId`, `recetaId`, `recetaNombre`, `cantidad`, `precioUnitario`, `total`, `metodoPago`, `registradoPor`, `creadoEn` y `ejemplo`. El total corresponde a esa línea y no se recalcula si cambia la receta. `fechaHoyLocal()` determina el día de negocio; `toISOString()` se reserva para marcas de tiempo.
+Una venta guarda `fecha` local, `hora`, `pedidoId`, `recetaId`, `recetaNombre`, `cantidad`, `precioUnitario`, `total`, `metodoPago`, `registradoPor` y `creadoEn`. Los registros de la base inicial llevan `origen: "base-inicial"`. El total corresponde a esa línea y no se recalcula si cambia la receta. `fechaHoyLocal()` determina el día de negocio; `toISOString()` se reserva para marcas de tiempo.
 
-Los datos pertenecen al navegador y al origen utilizado. Cambiar de equipo, navegador, dominio o puerto no comparte la información. La autenticación sigue siendo una simulación académica con almacenamiento local; un uso real requiere servidor, credenciales y permisos gestionados allí.
+Los cambios de operación viven en memoria mientras la página está abierta. Al recargar, la aplicación vuelve a leer el JSON, incluso si el navegador conserva colecciones de una versión anterior. El registro de cuentas, la sesión y el bloqueo de acceso siguen usando `localStorage`.
 
 ## Tecnologías y ejecución
 
@@ -146,14 +146,14 @@ npm run preview
 
 Abre la dirección de Vite. En producción, GitHub Pages sirve `dist/` mediante `.github/workflows/pages.yml`; el flujo ejecuta pruebas y compilación. Las rutas de HashRouter admiten recarga en la subcarpeta del repositorio. La entrada es `index.html`; las pantallas se abren con rutas como `/#/reportes`.
 
-### Cuentas de demostración
+### Cuentas de acceso
 
 | Perfil | Correo | Contraseña |
 | --- | --- | --- |
 | Administrador | `admin@joyadeceren.sv` | `admin123` |
 | Empleado | `empleado@joyadeceren.sv` | `empleado123` |
 
-Son cuentas de prueba y se crean si la colección de usuarios está vacía.
+Estas cuentas iniciales se crean si el navegador aún no tiene usuarios guardados.
 
 ## Entregas anteriores
 

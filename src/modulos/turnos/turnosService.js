@@ -85,8 +85,12 @@ export function listarTurnos() {
   return db.getAll(COLECCION);
 }
 
-export function listarEmpleados() {
-  return db.getAll("usuarios").filter(usuario => usuario.rol === "empleado");
+export function listarEmpleados(cuentas = db.getAll("usuarios"), personal = db.getAll("personal")) {
+  const porId = new Map();
+  for (const usuario of [...cuentas, ...personal]) {
+    if (usuario.rol === "empleado") porId.set(String(usuario.id), usuario);
+  }
+  return [...porId.values()];
 }
 
 /**

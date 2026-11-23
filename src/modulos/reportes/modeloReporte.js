@@ -4,6 +4,7 @@ import { fecha as validarFecha } from "../../utils/validaciones.js";
 import { fechaHoyLocal, aTextoLocal as textoFechaReporte, aFechaLocal as fechaLocalReporte, diasEntre } from "../../utils/fechas.js";
 import { calcularEficienciaReporte } from "./eficiencia.js";
 import { prepararSeriesReportes } from "./series.js";
+import { ORIGEN_BASE_INICIAL } from "../ventas/ventasService.js";
 
 
 const periodosPermitidos = ["7", "30"];
@@ -112,7 +113,7 @@ export function obtenerDatos(registros, rango) {
     if (!catalogoRecetas.has(recetaId)) catalogoRecetas.set(recetaId, `${nombre} (venta histórica)`);
     if (!enPeriodo(fecha)) continue;
     ventas.push({ fecha, cantidad, total, recetaId, nombre,
-      ejemplo: venta.ejemplo === true });
+      baseInicial: venta.origen === ORIGEN_BASE_INICIAL || venta.ejemplo === true });
   }
 
   for (const merma of registros.mermas) {
@@ -130,6 +131,7 @@ export function obtenerDatos(registros, rango) {
     catalogo.set(productoId, nombre);
     if (!enPeriodo(fecha)) continue;
     mermas.push({ fecha, productoId, nombre, ...medida,
+      baseInicial: merma.origen === ORIGEN_BASE_INICIAL,
       kg: Object.hasOwn(pesoEnKgReporte, medida.unidad) ? medida.cantidad * pesoEnKgReporte[medida.unidad] : null,
       costo: costoMermaReporte(medida.cantidad, medida.unidad, producto) });
   }
@@ -149,7 +151,7 @@ export function calcularIndicadores(datos, productoSeleccionado) {
     sinPeso: mermas.length - conPeso.length,
     sinCosto: mermas.length - conCosto.length,
     cantidadMermas: mermas.length,
-    ejemplos: datos.ventas.filter(venta => venta.ejemplo).length,
+    incluyeEstimaciones: datos.ventas.some(venta => venta.baseInicial) || mermas.some(merma => merma.baseInicial),
     eficiencia: null // Se completa con las fichas, vínculos y salidas de cocina del mismo reporte.
   };
 }
@@ -248,7 +250,7 @@ export function calcularReporte({ periodo, insumo, receta, fechaInicio, fechaFin
   if (datos.descartados) avisos.push(`Se omitieron ${datos.descartados} registros con fechas, cantidades o importes inválidos.`);
   if (indicadores.sinPeso) avisos.push(`${indicadores.sinPeso} ${indicadores.sinPeso === 1 ? "merma no se suma" : "mermas no se suman"} en kg por tener otras unidades o no indicar su unidad.`);
   if (indicadores.sinCosto) avisos.push(`${indicadores.sinCosto} ${indicadores.sinCosto === 1 ? "merma no tiene" : "mermas no tienen"} un costo comparable en Inventario; el total disponible es parcial.`);
-  if (indicadores.ejemplos) avisos.push(`El período incluye ${indicadores.ejemplos} ${indicadores.ejemplos === 1 ? "venta simulada" : "ventas simuladas"}.`);
+  if (indicadores.incluyeEstimaciones) avisos.push("El período incluye cifras iniciales estimadas por el equipo.");
   const sinDatos = !datosFiltrados.ventas.length && !indicadores.cantidadMermas;
   return { rango, producto: nombreProducto, receta: nombreReceta, alcance, indicadores,
     series, hallazgo, avisos, resumen, sinDatos };

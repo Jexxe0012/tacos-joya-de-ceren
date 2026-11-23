@@ -11,7 +11,6 @@
  */
 
 import { db } from "./storage.js";
-import { almacenDatos } from "./modoDatos.js";
 
 /** Claves del almacenamiento de sesión y bloqueo. */
 export const CLAVE_SESION = "sesion";
@@ -85,7 +84,7 @@ export function correoRegistrado(correo) {
  */
 export function leerSesion() {
   try {
-    const sesion = JSON.parse(almacenDatos().getItem(CLAVE_SESION));
+    const sesion = JSON.parse(globalThis.localStorage.getItem(CLAVE_SESION));
     return sesion && ROLES.includes(sesion.rol) ? sesion : null;
   } catch {
     return null;
@@ -101,23 +100,23 @@ function guardarSesion(usuario) {
     rol: usuario.rol,
     loginAt: Date.now()
   };
-  almacenDatos().setItem(CLAVE_SESION, JSON.stringify(sesion));
+  globalThis.localStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
   return sesion;
 }
 
 /** Borra la sesión persistida. El aviso y la navegación son de la interfaz. */
 export function borrarSesion() {
-  almacenDatos().removeItem(CLAVE_SESION);
+  globalThis.localStorage.removeItem(CLAVE_SESION);
 }
 
 // ---------- Bloqueo tras varios intentos fallidos ----------
 
 /**
- * Los fallos y la hora de desbloqueo viven en el almacenamiento del modo activo, no en una
- * variable, para que recargar la página no salte el bloqueo.
+ * Los fallos y la hora de desbloqueo viven en el almacenamiento de acceso para que
+ * el bloqueo siga activo al recargar la página.
  */
 export function msDeBloqueo() {
-  const hasta = Number(almacenDatos().getItem(CLAVE_BLOQUEO));
+  const hasta = Number(globalThis.localStorage.getItem(CLAVE_BLOQUEO));
   const restan = hasta - Date.now();
   return restan > 0 ? restan : 0;
 }
@@ -127,19 +126,19 @@ export function estaBloqueado() {
 }
 
 export function limpiarBloqueo() {
-  almacenDatos().removeItem(CLAVE_BLOQUEO);
-  almacenDatos().removeItem(CLAVE_FALLOS);
+  globalThis.localStorage.removeItem(CLAVE_BLOQUEO);
+  globalThis.localStorage.removeItem(CLAVE_FALLOS);
 }
 
 /** Suma un fallo y, al llegar al máximo, bloquea el acceso. */
 function registrarFallo() {
-  const fallos = Number(almacenDatos().getItem(CLAVE_FALLOS)) + 1;
+  const fallos = Number(globalThis.localStorage.getItem(CLAVE_FALLOS)) + 1;
   if (fallos < MAX_INTENTOS) {
-    almacenDatos().setItem(CLAVE_FALLOS, String(fallos));
+    globalThis.localStorage.setItem(CLAVE_FALLOS, String(fallos));
     return false;
   }
-  almacenDatos().removeItem(CLAVE_FALLOS);
-  almacenDatos().setItem(CLAVE_BLOQUEO, String(Date.now() + SEGUNDOS_BLOQUEO * 1000));
+  globalThis.localStorage.removeItem(CLAVE_FALLOS);
+  globalThis.localStorage.setItem(CLAVE_BLOQUEO, String(Date.now() + SEGUNDOS_BLOQUEO * 1000));
   return true;
 }
 

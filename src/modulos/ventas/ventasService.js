@@ -3,14 +3,10 @@ import { leerSesion } from "../../services/authService.js";
 import { fechaHoyLocal, aFechaLocal } from "../../utils/fechas.js";
 import { fecha, numero } from "../../utils/validaciones.js";
 
-export const ORIGEN_DEMOSTRACION = "demostracion-inicial";
+export const ORIGEN_BASE_INICIAL = "base-inicial";
 
 export function seleccionarVentasOperativas(ventas) {
-  const registradas = ventas.filter(venta => venta && venta.ejemplo !== true);
-  if (registradas.length) return { ventas: registradas, demostracion: false };
-
-  const ejemplos = ventas.filter(venta => venta?.ejemplo === true && venta.origen === ORIGEN_DEMOSTRACION);
-  return { ventas: ejemplos, demostracion: ejemplos.length > 0 };
+  return ventas.filter(venta => venta && venta.ejemplo !== true);
 }
 
 export const mediosPago = {
@@ -111,8 +107,7 @@ export function registrarPedido(pedido) {
             Number(linea.cantidad) * Number(linea.precioUnitario) * 100
           ) / 100,
         registradoPor: sesion.id,
-        creadoEn: ahora.toISOString(),
-        ejemplo: false
+        creadoEn: ahora.toISOString()
       });
     })
   );
@@ -154,7 +149,7 @@ export function agruparPedidos(ventas) {
     const grupo = grupos.get(id);
     grupo.total += Number(venta.total) || 0;
     grupo.productos.push(
-      `${venta.cantidad} × ${venta.recetaNombre || "Receta"}${venta.ejemplo ? " (simulada)" : ""}`
+      `${venta.cantidad} × ${venta.recetaNombre || "Receta"}`
     );
   });
   return [...grupos.values()].reverse();
