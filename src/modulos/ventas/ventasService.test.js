@@ -4,21 +4,19 @@ import { fechaHoyLocal } from "../../utils/fechas.js";
 import { db } from "../../services/storage.js";
 import { eliminarVentasDia, pedidoInicial, registrarPedido, validarPedido } from "./ventasService.js";
 
-let datos;
-let numeroEscritura;
-let fallarEn;
 beforeEach(() => {
-  datos = new Map(); numeroEscritura = 0; fallarEn = Infinity;
+  const datos = new Map();
   globalThis.localStorage = {
     getItem: clave => datos.get(clave) ?? null,
-    setItem(clave, valor) { if (++numeroEscritura === fallarEn) throw new Error("cuota llena"); datos.set(clave, valor); },
+    setItem: (clave, valor) => datos.set(clave, valor),
     removeItem: clave => datos.delete(clave)
   };
   localStorage.setItem("sesion", JSON.stringify({ id: "usuario", rol: "empleado" }));
-  localStorage.setItem("recetas", JSON.stringify([
+  db.reemplazarColeccion("ventas", []);
+  db.reemplazarColeccion("recetas", [
     { id: "taco", nombre: "Taco", estado: "activa", precioVenta: 2 },
     { id: "bebida", nombre: "Bebida", estado: "activa", precioVenta: 1 }
-  ]));
+  ]);
 });
 function pedido() {
   return { ...pedidoInicial(), lineas: [
@@ -38,9 +36,14 @@ test("guarda un pedido completo y preserva precios y nombres históricos", () =>
   assert.throws(() => registrarPedido(nuevo), /ya está guardado/);
   assert.equal(db.getAll("ventas").length, 2);
 });
-test("un fallo en la segunda línea revierte la primera y no notifica datos parciales", () => {
+test("un fallo en la segunda línea revierte la primera y no notifica datos parciales", ({ mock }) => {
   const estados = []; const soltar = db.suscribir("ventas", () => estados.push(db.getAll("ventas").length));
-  fallarEn = numeroEscritura + 2;
+  const crear = db.create;
+  let escrituras = 0;
+  mock.method(db, "create", (...args) => {
+    if (++escrituras === 2) throw new Error("No se pudo guardar");
+    return crear(...args);
+  });
   assert.throws(() => registrarPedido(pedido()), /No se pudo guardar/);
   assert.equal(db.getAll("ventas").length, 0);
   assert.deepEqual(estados, [0]);

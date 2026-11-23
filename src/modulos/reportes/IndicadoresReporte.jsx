@@ -27,15 +27,7 @@ export default function Indicadores({ reporte }) {
   const valores = presentarIndicadoresReporte(indicadores, diasEnRango(rango.inicio, rango.fin));
   return (
     <>
-      <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
-        <h2 className="h5 fw-semibold mb-0" id="titulo-indicadores">Resumen del período</h2>
-        {indicadores.ejemplos > 0 && (
-          <span className="badge rounded-pill app-estado app-estado-atencion" id="estado-datos">
-            Incluye ventas simuladas
-          </span>
-        )}
-      </div>
-      <p className="small text-body-secondary mb-3">Datos guardados en este navegador</p>
+      <h2 className="h5 fw-semibold mb-3" id="titulo-indicadores">Resumen del período</h2>
       <div className="row g-3">
         <Indicador id="ventas" titulo="Ventas" valor={valores.ventas} detalle={valores.detalleVentas} />
         <Indicador id="mermas" titulo="Mermas" valor={valores.mermas} detalle={valores.detalleMermas}

@@ -25,6 +25,7 @@ import {
   etiquetaSemana,
   formatoHora,
   indicadoresSemana,
+  listarEmpleados,
   lunesDe,
   mismaFecha,
   sumarDias,
@@ -35,14 +36,15 @@ function TurnosAdmin() {
   const { registros: turnos, problema } = useColeccion(COLECCION);
   const { registros: solicitudes } = useColeccion(COLECCION_SOLICITUDES);
   const { registros: usuarios } = useColeccion("usuarios");
+  const { registros: personal } = useColeccion("personal");
 
   const [lunes, setLunes] = useState(() => lunesDe(new Date()));
   const [enFormulario, setEnFormulario] = useState(null); // { turno } o { previos }
   const [respondiendo, setRespondiendo] = useState("");
 
   const empleados = useMemo(
-    () => usuarios.filter(usuario => usuario.rol === "empleado"),
-    [usuarios]
+    () => listarEmpleados(usuarios, personal),
+    [usuarios, personal]
   );
   const dias = useMemo(
     () => Array.from({ length: 7 }, (_, indice) => sumarDias(lunes, indice)),
@@ -61,7 +63,7 @@ function TurnosAdmin() {
     setRespondiendo(solicitud.id);
     try {
       responderSolicitud(solicitud.id, estado);
-      const nombre = usuarios.find(usuario => String(usuario.id) === String(solicitud.empleadoId))?.nombre
+      const nombre = empleados.find(usuario => String(usuario.id) === String(solicitud.empleadoId))?.nombre
         ?? "Empleado desconocido";
       aviso(`Solicitud de ${nombre} ${estado}`, estado === "aceptada" ? "success" : "info");
     } catch (fallo) {
@@ -197,7 +199,7 @@ function TurnosAdmin() {
             <TarjetaSolicitud key={solicitud.id} solicitud={solicitud} conAcciones
               ocupado={String(respondiendo) === String(solicitud.id)}
               alResponder={responder}
-              nombre={usuarios.find(usuario => String(usuario.id) === String(solicitud.empleadoId))?.nombre
+              nombre={empleados.find(usuario => String(usuario.id) === String(solicitud.empleadoId))?.nombre
                 ?? "Empleado desconocido"} />
           ))}
         </div>

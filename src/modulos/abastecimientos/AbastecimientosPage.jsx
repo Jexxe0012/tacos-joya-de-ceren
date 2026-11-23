@@ -25,7 +25,6 @@ export default function AbastecimientosPage() {
   const [errores, setErrores] = useState({});
   const [calculando, setCalculando] = useState(false);
   const demanda = cargarDemanda(ventas);
-  const origenDemanda = demanda.demostracion ? "ventas de demostración" : "ventas registradas";
   const resultado = proyectarCobertura(aplicados, demanda);
   const insumo = insumosReferencia.find((item) => item.id === campos.insumoId);
   const modificar = (nombre, valor) => {
@@ -200,8 +199,8 @@ export default function AbastecimientosPage() {
             </dl>
             <p className="small text-body-secondary">
               Se reserva un día de seguridad.{" "}
-              {demanda.real || demanda.demostracion
-                ? `Calculado con ${origenDemanda}.`
+              {demanda.hayVentas
+                ? "Calculado con las ventas registradas."
                 : "Calculado con ventas ilustrativas."}
             </p>
           </article>
@@ -212,12 +211,12 @@ export default function AbastecimientosPage() {
           <article className="app-panel h-100 p-3 p-md-4">
             <h2 className="h5">Demanda esperada</h2>
             <p className="small text-body-secondary" id="mensaje-demanda">
-              {demanda.real || demanda.demostracion
-                ? `Promedio de ${origenDemanda} en los últimos 7 días: ${numero(demanda.promedio)} unidades por día.`
+              {demanda.hayVentas
+                ? `Promedio de ventas en los últimos 7 días: ${numero(demanda.promedio)} unidades por día.`
                 : "No hay ventas registradas para la operación en los últimos 7 días. La gráfica muestra un escenario ilustrativo."}
             </p>
             <GraficaBarras
-              titulo={demanda.real || demanda.demostracion ? `Demanda según ${origenDemanda}` : "Escenario ilustrativo de demanda"}
+              titulo={demanda.hayVentas ? "Demanda según ventas registradas" : "Escenario ilustrativo de demanda"}
               etiquetas={demanda.etiquetas}
               valores={demanda.valores}
             />

@@ -3,22 +3,18 @@ import { test } from "node:test";
 import { obtenerResumenDashboard } from "./datosIndicadores.js";
 
 const registros = () => ({ ventas: [], recetas: [], inventario: [], movimientos: [], mermas: [], vinculosInsumos: [] });
-test("sin ventas reales no inventa previsión ni consumo", () => {
+test("sin ventas operativas no inventa previsión ni consumo", () => {
   const datos = registros(); datos.ventas.push({ fecha: "2026-11-07", cantidad: 100, ejemplo: true });
   const resumen = obtenerResumenDashboard(datos, "2026-11-07");
   assert.equal(resumen.promedio, null); assert.equal(resumen.kg, null);
   assert.equal(resumen.dias.length, 7); assert.equal(resumen.pedidos.length, 0);
 });
-test("usa datos iniciales de demostración hasta que se registra una venta", () => {
+test("las ventas de la base inicial siguen sumando al registrar nuevas ventas", () => {
   const datos = registros();
-  datos.ventas.push({ fecha: "2026-11-07", cantidad: 70, ejemplo: true, origen: "demostracion-inicial" });
-  const demo = obtenerResumenDashboard(datos, "2026-11-07");
-  assert.equal(demo.promedio, 10);
-  assert.equal(demo.demostracion, true);
+  datos.ventas.push({ fecha: "2026-11-07", cantidad: 70, origen: "base-inicial" });
+  assert.equal(obtenerResumenDashboard(datos, "2026-11-07").promedio, 10);
   datos.ventas.push({ fecha: "2026-11-07", cantidad: 14 });
-  const operacion = obtenerResumenDashboard(datos, "2026-11-07");
-  assert.equal(operacion.promedio, 2);
-  assert.equal(operacion.demostracion, false);
+  assert.equal(obtenerResumenDashboard(datos, "2026-11-07").promedio, 12);
 });
 test("comparte ventas y mermas con Reportes sin sumar litros como kilogramos", () => {
   const datos = registros();

@@ -1,10 +1,8 @@
 /**
  * db — capa de datos de la aplicación, ahora como módulo ES.
  *
- * Reemplaza al objeto global DB conservando su interfaz: cada colección
- * se guarda como una lista JSON por colección en el almacenamiento del modo activo.
- * Las claves no cambian, así los registros creados antes de la migración
- * se siguen leyendo igual.
+ * Las colecciones operativas viven en memoria y se cargan desde el JSON al
+ * abrir la aplicación. Las cuentas conservan el almacenamiento de acceso.
  *
  * Añade dos cosas que la versión global no tenía:
  *   1. Suscripciones: una vista se entera de las escrituras que terminaron
@@ -17,7 +15,22 @@
  *   db.getAll("usuarios");
  */
 
-import { almacenDatos } from "./modoDatos.js";
+const colecciones = new Map();
+
+/** Las cuentas de acceso conservan sus registros entre recargas. */
+export function persisteColeccion(coleccion) {
+  return coleccion === "usuarios";
+}
+
+const memoria = {
+  getItem: clave => colecciones.get(clave) ?? null,
+  setItem: (clave, datos) => colecciones.set(clave, datos),
+  removeItem: clave => colecciones.delete(clave)
+};
+
+function almacenDatos(coleccion) {
+  return persisteColeccion(coleccion) ? globalThis.localStorage : memoria;
+}
 
 // Una lectura dañada se conserva bajo esta marca antes de sobreescribirla,
 // para que los datos originales puedan recuperarse a mano.
@@ -71,10 +84,10 @@ function notificar(coleccion) {
  * Una clave que todavía no existe da una lista vacía, así el resto del
  * código nunca trabaja con undefined. Un contenido inválido tampoco rompe
  * la página: se registra la causa, se devuelve la lista vacía y el texto
- * original queda intacto en localStorage hasta que algo escriba encima.
+ * original queda intacto hasta que algo escriba encima.
  */
 function leer(coleccion) {
-  const crudo = almacenDatos().getItem(coleccion);
+  const crudo = almacenDatos(coleccion).getItem(coleccion);
   if (!crudo) {
     problemas.delete(coleccion);
     return [];
@@ -96,10 +109,10 @@ function leer(coleccion) {
 
 /** Copia el contenido dañado a su clave de respaldo antes de perderlo. */
 function resguardar(coleccion) {
-  const crudo = almacenDatos().getItem(coleccion);
+  const crudo = almacenDatos(coleccion).getItem(coleccion);
   if (crudo == null) return;
   try {
-    almacenDatos().setItem(`${coleccion}${SUFIJO_RESPALDO}`, crudo);
+    almacenDatos(coleccion).setItem(`${coleccion}${SUFIJO_RESPALDO}`, crudo);
   } catch (error) {
     console.warn(`db: no se pudo respaldar "${coleccion}".`, error);
   }
@@ -107,17 +120,15 @@ function resguardar(coleccion) {
 
 /**
  * Guarda la lista y avisa a sus oyentes.
- * localStorage puede fallar (cuota llena, modo privado). El error se
- * propaga con una causa legible: quien llamó decide qué mostrar y no
- * informa éxito sobre algo que no se guardó.
+ * Propaga los errores de escritura antes de notificar a las vistas.
  */
 function escribir(coleccion, lista) {
   if (problemas.has(coleccion)) resguardar(coleccion);
   try {
-    almacenDatos().setItem(coleccion, JSON.stringify(lista));
+    almacenDatos(coleccion).setItem(coleccion, JSON.stringify(lista));
   } catch (error) {
     throw new Error(
-      `No se pudo guardar "${coleccion}". Libera espacio del navegador e intenta de nuevo.`,
+      `No se pudo guardar "${coleccion}". Intenta de nuevo.`,
       { cause: error }
     );
   }
@@ -210,14 +221,14 @@ export const db = {
    * Los avisos a las vistas salen una sola vez, al final.
    */
   enLote(colecciones, operacion) {
-    const respaldo = colecciones.map(coleccion => [coleccion, almacenDatos().getItem(coleccion)]);
+    const respaldo = colecciones.map(coleccion => [coleccion, almacenDatos(coleccion).getItem(coleccion)]);
     lotesAbiertos += 1;
     try {
       return operacion();
     } catch (error) {
       for (const [coleccion, crudo] of respaldo) {
-        if (crudo === null) almacenDatos().removeItem(coleccion);
-        else almacenDatos().setItem(coleccion, crudo);
+        if (crudo === null) almacenDatos(coleccion).removeItem(coleccion);
+        else almacenDatos(coleccion).setItem(coleccion, crudo);
       }
       colecciones.forEach(coleccion => avisosPendientes.add(coleccion));
       throw error;

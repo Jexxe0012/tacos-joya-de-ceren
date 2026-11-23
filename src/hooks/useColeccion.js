@@ -6,7 +6,7 @@
  * renderizar cuando algo escribe en ella, sin importar desde dónde:
  *
  *   - desde la misma pantalla, por las suscripciones de db;
- *   - desde otra pestaña abierta, por el evento storage del navegador.
+ *   - en cuentas de acceso, desde otra pestaña por el evento storage.
  *
  *   const { registros, crear, actualizar, eliminar } = useColeccion("recetas");
  *
@@ -15,7 +15,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { db } from "../services/storage.js";
+import { db, persisteColeccion } from "../services/storage.js";
 
 function leerEstado(nombre) {
   return { registros: db.getAll(nombre), problema: db.problema(nombre) };
@@ -33,6 +33,7 @@ export function useColeccion(nombre) {
     recargar();
 
     const cancelar = db.suscribir(nombre, recargar);
+    if (!persisteColeccion(nombre)) return cancelar;
 
     // El evento storage solo llega desde otras pestañas; las escrituras
     // de esta pestaña las avisa db.

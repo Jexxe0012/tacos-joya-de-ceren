@@ -6,21 +6,16 @@ import { cargarDemanda, proyectarCobertura, validarProyeccion } from "./modeloAb
 test("conserva la referencia y separa ejemplos de ventas reales", () => {
   assert.equal(cargarDemanda([], "2026-11-07").promedio, 174);
   const demanda = cargarDemanda([{ fecha: "2026-11-07", cantidad: 14 }, { fecha: "2026-11-07", cantidad: 500, ejemplo: true }], "2026-11-07");
-  assert.equal(demanda.promedio, 2); assert.equal(demanda.real, true);
+  assert.equal(demanda.promedio, 2); assert.equal(demanda.hayVentas, true);
   assert.deepEqual(demanda.valores, [0, 0, 0, 0, 0, 0, 14]);
 });
-test("usa los siete días de la demostración con su procedencia", () => {
-  const ventas = [
-    { fecha: "2026-11-07", cantidad: 70, ejemplo: true, origen: "demostracion-inicial" },
-    { fecha: "2026-11-07", cantidad: 500, ejemplo: true }
-  ];
-  const demo = cargarDemanda(ventas, "2026-11-07");
-  assert.equal(demo.promedio, 10);
-  assert.equal(demo.real, false);
-  assert.equal(demo.demostracion, true);
-  const operacion = cargarDemanda([...ventas, { fecha: "2026-11-07", cantidad: 14 }], "2026-11-07");
-  assert.equal(operacion.promedio, 2);
-  assert.equal(operacion.demostracion, false);
+test("calcula la demanda con la base inicial y las ventas nuevas", () => {
+  const ventas = [{ fecha: "2026-11-07", cantidad: 70, origen: "base-inicial" }];
+  assert.equal(cargarDemanda(ventas, "2026-11-07").promedio, 10);
+  ventas.push({ fecha: "2026-11-07", cantidad: 14 });
+  const demanda = cargarDemanda(ventas, "2026-11-07");
+  assert.equal(demanda.promedio, 12);
+  assert.equal(demanda.hayVentas, true);
 });
 test("mantiene cobertura y día de seguridad al cruzar el mes", () => {
   const resultado = proyectarCobertura({ insumoId: "res", fecha: "2026-10-31", cantidad: 20, porcion: .1 }, { promedio: 100 });

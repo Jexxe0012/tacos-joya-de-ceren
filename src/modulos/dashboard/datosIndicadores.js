@@ -14,7 +14,7 @@ export function obtenerResumenDashboard(registros, hoy = fechaHoyLocal()) {
     dia.setDate(dia.getDate() + indice - 6);
     return aTextoLocal(dia);
   });
-  const { ventas, demostracion } = seleccionarVentasOperativas(registros.ventas);
+  const ventas = seleccionarVentasOperativas(registros.ventas);
   const recientes = ventas.filter(
     (venta) => fechas.includes(venta?.fecha) && Number(venta.cantidad) > 0
   );
@@ -104,7 +104,6 @@ export function obtenerResumenDashboard(registros, hoy = fechaHoyLocal()) {
     });
   return {
     dias,
-    demostracion,
     promedio,
     consumo,
     kg: consumo.some((item) => item.unidad === "kg") ? kg : null,
