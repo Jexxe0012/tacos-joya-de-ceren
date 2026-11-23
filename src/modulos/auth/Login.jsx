@@ -24,6 +24,8 @@ import {
 import { aviso, error as mostrarError } from "../../services/dialogos.js";
 import { correo as reglaCorreo, texto } from "../../utils/validaciones.js";
 import MarcoAuth from "./MarcoAuth.jsx";
+import EnlaceDemostracion from "../../components/EnlaceDemostracion.jsx";
+import { esModoDemostracion } from "../../services/modoDatos.js";
 import SelectorRol from "./SelectorRol.jsx";
 
 /**
@@ -150,6 +152,10 @@ function Login() {
         </button>
       </form>
 
+      <p className="toggle-link">
+        {esModoDemostracion() && <>Usa las cuentas de demostración.{" "}</>}
+        <EnlaceDemostracion />
+      </p>
       <p className="toggle-link">
         ¿No tienes cuenta?{" "}
         <Link to="/registro" onClick={cerrarSesion}>Regístrate</Link>

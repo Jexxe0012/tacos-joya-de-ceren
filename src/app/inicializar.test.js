@@ -1,15 +1,22 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { sembrarCuentasPrueba } from "../services/authService.js";
+import { leerSesion, sembrarCuentasPrueba } from "../services/authService.js";
 import { sembrarInventario } from "../modulos/inventario/semillaInventario.js";
 import { sembrarRecetas } from "../modulos/recetas/semillaRecetas.js";
 import { sembrarTurnos } from "../modulos/turnos/semillaTurnos.js";
 import { fechaHoyLocal } from "../utils/fechas.js";
 
+function memoria(datos) {
+  return {
+    getItem: clave => datos.get(clave) ?? null,
+    setItem: (clave, valor) => datos.set(clave, valor),
+    removeItem: clave => datos.delete(clave)
+  };
+}
+
 function almacen() {
   const datos = new Map();
-  globalThis.localStorage = { getItem: clave => datos.get(clave) ?? null,
-    setItem: (clave, valor) => datos.set(clave, valor), removeItem: clave => datos.delete(clave) };
+  globalThis.localStorage = memoria(datos);
   return datos;
 }
 test("el arranque conserva IDs y listas vacías sin crear ventas de demostración", async () => {
@@ -54,9 +61,11 @@ function cargarSemillasAnteriores() {
   sembrarTurnos();
 }
 
-test("actualiza las semillas anteriores cuando están intactas y conserva las cuentas", async () => {
+test("actualiza las semillas intactas aunque haya ventas y mermas guardadas como listas vacías", async () => {
   almacen();
   cargarSemillasAnteriores();
+  localStorage.setItem("ventas", "[]");
+  localStorage.setItem("mermas", "[ ]");
   const cuentas = JSON.parse(localStorage.getItem("usuarios"));
   const { inicializarDatos } = await import("./inicializar.js?migracion");
   await inicializarDatos();
@@ -77,4 +86,31 @@ test("una modificación del inventario anterior impide cargar datos de demostrac
   await inicializarDatos();
   assert.equal(localStorage.getItem("inventario"), guardado);
   assert.equal(localStorage.getItem("ventas"), null);
+});
+
+test("la demostración guarda su sesión y sus datos por separado", async () => {
+  const anteriores = almacen();
+  const ventasLocales = JSON.stringify([{ id: "venta-usuario", cantidad: 14 }]);
+  const sesionLocal = JSON.stringify({ id: "usuario", rol: "admin" });
+  localStorage.setItem("ventas", ventasLocales);
+  localStorage.setItem("sesion", sesionLocal);
+  const esperado = new Map(anteriores);
+  const anteriorUbicacion = globalThis.location;
+  const anteriorSesion = globalThis.sessionStorage;
+  globalThis.location = { search: "?demo=1" };
+  globalThis.sessionStorage = memoria(new Map());
+  try {
+    const { inicializarDatos } = await import("./inicializar.js?demostracion-aislada");
+    await inicializarDatos();
+    assert.equal(leerSesion(), null);
+    assert.equal(JSON.parse(sessionStorage.getItem("ventas")).length, 1090);
+    assert.equal(JSON.parse(sessionStorage.getItem("mermas")).length, 5);
+    assert.deepEqual(anteriores, esperado);
+    globalThis.location = { search: "" };
+    assert.equal(leerSesion().id, "usuario");
+    assert.equal(localStorage.getItem("ventas"), ventasLocales);
+  } finally {
+    globalThis.location = anteriorUbicacion;
+    globalThis.sessionStorage = anteriorSesion;
+  }
 });

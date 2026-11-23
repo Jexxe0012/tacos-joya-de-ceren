@@ -11,8 +11,9 @@
  */
 
 import { db } from "./storage.js";
+import { almacenDatos } from "./modoDatos.js";
 
-/** Claves de localStorage que usa la sesión. No cambian desde el prototipo. */
+/** Claves del almacenamiento de sesión y bloqueo. */
 export const CLAVE_SESION = "sesion";
 const CLAVE_FALLOS = "loginFallos";
 const CLAVE_BLOQUEO = "loginBloqueadoHasta";
@@ -84,7 +85,7 @@ export function correoRegistrado(correo) {
  */
 export function leerSesion() {
   try {
-    const sesion = JSON.parse(localStorage.getItem(CLAVE_SESION));
+    const sesion = JSON.parse(almacenDatos().getItem(CLAVE_SESION));
     return sesion && ROLES.includes(sesion.rol) ? sesion : null;
   } catch {
     return null;
@@ -100,23 +101,23 @@ function guardarSesion(usuario) {
     rol: usuario.rol,
     loginAt: Date.now()
   };
-  localStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
+  almacenDatos().setItem(CLAVE_SESION, JSON.stringify(sesion));
   return sesion;
 }
 
 /** Borra la sesión persistida. El aviso y la navegación son de la interfaz. */
 export function borrarSesion() {
-  localStorage.removeItem(CLAVE_SESION);
+  almacenDatos().removeItem(CLAVE_SESION);
 }
 
 // ---------- Bloqueo tras varios intentos fallidos ----------
 
 /**
- * Los fallos y la hora de desbloqueo viven en localStorage, no en una
+ * Los fallos y la hora de desbloqueo viven en el almacenamiento del modo activo, no en una
  * variable, para que recargar la página no salte el bloqueo.
  */
 export function msDeBloqueo() {
-  const hasta = Number(localStorage.getItem(CLAVE_BLOQUEO));
+  const hasta = Number(almacenDatos().getItem(CLAVE_BLOQUEO));
   const restan = hasta - Date.now();
   return restan > 0 ? restan : 0;
 }
@@ -126,19 +127,19 @@ export function estaBloqueado() {
 }
 
 export function limpiarBloqueo() {
-  localStorage.removeItem(CLAVE_BLOQUEO);
-  localStorage.removeItem(CLAVE_FALLOS);
+  almacenDatos().removeItem(CLAVE_BLOQUEO);
+  almacenDatos().removeItem(CLAVE_FALLOS);
 }
 
 /** Suma un fallo y, al llegar al máximo, bloquea el acceso. */
 function registrarFallo() {
-  const fallos = Number(localStorage.getItem(CLAVE_FALLOS)) + 1;
+  const fallos = Number(almacenDatos().getItem(CLAVE_FALLOS)) + 1;
   if (fallos < MAX_INTENTOS) {
-    localStorage.setItem(CLAVE_FALLOS, String(fallos));
+    almacenDatos().setItem(CLAVE_FALLOS, String(fallos));
     return false;
   }
-  localStorage.removeItem(CLAVE_FALLOS);
-  localStorage.setItem(CLAVE_BLOQUEO, String(Date.now() + SEGUNDOS_BLOQUEO * 1000));
+  almacenDatos().removeItem(CLAVE_FALLOS);
+  almacenDatos().setItem(CLAVE_BLOQUEO, String(Date.now() + SEGUNDOS_BLOQUEO * 1000));
   return true;
 }
 
