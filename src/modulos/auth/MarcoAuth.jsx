@@ -9,6 +9,7 @@
  */
 
 import { useEffect } from "react";
+import logoTacos from "../../assets/logo-tacos.webp";
 import "../../../css/login.css";
 
 const CARACTERISTICAS = [
@@ -32,7 +33,7 @@ function MarcoAuth({ titulo, subtitulo, children, tituloPagina }) {
   return (
     <main className="login-layout">
       <section className="login-left">
-        <div className="login-logo">TJ</div>
+        <img className="login-logo" src={logoTacos} alt="" width="288" height="288" />
         <h1>Tacos Joya de Cerén</h1>
         <p className="login-subtitle">Control de inventario y operación de la taquería</p>
         <ul className="login-features">

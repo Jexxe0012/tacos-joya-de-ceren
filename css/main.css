@@ -46,15 +46,11 @@
 }
 
 .app-page .app-marca {
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  display: block;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
   flex-shrink: 0;
-  background-color: var(--danger);
-  color: var(--nav-text);
-  font-size: 0.875rem;
-  font-weight: 700;
+  object-fit: contain;
 }
 
 .app-page .app-sidebar .nav-link {
