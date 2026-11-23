@@ -224,7 +224,6 @@ Cada integrante trabaja en su propia rama y aparece como colaborador del reposit
 | Nombre completo | Carné |
 | --- | --- |
 | Alexander Josué Menjívar | MG202784 |
-| Carlos Alexander Rosales Ascencio | RA262936 |
 | Diego Armando Henríquez Fuentes | HF261938 |
 | José Ricardo Sandoval Hernández | SH262272 |
 | Josué Israel Sandoval Alfaro | SA260082 |
