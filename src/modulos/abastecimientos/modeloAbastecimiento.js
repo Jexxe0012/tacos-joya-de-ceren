@@ -5,6 +5,7 @@ import {
   fechaLegible
 } from "../../utils/fechas.js";
 import { fecha, numero } from "../../utils/validaciones.js";
+import { seleccionarVentasOperativas } from "../ventas/ventasService.js";
 
 // Cantidades de referencia del simulador original; no son existencias de Inventario.
 export const insumosReferencia = [
@@ -59,26 +60,27 @@ export function cargarDemanda(ventas, hoy = fechaHoyLocal()) {
     sumarDias(hoy, indice - 6)
   );
   const valores = new Map(fechas.map((fecha) => [fecha, 0]));
-  let real = false;
-  ventas.forEach((venta) => {
-    if (venta?.ejemplo === true || !valores.has(venta?.fecha?.slice(0, 10)))
-      return;
+  const fuente = seleccionarVentasOperativas(ventas);
+  let hayVentas = false;
+  fuente.ventas.forEach((venta) => {
+    if (typeof venta.fecha !== "string" || !valores.has(venta.fecha.slice(0, 10))) return;
     const cantidad = Number(venta.cantidad);
     if (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 500) return;
     const fecha = venta.fecha.slice(0, 10);
     valores.set(fecha, valores.get(fecha) + cantidad);
-    real = true;
+    hayVentas = true;
   });
-  const serie = real ? [...valores.values()] : [148, 162, 178, 212, 170];
+  const serie = hayVentas ? [...valores.values()] : [148, 162, 178, 212, 170];
   return {
     valores: serie,
-    etiquetas: real
+    etiquetas: hayVentas
       ? fechas.map((fecha) =>
           fechaLegible(fecha, { weekday: "short", day: "numeric" })
         )
       : ["Jue", "Vie", "Sáb", "Dom", "Lun"],
     promedio: serie.reduce((suma, valor) => suma + valor, 0) / serie.length,
-    real
+    real: hayVentas && !fuente.demostracion,
+    demostracion: hayVentas && fuente.demostracion
   };
 }
 function paso(valor, min, max, incremento) {

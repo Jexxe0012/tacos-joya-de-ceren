@@ -127,7 +127,12 @@ export default function VentasPage() {
 
   return (
     <>
-      <h1 className="h3 fw-bold mb-4">Ventas del día</h1>
+      <div className="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <h1 className="h3 fw-bold mb-0">Ventas del día</h1>
+        {ventasDia.some(venta => venta.ejemplo === true) && (
+          <span className="badge rounded-pill app-rol border">Incluye ventas de demostración</span>
+        )}
+      </div>
       {[problemaRecetas, problemaVentas].filter(Boolean).map((mensaje) => (
         <p className="alert alert-warning" key={mensaje}>
           {mensaje}

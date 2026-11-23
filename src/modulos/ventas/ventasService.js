@@ -3,6 +3,16 @@ import { leerSesion } from "../../services/authService.js";
 import { fechaHoyLocal, aFechaLocal } from "../../utils/fechas.js";
 import { fecha, numero } from "../../utils/validaciones.js";
 
+export const ORIGEN_DEMOSTRACION = "demostracion-inicial";
+
+export function seleccionarVentasOperativas(ventas) {
+  const registradas = ventas.filter(venta => venta && venta.ejemplo !== true);
+  if (registradas.length) return { ventas: registradas, demostracion: false };
+
+  const ejemplos = ventas.filter(venta => venta?.ejemplo === true && venta.origen === ORIGEN_DEMOSTRACION);
+  return { ventas: ejemplos, demostracion: ejemplos.length > 0 };
+}
+
 export const mediosPago = {
   efectivo: "Efectivo",
   tarjeta: "Tarjeta",
