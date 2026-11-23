@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import demostracion from "../datos/operacion-demostracion.json" with { type: "json" };
 import { leerSesion, sembrarCuentasPrueba } from "../services/authService.js";
 import { sembrarInventario } from "../modulos/inventario/semillaInventario.js";
 import { sembrarRecetas } from "../modulos/recetas/semillaRecetas.js";
@@ -70,8 +71,11 @@ test("actualiza las semillas intactas aunque haya ventas y mermas guardadas como
   const { inicializarDatos } = await import("./inicializar.js?migracion");
   await inicializarDatos();
   assert.deepEqual(JSON.parse(localStorage.getItem("usuarios")).slice(0, 2), cuentas);
-  assert.equal(JSON.parse(localStorage.getItem("inventario")).length, 18);
-  assert.equal(JSON.parse(localStorage.getItem("recetas")).length, 5);
+  assert.equal(JSON.parse(localStorage.getItem("inventario")).length, demostracion.inventario.length);
+  assert.deepEqual(
+    JSON.parse(localStorage.getItem("recetas")).map(receta => receta.id),
+    demostracion.recetas.map(receta => receta.id)
+  );
   assert.ok(JSON.parse(localStorage.getItem("ventas")).length > 0);
 });
 
@@ -103,7 +107,7 @@ test("la demostración guarda su sesión y sus datos por separado", async () => 
     const { inicializarDatos } = await import("./inicializar.js?demostracion-aislada");
     await inicializarDatos();
     assert.equal(leerSesion(), null);
-    assert.equal(JSON.parse(sessionStorage.getItem("ventas")).length, 1090);
+    assert.equal(JSON.parse(sessionStorage.getItem("ventas")).length, demostracion.ventas.length);
     assert.equal(JSON.parse(sessionStorage.getItem("mermas")).length, 5);
     assert.deepEqual(anteriores, esperado);
     globalThis.location = { search: "" };
