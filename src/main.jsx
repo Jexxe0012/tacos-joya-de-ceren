@@ -28,12 +28,12 @@ import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import { inicializarDatos } from "./app/inicializar.js";
 
-inicializarDatos();
-
 const raiz = document.getElementById("raiz");
 
-createRoot(raiz).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+inicializarDatos().then(() => {
+  createRoot(raiz).render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  );
+});

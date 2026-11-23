@@ -6,7 +6,7 @@ import {
 } from "../../utils/fechas.js";
 import { listarInsumos } from "../../services/insumosService.js";
 import { calcularReporte } from "../reportes/modeloReporte.js";
-import { agruparPedidos } from "../ventas/ventasService.js";
+import { agruparPedidos, seleccionarVentasOperativas } from "../ventas/ventasService.js";
 
 export function obtenerResumenDashboard(registros, hoy = fechaHoyLocal()) {
   const fechas = Array.from({ length: 7 }, (_, indice) => {
@@ -14,7 +14,7 @@ export function obtenerResumenDashboard(registros, hoy = fechaHoyLocal()) {
     dia.setDate(dia.getDate() + indice - 6);
     return aTextoLocal(dia);
   });
-  const ventas = registros.ventas.filter((venta) => venta?.ejemplo !== true);
+  const { ventas, demostracion } = seleccionarVentasOperativas(registros.ventas);
   const recientes = ventas.filter(
     (venta) => fechas.includes(venta?.fecha) && Number(venta.cantidad) > 0
   );
@@ -104,6 +104,7 @@ export function obtenerResumenDashboard(registros, hoy = fechaHoyLocal()) {
     });
   return {
     dias,
+    demostracion,
     promedio,
     consumo,
     kg: consumo.some((item) => item.unidad === "kg") ? kg : null,

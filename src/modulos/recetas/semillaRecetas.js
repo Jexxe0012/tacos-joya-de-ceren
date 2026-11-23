@@ -106,14 +106,17 @@ const RECETAS = [
   }
 ];
 
-export function sembrarRecetas() {
-  const ahora = Date.now();
-  return db.seed(COLECCION, RECETAS.map(receta => ({
+export function recetasIniciales(ahora = Date.now()) {
+  return RECETAS.map(receta => ({
     ...receta,
     creadaPor: "Datos de ejemplo",
     creadaEn: ahora,
     actualizadaEn: ahora
-  })));
+  }));
+}
+
+export function sembrarRecetas() {
+  return db.seed(COLECCION, recetasIniciales());
 }
 
 export default sembrarRecetas;

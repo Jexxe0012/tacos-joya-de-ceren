@@ -15,7 +15,10 @@ export default function Dashboard() {
   );
   return (
     <>
-      <h1 className="h3 fw-bold mb-4">Resumen de operación</h1>
+      <div className="d-flex flex-wrap align-items-center gap-3 mb-4">
+        <h1 className="h3 fw-bold mb-0">Resumen de operación</h1>
+        {resumen.demostracion && <span className="badge rounded-pill app-rol border">Ventas de demostración</span>}
+      </div>
       {problemas?.map((mensaje) => (
         <p className="alert alert-warning" key={mensaje}>
           {mensaje}

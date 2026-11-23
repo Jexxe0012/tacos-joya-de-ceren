@@ -182,6 +182,11 @@ export const db = {
     return true;
   },
 
+  /** Guarda un conjunto completo que el arranque ya verificó. */
+  reemplazarColeccion(coleccion, datos) {
+    escribir(coleccion, datos);
+  },
+
   /**
    * Avisa a "oyente" cuando una escritura de esa colección termina bien.
    * Devuelve la función que cancela la suscripción.

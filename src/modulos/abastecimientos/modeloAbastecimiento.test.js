@@ -9,6 +9,19 @@ test("conserva la referencia y separa ejemplos de ventas reales", () => {
   assert.equal(demanda.promedio, 2); assert.equal(demanda.real, true);
   assert.deepEqual(demanda.valores, [0, 0, 0, 0, 0, 0, 14]);
 });
+test("usa los siete días de la demostración con su procedencia", () => {
+  const ventas = [
+    { fecha: "2026-11-07", cantidad: 70, ejemplo: true, origen: "demostracion-inicial" },
+    { fecha: "2026-11-07", cantidad: 500, ejemplo: true }
+  ];
+  const demo = cargarDemanda(ventas, "2026-11-07");
+  assert.equal(demo.promedio, 10);
+  assert.equal(demo.real, false);
+  assert.equal(demo.demostracion, true);
+  const operacion = cargarDemanda([...ventas, { fecha: "2026-11-07", cantidad: 14 }], "2026-11-07");
+  assert.equal(operacion.promedio, 2);
+  assert.equal(operacion.demostracion, false);
+});
 test("mantiene cobertura y día de seguridad al cruzar el mes", () => {
   const resultado = proyectarCobertura({ insumoId: "res", fecha: "2026-10-31", cantidad: 20, porcion: .1 }, { promedio: 100 });
   assert.equal(resultado.cobertura, 2); assert.equal(resultado.agotamiento, "2026-11-02");
