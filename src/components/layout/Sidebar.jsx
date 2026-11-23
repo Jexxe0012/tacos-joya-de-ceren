@@ -10,6 +10,7 @@
 
 import { BookOpen, CalendarDays, ChartColumn, LayoutDashboard, LogOut, Package, Receipt, Trash2, Truck } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import logoTacos from "../../assets/logo-tacos.webp";
 import { useAuth } from "../../auth/useAuth.js";
 import { modulosDeRol, nombreRol } from "../../app/modulos.js";
 import { confirmar } from "../../services/dialogos.js";
@@ -57,7 +58,7 @@ function Sidebar({ alNavegar }) {
     <>
       <div className="d-flex align-items-center justify-content-between gap-3 p-4">
         <div className="d-flex align-items-center gap-3">
-          <span className="app-marca rounded-3" aria-hidden="true">TJ</span>
+          <img className="app-marca" src={logoTacos} alt="" width="288" height="288" />
           <div>
             <h2 className="h6 mb-1" id="titulo-menu">Tacos Joya</h2>
             <p className="small mb-0 app-texto-lateral">de Cerén</p>

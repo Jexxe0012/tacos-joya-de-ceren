@@ -75,21 +75,11 @@
   justify-content: center;   /* centra verticalmente el bloque de contenido */
 }
 
-/* Logo TJ: cuadrado rojo con la sigla blanca
-   centrada. width y height iguales = cuadrado.
-   display:flex para centrar el texto adentro. */
 .login-logo {
-  width: 3.5rem;
-  height: 3.5rem;
-  background: var(--color-rojo);
-  color: #FFFFFF;
-  font-weight: 700;
-  font-size: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.5rem;   /* esquinas suavemente redondeadas */
-  letter-spacing: 0.05em;  /* separa un poquito la T de la J */
+  display: block;
+  inline-size: 7rem;
+  block-size: 7rem;
+  object-fit: contain;
 }
 
 /* Título principal: grande, peso fuerte.
@@ -156,9 +146,8 @@
 
   .login-left .login-logo {
     grid-row: span 2;
-    inline-size: 2.75rem;
-    block-size: 2.75rem;
-    font-size: 1rem;
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
   }
 
   .login-left h1 {
