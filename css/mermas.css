@@ -1,0 +1,53 @@
+/* Estilos propios de la pantalla de Mermas.
+   La base compartida (colores, layout, botones, paneles) vive en css/main.css,
+   que esta pagina tambien enlaza. Aqui solo van las reglas de este modulo.
+   Todas las reglas llevan .pagina-mermas (clase del <body>) para no afectar
+   a otras pantallas. */
+
+/* Paleta del modulo: apunta a las variables de main.css.
+   AJUSTAR los nombres (--color-...) a los que existan en css/main.css y
+   borrar el segundo valor de cada var() cuando se confirmen. */
+.pagina-mermas {
+    --mermas-fondo: var(--color-crema, #f0e7d6);
+    --mermas-acento: var(--color-rojo, #c84e4a);
+    --mermas-menu-activo: var(--color-gris-oscuro, #363334fb);
+}
+
+.pagina-mermas .sidebar .nav-link.active {
+    background-color: var(--mermas-menu-activo);
+    border-radius: 5px;
+}
+.pagina-mermas .container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+    background-color: var(--mermas-fondo);
+}
+.pagina-mermas main {
+    margin-left: 0;
+    background-color: var(--mermas-fondo);
+    min-height: 100vh;
+}
+
+.pagina-mermas .merma-critica {
+    color: var(--danger);
+}
+
+.pagina-mermas .row {
+    display: flex;
+}
+
+.pagina-mermas .historial-card {
+    /* Ocupa la columna que le toca. Con un ancho fijo se desbordaba en
+       pantallas angostas y aparecia scroll horizontal en toda la pagina. */
+    width: 100%;
+}
+
+/* El historial crece con cada merma registrada: se limita la altura del
+   area de la tabla y el scroll queda adentro, para que la tarjeta no
+   estire la pagina cuando hay muchos registros. */
+
+.pagina-mermas .historial-card .table-responsive {
+
+    max-height: 420px;
+    overflow-y: auto;
+}
