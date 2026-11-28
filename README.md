@@ -10,6 +10,7 @@ Aplicación web de gestión interna para Tacos Joya de Cerén, un restaurante me
 ## Contenido
 
 - [Entrega final](#entrega-final)
+- [Video de presentación](#video-de-presentación)
 - [Problema que resuelve](#problema-que-resuelve)
 - [Mockups en Figma](#mockups-en-figma)
 - [Capturas de la aplicación](#capturas-de-la-aplicación)
@@ -30,6 +31,15 @@ Etapa 3, entrega final: aplicación completa desplegada (domingo 22 de noviembre
 - [Repositorio público](https://github.com/Jexxe0012/tacos-joya-de-ceren)
 - [Mockups del proyecto](#mockups-en-figma)
 - [Licencia Creative Commons](LICENSE)
+- [Video de presentación del proyecto](https://drive.google.com/drive/folders/1jlA-R0OKAl2I3OH-aHZRYvmw7MtYIXdt?usp=sharing)
+
+## Video de presentación
+
+En este video, Diego, Alexander y Josué presentamos Tacos Joya de Cerén de principio a fin: el problema del negocio y el diseño,
+los perfiles de administrador y empleado, la operación diaria de la taquería y cómo esa información llega a los reportes
+y al abastecimiento. Es el recorrido completo de la aplicación como parte de la entrega final.
+
+**Enlace del video:** https://drive.google.com/drive/folders/1jlA-R0OKAl2I3OH-aHZRYvmw7MtYIXdt?usp=sharing
 
 ## Problema que resuelve
 
